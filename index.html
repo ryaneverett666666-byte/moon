@@ -189,27 +189,18 @@
     }
 
     @media (max-width: 768px) {
-      #topbar {
-        padding: 0 12px;
-        padding-top: calc(max(8px, env(safe-area-inset-top)) + 5px);
-      }
+      #topbar { padding: 0 12px; padding-top: calc(max(8px, env(safe-area-inset-top)) + 5px); }
       #logo-icon { width: 26px; height: 26px; }
       #logo-text { font-size: clamp(8px, 2.4vw, 11px); letter-spacing: 1px; }
-
-      #info-panel {
-        top: 61px; border-radius: 4px; max-width: calc(100vw - 8px);
-        flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
-      }
+      #info-panel { top: 61px; border-radius: 4px; max-width: calc(100vw - 8px); flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
       #info-panel::-webkit-scrollbar { display: none; }
       .info-cell { padding: 6px clamp(4px, 2vw, 10px); min-width: 0; flex: 1 1 0; gap: 2px; }
       .info-label { font-size: clamp(5px, 1.8vw, 7px); letter-spacing: 0.5px; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
       .info-value { font-size: clamp(10px, 3.2vw, 13px); }
-
       #cat-toggle { left: 10px; top: 132px; width: 48px; height: 48px; font-size: 24px; }
       #categories { top: 192px; min-width: 165px; padding: 4px 0; gap: 0; }
       .cat-btn { padding: 6px clamp(6px, 2vw, 10px); font-size: clamp(10px, 3vw, 12px); gap: 4px; }
       .cat-btn .cat-dot { width: 5px; height: 5px; }
-
       #card { right: 0; left: 0; top: auto; bottom: 0; width: 100%; max-height: 60vh; transform: translateY(100%); border-radius: 12px 12px 0 0; border-bottom: none; }
       #card.show { transform: translateY(0); }
       #card-header { padding: 12px 14px; }
@@ -220,20 +211,16 @@
       .card-stat .val { font-size: clamp(12px, 3.5vw, 15px); }
       #card-author { padding: 8px 14px; font-size: clamp(8px, 2vw, 10px); }
       #card-close { width: 26px; height: 26px; font-size: 15px; top: 8px; right: 8px; }
-
       #stats { gap: clamp(6px, 3vw, 14px); padding: 6px 8px; padding-bottom: max(6px, env(safe-area-inset-bottom)); flex-wrap: wrap; }
       .stat-item { font-size: clamp(6px, 1.8vw, 8px); letter-spacing: 1px; }
       .stat-value { font-size: clamp(13px, 4vw, 16px); margin-bottom: 1px; }
-
       #zoom-controls { right: 10px; bottom: clamp(48px, 12vh, 58px); gap: 3px; }
       .zoom-btn { width: clamp(32px, 9vw, 36px); height: clamp(32px, 9vw, 36px); font-size: clamp(14px, 4vw, 16px); }
-
       #earth-panel { left: 10px; bottom: clamp(48px, 12vh, 58px); max-width: clamp(130px, 40vw, 180px); }
       #earth-panel-title { font-size: clamp(7px, 2vw, 9px); letter-spacing: 1px; margin-bottom: 4px; }
       #earth-panel-bar { height: 2px; margin-bottom: 6px; }
       #earth-panel-text { font-size: clamp(8px, 2.2vw, 10px); line-height: 1.35; }
     }
-
     @media (max-width: 380px) {
       .info-cell { padding: 5px 3px; }
       .info-label { font-size: 5px; letter-spacing: 0; }
@@ -242,7 +229,6 @@
       .stat-item { font-size: 6px; }
       .stat-value { font-size: 13px; }
     }
-
     @media (min-width: 769px) and (max-width: 1024px) {
       #card { width: 300px; }
       #stats { gap: 24px; }
@@ -355,7 +341,7 @@
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-    // === ПРОВЕРКА WEBGL ===
+    // === ПРОВЕРКА WEBGL (внутри модуля, как в оригинале) ===
     const tc = document.createElement('canvas');
     if (!tc.getContext('webgl2') && !tc.getContext('webgl')) {
       document.getElementById('loading').style.display = 'none';
@@ -363,12 +349,20 @@
       throw new Error('No WebGL');
     }
 
-    // === ЯНДЕКС SDK ===
+    // === ЯНДЕКС SDK — динамическая загрузка (не блокирует страницу) ===
     let ysdk = null;
-    if (typeof YaGames !== 'undefined') {
-      YaGames.init().then(s => { ysdk = s; s.features.LoadingAPI?.ready(); })
-        .catch(e => console.warn('SDK:', e));
-    }
+    const sdkScript = document.createElement('script');
+    sdkScript.src = 'https://yandex.ru/games/sdk/v1';
+    sdkScript.onload = () => {
+      if (typeof YaGames !== 'undefined') {
+        YaGames.init().then(s => {
+          ysdk = s;
+          s.features.LoadingAPI?.ready();
+        }).catch(e => console.warn('SDK:', e));
+      }
+    };
+    sdkScript.onerror = () => console.warn('Yandex SDK не загружен');
+    document.head.appendChild(sdkScript);
 
     // === ДАННЫЕ ===
     const CAT_INFO = {
@@ -403,7 +397,6 @@
     // === ОПРЕДЕЛЕНИЕ УСТРОЙСТВА ===
     const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-    // === НАЧАЛЬНЫЕ ПОЗИЦИИ КАМЕРЫ ===
     const MOBILE_CAM = { x: 0, y: 2.2, z: 10.5 };
     const DESKTOP_CAM = { x: 0, y: 1.2, z: 7 };
 
@@ -626,12 +619,10 @@
     sunLight.position.copy(sunPos);
     scene.add(sunLight);
 
-    // Красный свет от Земли на тёмную сторону Луны
     const earthShine = new THREE.DirectionalLight(0xff4422, 0.15);
     earthShine.position.copy(moonToEarth);
     scene.add(earthShine);
 
-    // Мягкий окружающий свет — тёплый, чтобы тёмная сторона читалась
     const moonAmbient = new THREE.AmbientLight(0x332222, 0.25);
     scene.add(moonAmbient);
 
@@ -664,17 +655,18 @@
       color: 0x888888, roughness: 1.0, metalness: 0.0
     });
 
+    // Пороги LOD — расстояние от ПОВЕРХНОСТИ Луны
     const LOD_LEVELS = isMobile
       ? [
-          { dist: 22, segs: 32 },
-          { dist: 12, segs: 64 },
-          { dist: 6,  segs: 96 },
+          { dist: 20, segs: 32 },
+          { dist: 10, segs: 64 },
+          { dist: 4,  segs: 96 },
           { dist: 0,  segs: 128 }
         ]
       : [
-          { dist: 10, segs: 48 },
-          { dist: 5,  segs: 96 },
-          { dist: 0,  segs: 128 }
+          { dist: 8, segs: 48 },
+          { dist: 3, segs: 96 },
+          { dist: 0, segs: 128 }
         ];
 
     const lodGeometries = LOD_LEVELS.map(lvl =>
@@ -687,7 +679,8 @@
     let currentLOD = lodGeometries.length - 1;
 
     function updateLOD() {
-      const dist = camera.position.length();
+      // Расстояние от камеры до ПОВЕРХНОСТИ Луны
+      const dist = camera.position.length() - MOON_R;
       for (let i = 0; i < LOD_LEVELS.length; i++) {
         if (dist >= LOD_LEVELS[i].dist) {
           if (currentLOD !== i) {
@@ -715,8 +708,97 @@
     );
     moonTex.colorSpace = THREE.SRGBColorSpace;
     moonTex.anisotropy = isMobile ? 2 : 8;
-    moonTex.generateMipmaps = false;
-    moonTex.minFilter = THREE.LinearFilter;
+    // Мипмапы включены — текстура не мерцает при удалении
+    moonTex.generateMipmaps = true;
+    moonTex.minFilter = THREE.LinearMipmapLinearFilter;
+
+    // === МАРКЕРЫ ОБЪЕКТОВ ===
+    function latLonToVec3(lat, lon, radius) {
+      const phi = (90 - lat) * Math.PI / 180;
+      const theta = (lon + 180) * Math.PI / 180;
+      return new THREE.Vector3(
+        -radius * Math.sin(phi) * Math.cos(theta),
+         radius * Math.cos(phi),
+         radius * Math.sin(phi) * Math.sin(theta)
+      );
+    }
+
+    const markers = [];
+    const glowMeshes = [];
+
+    OBJECTS.forEach(obj => {
+      const pos = latLonToVec3(obj.lat, obj.lon, MOON_R * 1.02);
+      const info = CAT_INFO[obj.cat];
+
+      const markerMat = new THREE.MeshBasicMaterial({ color: info.color });
+      const marker = new THREE.Mesh(
+        new THREE.SphereGeometry(0.05, 12, 12),
+        markerMat
+      );
+      marker.position.copy(pos);
+      marker.userData = obj;
+
+      const glowMat = new THREE.MeshBasicMaterial({
+        color: info.color, transparent: true, opacity: 0.25,
+        blending: THREE.AdditiveBlending, depthWrite: false
+      });
+      const glow = new THREE.Mesh(
+        new THREE.SphereGeometry(0.11, 12, 12),
+        glowMat
+      );
+      glow.position.copy(pos);
+      marker.userData.glow = glow;
+      glowMeshes.push(glow);
+
+      moonGroup.add(marker);
+      moonGroup.add(glow);
+      markers.push(marker);
+    });
+
+    // === RAYCASTING ДЛЯ КЛИКА ПО МАРКЕРАМ ===
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    let pointerDownPos = null;
+    let pointerDownTime = 0;
+
+    renderer.domElement.addEventListener('pointerdown', (e) => {
+      pointerDownPos = { x: e.clientX, y: e.clientY };
+      pointerDownTime = Date.now();
+    });
+
+    renderer.domElement.addEventListener('pointerup', (e) => {
+      if (!pointerDownPos) return;
+      const dx = e.clientX - pointerDownPos.x;
+      const dy = e.clientY - pointerDownPos.y;
+      const moveDist = Math.sqrt(dx * dx + dy * dy);
+      const elapsed = Date.now() - pointerDownTime;
+      pointerDownPos = null;
+
+      // Клик, а не перетаскивание
+      if (moveDist < 8 && elapsed < 400) {
+        pointer.x = (e.clientX / innerWidth) * 2 - 1;
+        pointer.y = -(e.clientY / innerHeight) * 2 + 1;
+        raycaster.setFromCamera(pointer, camera);
+        const visibleMarkers = markers.filter(m => m.visible);
+        const hits = raycaster.intersectObjects(visibleMarkers);
+        if (hits.length > 0) {
+          showCard(hits[0].object.userData);
+        }
+      }
+    });
+
+    // Курсор-подсказка на десктопе
+    if (!isMobile) {
+      renderer.domElement.addEventListener('pointermove', (e) => {
+        if (e.buttons > 0) return;
+        pointer.x = (e.clientX / innerWidth) * 2 - 1;
+        pointer.y = -(e.clientY / innerHeight) * 2 + 1;
+        raycaster.setFromCamera(pointer, camera);
+        const visibleMarkers = markers.filter(m => m.visible);
+        const hits = raycaster.intersectObjects(visibleMarkers);
+        renderer.domElement.style.cursor = hits.length > 0 ? 'pointer' : 'grab';
+      });
+    }
 
     // === КАРТОЧКА ===
     const card = document.getElementById('card');
@@ -780,13 +862,38 @@
     });
 
     let activeCat = 'all';
+
+    function updateMarkerVisibility() {
+      markers.forEach(m => {
+        const visible = (activeCat === 'all' || m.userData.cat === activeCat);
+        m.visible = visible;
+        if (m.userData.glow) m.userData.glow.visible = visible;
+      });
+    }
+
     document.querySelectorAll('.cat-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         activeCat = btn.dataset.cat;
+        updateMarkerVisibility();
       });
     });
+
+    // === СТАТИСТИКА ===
+    (function updateStats() {
+      const total = OBJECTS.length;
+      const ruinedStatuses = ['Разрушен', 'Разрушена', 'Мемориал'];
+      const active = OBJECTS.filter(o =>
+        o.status && !ruinedStatuses.some(r => o.status.includes(r))
+      ).length;
+      const ruined = OBJECTS.filter(o =>
+        o.status && ruinedStatuses.some(r => o.status.includes(r))
+      ).length;
+      document.getElementById('stat-total').textContent = total;
+      document.getElementById('stat-active').textContent = active;
+      document.getElementById('stat-ruined').textContent = ruined;
+    })();
 
     // === УПРАВЛЕНИЕ ===
     const controls = new OrbitControls(camera, renderer.domElement);
@@ -800,9 +907,7 @@
     controls.autoRotateSpeed = 0.35;
 
     // === ЛОГИКА ВРАЩЕНИЯ ===
-    // Базовая скорость вращения
     const earthRotSpeed = 0.000476;
-    // Луна вращается на 5% медленнее Земли
     const moonRotSpeed = earthRotSpeed * 0.95;
     let moonAutoRotate = true;
     let lastInteractionTime = Date.now();
@@ -856,6 +961,16 @@
 
       earthAtmoMat.uniforms.uTime.value = t;
 
+      // Пульсация маркеров
+      markers.forEach((m, i) => {
+        if (!m.visible) return;
+        const pulse = 1 + Math.sin(t * 3 + i * 0.7) * 0.2;
+        if (m.userData.glow) {
+          m.userData.glow.scale.setScalar(pulse);
+          m.userData.glow.material.opacity = 0.15 + Math.sin(t * 3 + i * 0.7) * 0.1;
+        }
+      });
+
       const camDir = camera.position.clone().normalize();
       bgSphere.rotation.y = -camDir.x * 0.04;
       bgSphere.rotation.x = camDir.y * 0.03;
@@ -865,7 +980,6 @@
         moonAutoRotate = true;
       }
       if (moonAutoRotate) {
-        // Луна вращается на 5% медленнее Земли
         moonGroup.rotation.y += moonRotSpeed;
         earthGroup.rotation.y += earthRotSpeed;
       }
@@ -885,8 +999,16 @@
 
     addEventListener('beforeunload', () => {
       lodGeometries.forEach(g => g.dispose());
+      markers.forEach(m => {
+        m.geometry.dispose();
+        m.material.dispose();
+      });
+      glowMeshes.forEach(g => {
+        g.geometry.dispose();
+        g.material.dispose();
+      });
       scene.traverse(o => {
-        if (o.geometry && !lodGeometries.includes(o.geometry)) o.geometry.dispose();
+        if (o.geometry && !lodGeometries.includes(o.geometry) && !markers.includes(o) && !glowMeshes.includes(o)) o.geometry.dispose();
         if (o.material) {
           if (Array.isArray(o.material)) o.material.forEach(m => m.dispose());
           else o.material.dispose();
