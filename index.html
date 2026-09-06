@@ -36,7 +36,6 @@
       background: radial-gradient(circle at 35% 35%, rgba(0,229,255,0.2), #003344);
     }
     #logo-text { font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: #00e5ff; font-weight: 600; white-space: nowrap; }
-    #logo-text .sub { display: block; color: #456; font-size: 9px; letter-spacing: 2px; font-weight: 400; margin-top: 2px; }
 
     #info-panel {
       position: fixed; top: 52px; left: 50%; transform: translateX(-50%);
@@ -196,7 +195,6 @@
       }
       #logo-icon { width: 26px; height: 26px; }
       #logo-text { font-size: clamp(8px, 2.4vw, 11px); letter-spacing: 1px; }
-      #logo-text .sub { display: none; }
 
       #info-panel {
         top: 61px; border-radius: 4px; max-width: calc(100vw - 8px);
@@ -267,7 +265,7 @@
   <div id="topbar">
     <div id="logo">
       <div id="logo-icon"></div>
-      <div id="logo-text">Луна 2087<span class="sub">Хроники колонии</span></div>
+      <div id="logo-text">Луна 2087</div>
     </div>
   </div>
 
@@ -866,7 +864,6 @@
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.07;
-    // На мобильных — больше диапазон отдаления
     controls.minDistance = isMobile ? 3.5 : 3.5;
     controls.maxDistance = isMobile ? 28 : 14;
     controls.enablePan = false;
