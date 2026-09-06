@@ -22,10 +22,9 @@
     #topbar {
       position: fixed; top: 0; left: 0; right: 0; z-index: 25;
       display: flex; justify-content: space-between; align-items: flex-start;
-      padding: 12px 18px; pointer-events: none;
-      padding-top: max(12px, env(safe-area-inset-top));
+      padding: 0 18px 12px; pointer-events: none;
     }
-    #logo { pointer-events: auto; display: flex; align-items: center; gap: 8px; }
+    #logo { pointer-events: auto; display: flex; align-items: center; gap: 8px; margin-top: 4px; }
     #logo-icon {
       width: 28px; height: 28px; border: 2px solid #00e5ff; border-radius: 50%;
       position: relative; box-shadow: 0 0 10px rgba(0,229,255,0.4); flex-shrink: 0;
@@ -36,7 +35,7 @@
     }
     #logo-text { font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: #00e5ff; font-weight: 600; white-space: nowrap; }
     #logo-text .sub { display: block; color: #456; font-size: 9px; letter-spacing: 2px; font-weight: 400; margin-top: 2px; }
-    #topbar-right { pointer-events: auto; text-align: right; font-size: 10px; color: #456; letter-spacing: 2px; text-transform: uppercase; white-space: nowrap; }
+    #topbar-right { pointer-events: auto; text-align: right; font-size: 10px; color: #456; letter-spacing: 2px; text-transform: uppercase; white-space: nowrap; margin-top: 4px; }
     #topbar-right .val { color: #ff6644; font-size: 13px; font-weight: 700; }
 
     #info-panel {
@@ -182,16 +181,19 @@
     }
 
     @media (max-width: 768px) {
-      #topbar { padding: 8px 12px; padding-top: max(8px, env(safe-area-inset-top)); justify-content: space-between; align-items: flex-start; }
-      #logo { display: flex; align-items: center; gap: 8px; }
+      #topbar {
+        padding: 0 12px 8px;
+        padding-top: calc(max(8px, env(safe-area-inset-top)) + 5px);
+        justify-content: space-between; align-items: flex-start;
+      }
+      #logo { display: flex; align-items: center; gap: 8px; margin-top: 0; }
       #logo-icon { width: 26px; height: 26px; flex-shrink: 0; }
       #logo-text { font-size: clamp(8px, 2.4vw, 11px); letter-spacing: 1px; text-transform: uppercase; color: #00e5ff; font-weight: 600; white-space: nowrap; }
       #logo-text .sub { display: none; }
-      #topbar-right { pointer-events: auto; text-align: right; font-size: clamp(7px, 1.8vw, 9px); color: #456; letter-spacing: 0.5px; text-transform: uppercase; white-space: nowrap; line-height: 1.3; }
-      #topbar-right .val { color: #ff6644; font-size: clamp(9px, 2.4vw, 11px); font-weight: 700; }
+      #topbar-right { display: none; }
 
       #info-panel {
-        top: 56px; border-radius: 4px; max-width: calc(100vw - 8px);
+        top: 61px; border-radius: 4px; max-width: calc(100vw - 8px);
         flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
       }
       #info-panel::-webkit-scrollbar { display: none; }
@@ -199,8 +201,8 @@
       .info-label { font-size: clamp(5px, 1.8vw, 7px); letter-spacing: 0.5px; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
       .info-value { font-size: clamp(10px, 3.2vw, 13px); }
 
-      #cat-toggle { left: 10px; top: 122px; width: 48px; height: 48px; font-size: 24px; }
-      #categories { top: 182px; min-width: 160px; padding: 4px 0; gap: 0; }
+      #cat-toggle { left: 10px; top: 132px; width: 48px; height: 48px; font-size: 24px; }
+      #categories { top: 192px; min-width: 160px; padding: 4px 0; gap: 0; }
       .cat-btn { padding: 6px clamp(6px, 2vw, 10px); font-size: clamp(8px, 2.5vw, 10px); gap: 4px; }
       .cat-btn .cat-dot { width: 5px; height: 5px; }
 
@@ -233,8 +235,6 @@
       .info-label { font-size: 5px; letter-spacing: 0; }
       .info-value { font-size: 10px; }
       #logo-text { font-size: 8px; letter-spacing: 0.5px; }
-      #topbar-right { font-size: 6px; letter-spacing: 0; }
-      #topbar-right .val { font-size: 8px; }
       .stat-item { font-size: 6px; }
       .stat-value { font-size: 13px; }
     }
