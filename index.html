@@ -409,7 +409,7 @@
 
     // === СЦЕНА ===
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x01020a, 0.0035);
+    scene.fog = new THREE.FogExp2(0x01020a, 0.0025);
 
     const camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 0.1, 600);
 
@@ -426,7 +426,7 @@
     renderer.setSize(innerWidth, innerHeight);
     renderer.setPixelRatio(Math.min(devicePixelRatio, isMobile ? 1.5 : 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.15;
+    renderer.toneMappingExposure = 1.0;
     renderer.domElement.style.position = 'absolute';
     renderer.domElement.style.top = '0';
     renderer.domElement.style.left = '0';
@@ -626,9 +626,14 @@
     sunLight.position.copy(sunPos);
     scene.add(sunLight);
 
-    const earthShine = new THREE.DirectionalLight(0xff4422, 0.189);
+    // Красный свет от Земли на тёмную сторону Луны
+    const earthShine = new THREE.DirectionalLight(0xff4422, 0.15);
     earthShine.position.copy(moonToEarth);
     scene.add(earthShine);
+
+    // Мягкий окружающий свет — тёплый, чтобы тёмная сторона читалась
+    const moonAmbient = new THREE.AmbientLight(0x332222, 0.25);
+    scene.add(moonAmbient);
 
     // === ЗВЁЗДЫ ===
     function makeStars(n, minR, maxR, color, size, opacity) {
@@ -659,13 +664,12 @@
       color: 0x888888, roughness: 1.0, metalness: 0.0
     });
 
-    // Уровни детализации: отдаление → меньше сегментов, приближение → больше
     const LOD_LEVELS = isMobile
       ? [
-          { dist: 22, segs: 32 },   // очень далеко
-          { dist: 12, segs: 64 },   // средне
-          { dist: 6,  segs: 96 },   // близко
-          { dist: 0,  segs: 128 }   // вплотную — максимум детализации
+          { dist: 22, segs: 32 },
+          { dist: 12, segs: 64 },
+          { dist: 6,  segs: 96 },
+          { dist: 0,  segs: 128 }
         ]
       : [
           { dist: 10, segs: 48 },
@@ -673,12 +677,10 @@
           { dist: 0,  segs: 128 }
         ];
 
-    // Предсоздаём все геометрии
     const lodGeometries = LOD_LEVELS.map(lvl =>
       new THREE.SphereGeometry(MOON_R, lvl.segs, lvl.segs)
     );
 
-    // Стартуем с максимальной детализации (последний уровень)
     const moonMesh = new THREE.Mesh(lodGeometries[lodGeometries.length - 1], moonMat);
     moonGroup.add(moonMesh);
 
@@ -790,7 +792,7 @@
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.07;
-    controls.minDistance = isMobile ? 3.5 : 3.5;
+    controls.minDistance = 3.5;
     controls.maxDistance = isMobile ? 28 : 14;
     controls.enablePan = false;
     controls.rotateSpeed = 0.55;
@@ -798,7 +800,10 @@
     controls.autoRotateSpeed = 0.35;
 
     // === ЛОГИКА ВРАЩЕНИЯ ===
-    const moonRotSpeed = 0.000476;
+    // Базовая скорость вращения
+    const earthRotSpeed = 0.000476;
+    // Луна вращается на 5% медленнее Земли
+    const moonRotSpeed = earthRotSpeed * 0.95;
     let moonAutoRotate = true;
     let lastInteractionTime = Date.now();
     const AUTO_ROTATE_DELAY = 30000;
@@ -815,7 +820,6 @@
     });
     renderer.domElement.addEventListener('touchmove', onUserInteraction, { passive: true });
 
-    // Кнопки зума
     const zoomStep = isMobile ? 2.4 : 1.6;
 
     document.getElementById('btn-zoom-in').addEventListener('click', () => {
@@ -861,8 +865,9 @@
         moonAutoRotate = true;
       }
       if (moonAutoRotate) {
+        // Луна вращается на 5% медленнее Земли
         moonGroup.rotation.y += moonRotSpeed;
-        earthGroup.rotation.y += moonRotSpeed;
+        earthGroup.rotation.y += earthRotSpeed;
       }
 
       updateLOD();
