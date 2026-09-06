@@ -21,8 +21,10 @@
 
     #topbar {
       position: fixed; top: 0; left: 0; right: 0; z-index: 25;
-      display: flex; justify-content: center; align-items: center;
-      gap: 20px; padding: 0 18px; pointer-events: none;
+      display: flex; justify-content: flex-start; align-items: flex-start;
+      padding: 0 18px;
+      padding-top: max(8px, env(safe-area-inset-top));
+      pointer-events: none;
     }
     #logo { pointer-events: auto; display: flex; align-items: center; gap: 8px; }
     #logo-icon {
@@ -35,8 +37,6 @@
     }
     #logo-text { font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: #00e5ff; font-weight: 600; white-space: nowrap; }
     #logo-text .sub { display: block; color: #456; font-size: 9px; letter-spacing: 2px; font-weight: 400; margin-top: 2px; }
-    #topbar-right { pointer-events: auto; text-align: left; font-size: 10px; color: #456; letter-spacing: 2px; text-transform: uppercase; white-space: nowrap; }
-    #topbar-right .val { color: #ff6644; font-size: 13px; font-weight: 700; }
 
     #info-panel {
       position: fixed; top: 52px; left: 50%; transform: translateX(-50%);
@@ -69,7 +69,8 @@
     #cat-toggle {
       position: fixed; left: 14px; top: 130px; z-index: 26;
       width: 54px; height: 54px;
-      background: rgba(5,12,25,0.85); border: 1px solid rgba(0,229,255,0.2);
+      background: rgba(5,12,25,0.72);
+      border: 1px solid rgba(0,229,255,0.2);
       border-radius: 8px; color: #00e5ff; cursor: pointer;
       backdrop-filter: blur(8px); font-size: 24px; font-family: inherit;
       display: flex; align-items: center; justify-content: center;
@@ -84,7 +85,7 @@
       display: flex; flex-direction: column;
       background: rgba(5,12,25,0.92); border: 1px solid rgba(0,229,255,0.15);
       border-left: none; border-radius: 0 6px 6px 0; backdrop-filter: blur(8px);
-      padding: 8px 0; min-width: 175px;
+      padding: 8px 0; min-width: 185px;
       transform: translateX(-100%);
       transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
       box-shadow: 4px 0 20px rgba(0,0,0,0.3);
@@ -92,7 +93,7 @@
     #categories.show { transform: translateX(0); }
     .cat-btn {
       padding: 8px 14px; background: transparent; border: none;
-      color: #5a7a9a; font-size: 11px; cursor: pointer; text-align: left;
+      color: #5a7a9a; font-size: 13px; cursor: pointer; text-align: left;
       transition: all 0.2s; font-family: inherit;
       border-left: 2px solid transparent; display: flex; align-items: center; gap: 6px;
     }
@@ -192,13 +193,10 @@
       #topbar {
         padding: 0 12px;
         padding-top: calc(max(8px, env(safe-area-inset-top)) + 5px);
-        justify-content: flex-start; align-items: flex-start;
       }
-      #logo { display: flex; align-items: center; gap: 8px; }
-      #logo-icon { width: 26px; height: 26px; flex-shrink: 0; }
-      #logo-text { font-size: clamp(8px, 2.4vw, 11px); letter-spacing: 1px; text-transform: uppercase; color: #00e5ff; font-weight: 600; white-space: nowrap; }
+      #logo-icon { width: 26px; height: 26px; }
+      #logo-text { font-size: clamp(8px, 2.4vw, 11px); letter-spacing: 1px; }
       #logo-text .sub { display: none; }
-      #topbar-right { display: none; }
 
       #info-panel {
         top: 61px; border-radius: 4px; max-width: calc(100vw - 8px);
@@ -210,8 +208,8 @@
       .info-value { font-size: clamp(10px, 3.2vw, 13px); }
 
       #cat-toggle { left: 10px; top: 132px; width: 48px; height: 48px; font-size: 24px; }
-      #categories { top: 192px; min-width: 160px; padding: 4px 0; gap: 0; }
-      .cat-btn { padding: 6px clamp(6px, 2vw, 10px); font-size: clamp(8px, 2.5vw, 10px); gap: 4px; }
+      #categories { top: 192px; min-width: 165px; padding: 4px 0; gap: 0; }
+      .cat-btn { padding: 6px clamp(6px, 2vw, 10px); font-size: clamp(10px, 3vw, 12px); gap: 4px; }
       .cat-btn .cat-dot { width: 5px; height: 5px; }
 
       #card { right: 0; left: 0; top: auto; bottom: 0; width: 100%; max-height: 60vh; transform: translateY(100%); border-radius: 12px 12px 0 0; border-bottom: none; }
@@ -270,10 +268,6 @@
     <div id="logo">
       <div id="logo-icon"></div>
       <div id="logo-text">Луна 2087<span class="sub">Хроники колонии</span></div>
-    </div>
-    <div id="topbar-right">
-      Земля — <span class="val">УНИЧТОЖЕНА</span><br>
-      Колония — <span class="val" style="color:#00e5ff;">АКТИВНА</span>
     </div>
   </div>
 
@@ -408,25 +402,31 @@
       { title: 'Кратер Шрёдингер', lat: -75.0, lon: 132.0, year: 2087, cat: 'crater', text: '312 км. Залежи водяного льда — стратегический ресурс.', diameter: '312 км', depth: '2.5 км', status: 'Добыча льда' },
     ];
 
+    // === ОПРЕДЕЛЕНИЕ УСТРОЙСТВА ===
+    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    // === НАЧАЛЬНЫЕ ПОЗИЦИИ КАМЕРЫ ===
+    const MOBILE_CAM = { x: 0, y: 2.2, z: 10.5 };
+    const DESKTOP_CAM = { x: 0, y: 1.2, z: 7 };
+
     // === СЦЕНА ===
     const scene = new THREE.Scene();
     scene.fog = new THREE.FogExp2(0x01020a, 0.0035);
 
     const camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 0.1, 600);
 
-    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     if (isMobile) {
-      camera.position.set(0, 2.2, 10.5);
+      camera.position.set(MOBILE_CAM.x, MOBILE_CAM.y, MOBILE_CAM.z);
       camera.fov = 36;
     } else {
-      camera.position.set(0, 1.2, 7);
+      camera.position.set(DESKTOP_CAM.x, DESKTOP_CAM.y, DESKTOP_CAM.z);
       camera.fov = 42;
     }
     camera.updateProjectionMatrix();
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     renderer.setSize(innerWidth, innerHeight);
-    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(devicePixelRatio, isMobile ? 1.5 : 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.15;
     renderer.domElement.style.position = 'absolute';
@@ -436,7 +436,7 @@
     renderer.domElement.style.height = '100%';
     document.body.appendChild(renderer.domElement);
 
-    // === ЗАГРУЗКА ТЕКСТУР — НОВАЯ ЛОГИКА ===
+    // === ЗАГРУЗКА ТЕКСТУР ===
     const texLoader = new THREE.TextureLoader();
     const loadingBar = document.getElementById('loading-bar');
     let texturesLoaded = 0;
@@ -456,22 +456,18 @@
     }
 
     function tryHideLoading() {
-      // Ждём пока все 3 текстуры загрузятся И текстура Луны применена к материалу
       if (loadingHidden) return;
       if (texturesLoaded >= totalTextures && moonTexReady) {
-        // Дополнительная пауза 500 мс — даём GPU время отрисовать
-        // первый кадр с применённой текстурой Луны
         loadingHidden = true;
         if (loadingBar) loadingBar.style.width = '100%';
         setTimeout(() => {
           const ld = document.getElementById('loading');
           ld.style.opacity = '0';
           setTimeout(() => ld.style.display = 'none', 600);
-        }, 500);
+        }, 200);
       }
     }
 
-    // Фолбэк: если что-то пошло не так — скрываем через 30 секунд
     setTimeout(() => {
       if (!loadingHidden) {
         loadingHidden = true;
@@ -480,7 +476,7 @@
         ld.style.opacity = '0';
         setTimeout(() => ld.style.display = 'none', 600);
       }
-    }, 30000);
+    }, 12000);
 
     // === ФОН — МЛЕЧНЫЙ ПУТЬ ===
     const bgTex = texLoader.load(
@@ -497,7 +493,7 @@
       fragmentShader: `uniform sampler2D uTexture; uniform float uBrightness; varying vec2 vUv; void main(){ vec3 c=texture2D(uTexture,vUv).rgb*uBrightness; gl_FragColor=vec4(c,1.0);}`,
       side: THREE.BackSide, fog: false, depthWrite: false
     });
-    const bgSphere = new THREE.Mesh(new THREE.SphereGeometry(300, 32, 32), bgMat);
+    const bgSphere = new THREE.Mesh(new THREE.SphereGeometry(300, 24, 24), bgMat);
     bgSphere.renderOrder = -1;
     scene.add(bgSphere);
 
@@ -507,7 +503,7 @@
     sunGroup.position.copy(sunPos);
     scene.add(sunGroup);
 
-    sunGroup.add(new THREE.Mesh(new THREE.SphereGeometry(3.0, 32, 32), new THREE.MeshBasicMaterial({ color: 0xfff5dd, fog: false })));
+    sunGroup.add(new THREE.Mesh(new THREE.SphereGeometry(3.0, 24, 24), new THREE.MeshBasicMaterial({ color: 0xfff5dd, fog: false })));
 
     const sunGlow1Mat = new THREE.ShaderMaterial({
       uniforms: { uColor: { value: new THREE.Color(0xfff0bb) } },
@@ -515,7 +511,7 @@
       fragmentShader: `varying vec3 vN; uniform vec3 uColor; void main(){ float i=pow(max(0.0,dot(vN,vec3(0,0,1))),1.5); gl_FragColor=vec4(uColor,i*0.7);}`,
       side: THREE.BackSide, transparent: true, blending: THREE.AdditiveBlending, fog: false, depthWrite: false
     });
-    sunGroup.add(new THREE.Mesh(new THREE.SphereGeometry(5.5, 32, 32), sunGlow1Mat));
+    sunGroup.add(new THREE.Mesh(new THREE.SphereGeometry(5.5, 24, 24), sunGlow1Mat));
 
     const sunGlow2Mat = new THREE.ShaderMaterial({
       uniforms: { uColor: { value: new THREE.Color(0xffddaa) } },
@@ -523,7 +519,7 @@
       fragmentShader: `varying vec3 vN; uniform vec3 uColor; void main(){ float i=pow(max(0.0,dot(vN,vec3(0,0,1))),3.0); gl_FragColor=vec4(uColor,i*0.4);}`,
       side: THREE.BackSide, transparent: true, blending: THREE.AdditiveBlending, fog: false, depthWrite: false
     });
-    sunGroup.add(new THREE.Mesh(new THREE.SphereGeometry(10.0, 32, 32), sunGlow2Mat));
+    sunGroup.add(new THREE.Mesh(new THREE.SphereGeometry(10.0, 24, 24), sunGlow2Mat));
 
     // === ЗЕМЛЯ НА ФОНЕ ===
     const EARTH_R = 7.92 * 2.21;
@@ -539,7 +535,7 @@
       (err) => { console.error('earth_color.jpg:', err); onTextureDone(); }
     );
     earthColorTex.colorSpace = THREE.SRGBColorSpace;
-    earthColorTex.anisotropy = 4;
+    earthColorTex.anisotropy = isMobile ? 2 : 4;
 
     const earthToSun = sunPos.clone().sub(earthGroup.position).normalize();
     const earthToMoon = new THREE.Vector3(0, 0, 0).sub(earthGroup.position).normalize();
@@ -579,7 +575,8 @@
           gl_FragColor = vec4(color, 1.0);
         }`
     });
-    earthGroup.add(new THREE.Mesh(new THREE.SphereGeometry(EARTH_R, 96, 96), earthMat));
+    const earthSegs = isMobile ? 48 : 96;
+    earthGroup.add(new THREE.Mesh(new THREE.SphereGeometry(EARTH_R, earthSegs, earthSegs), earthMat));
 
     const earthAtmoMat = new THREE.ShaderMaterial({
       uniforms: { uTime: { value: 0 } },
@@ -594,7 +591,7 @@
         }`,
       side: THREE.BackSide, transparent: true, blending: THREE.AdditiveBlending, fog: false, depthWrite: false
     });
-    earthGroup.add(new THREE.Mesh(new THREE.SphereGeometry(EARTH_R + 0.72, 48, 48), earthAtmoMat));
+    earthGroup.add(new THREE.Mesh(new THREE.SphereGeometry(EARTH_R + 0.72, 24, 24), earthAtmoMat));
 
     const smokeGeo = new THREE.BufferGeometry();
     const sN = 500, sP = new Float32Array(sN * 3);
@@ -651,8 +648,10 @@
       geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
       return new THREE.Points(geo, new THREE.PointsMaterial({ color, size, transparent: true, opacity, fog: false }));
     }
-    scene.add(makeStars(1800, 100, 200, 0x8899cc, 0.14, 0.5));
-    scene.add(makeStars(300, 80, 120, 0xff6633, 0.1, 0.25));
+    const starCount1 = isMobile ? 900 : 1800;
+    const starCount2 = isMobile ? 150 : 300;
+    scene.add(makeStars(starCount1, 100, 200, 0x8899cc, 0.14, 0.5));
+    scene.add(makeStars(starCount2, 80, 120, 0xff6633, 0.1, 0.25));
 
     // === ЛУНА ===
     const MOON_R = 2.2;
@@ -662,25 +661,19 @@
     const moonMat = new THREE.MeshStandardMaterial({
       color: 0x888888, roughness: 1.0, metalness: 0.0
     });
-    const moonMesh = new THREE.Mesh(new THREE.SphereGeometry(MOON_R, 192, 192), moonMat);
+    const moonSegs = isMobile ? 96 : 128;
+    const moonMesh = new THREE.Mesh(new THREE.SphereGeometry(MOON_R, moonSegs, moonSegs), moonMat);
     moonGroup.add(moonMesh);
 
-    // КЛЮЧЕВОЕ ИЗМЕНЕНИЕ: текстура Луны загружается и применяется
-    // ДО скрытия экрана загрузки. Флаг moonTexReady ставится
-    // только после того, как текстура применена к материалу.
     const moonTex = texLoader.load(
       'textures/moon_color.jpg',
       () => {
-        // Текстура скачана — применяем к материалу
         moonMat.map = moonTex;
         moonMat.color.set(0xffffff);
         moonMat.needsUpdate = true;
-        // Даём GPU один кадр на загрузку текстуры в видеопамять
         requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            moonTexReady = true;
-            tryHideLoading();
-          });
+          moonTexReady = true;
+          tryHideLoading();
         });
       },
       undefined,
@@ -691,7 +684,12 @@
       }
     );
     moonTex.colorSpace = THREE.SRGBColorSpace;
-    moonTex.anisotropy = 8;
+    moonTex.anisotropy = isMobile ? 2 : 8;
+
+    if (isMobile) {
+      moonTex.generateMipmaps = false;
+      moonTex.minFilter = THREE.LinearFilter;
+    }
 
     const moonHazeMat = new THREE.ShaderMaterial({
       uniforms: { uTime: { value: 0 } },
@@ -699,7 +697,7 @@
       fragmentShader: `varying vec3 vN; void main(){ float i=pow(0.55-dot(vN,vec3(0.,0.,1.)),3.0); gl_FragColor=vec4(0.12,0.14,0.22,i*0.25);}`,
       side: THREE.BackSide, transparent: true, blending: THREE.AdditiveBlending, fog: false
     });
-    moonGroup.add(new THREE.Mesh(new THREE.SphereGeometry(MOON_R + 0.06, 48, 48), moonHazeMat));
+    moonGroup.add(new THREE.Mesh(new THREE.SphereGeometry(MOON_R + 0.06, 24, 24), moonHazeMat));
 
     // === МАРКЕРЫ ===
     const markers = [];
@@ -868,8 +866,9 @@
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.07;
-    controls.minDistance = 3.5;
-    controls.maxDistance = 14;
+    // На мобильных — больше диапазон отдаления
+    controls.minDistance = isMobile ? 3.5 : 3.5;
+    controls.maxDistance = isMobile ? 28 : 14;
     controls.enablePan = false;
     controls.rotateSpeed = 0.55;
     controls.autoRotate = false;
@@ -893,14 +892,30 @@
     });
     renderer.domElement.addEventListener('touchmove', onUserInteraction, { passive: true });
 
+    // Кнопки зума — на мобильных больший шаг
+    const zoomStep = isMobile ? 2.4 : 1.6;
+
     document.getElementById('btn-zoom-in').addEventListener('click', () => {
-      camera.position.multiplyScalar(0.85); controls.update();
+      const d = camera.position.length();
+      const target = Math.max(controls.minDistance, d - zoomStep);
+      camera.position.multiplyScalar(target / d);
+      controls.update();
     });
+
     document.getElementById('btn-zoom-out').addEventListener('click', () => {
-      camera.position.multiplyScalar(1.18); controls.update();
+      const d = camera.position.length();
+      const target = Math.min(controls.maxDistance, d + zoomStep);
+      camera.position.multiplyScalar(target / d);
+      controls.update();
     });
+
     document.getElementById('btn-reset').addEventListener('click', () => {
-      camera.position.set(0, 1.2, 7); controls.target.set(0, 0, 0);
+      if (isMobile) {
+        camera.position.set(MOBILE_CAM.x, MOBILE_CAM.y, MOBILE_CAM.z);
+      } else {
+        camera.position.set(DESKTOP_CAM.x, DESKTOP_CAM.y, DESKTOP_CAM.z);
+      }
+      controls.target.set(0, 0, 0);
       moonAutoRotate = true;
       lastInteractionTime = Date.now();
       controls.update();
@@ -954,7 +969,7 @@
       camera.aspect = innerWidth / innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(innerWidth, innerHeight);
-      renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+      renderer.setPixelRatio(Math.min(devicePixelRatio, isMobile ? 1.5 : 2));
     });
 
     addEventListener('beforeunload', () => {
