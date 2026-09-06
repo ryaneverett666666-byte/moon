@@ -650,7 +650,7 @@
     scene.add(makeStars(starCount1, 100, 200, 0x8899cc, 0.14, 0.5));
     scene.add(makeStars(starCount2, 80, 120, 0xff6633, 0.1, 0.25));
 
-    // === ЛУНА ===
+    // === ЛУНА (с динамическим LOD) ===
     const MOON_R = 2.2;
     const moonGroup = new THREE.Group();
     scene.add(moonGroup);
@@ -658,9 +658,44 @@
     const moonMat = new THREE.MeshStandardMaterial({
       color: 0x888888, roughness: 1.0, metalness: 0.0
     });
-    const moonSegs = isMobile ? 64 : 96;
-    const moonMesh = new THREE.Mesh(new THREE.SphereGeometry(MOON_R, moonSegs, moonSegs), moonMat);
+
+    // Уровни детализации: отдаление → меньше сегментов, приближение → больше
+    const LOD_LEVELS = isMobile
+      ? [
+          { dist: 22, segs: 32 },   // очень далеко
+          { dist: 12, segs: 64 },   // средне
+          { dist: 6,  segs: 96 },   // близко
+          { dist: 0,  segs: 128 }   // вплотную — максимум детализации
+        ]
+      : [
+          { dist: 10, segs: 48 },
+          { dist: 5,  segs: 96 },
+          { dist: 0,  segs: 128 }
+        ];
+
+    // Предсоздаём все геометрии
+    const lodGeometries = LOD_LEVELS.map(lvl =>
+      new THREE.SphereGeometry(MOON_R, lvl.segs, lvl.segs)
+    );
+
+    // Стартуем с максимальной детализации (последний уровень)
+    const moonMesh = new THREE.Mesh(lodGeometries[lodGeometries.length - 1], moonMat);
     moonGroup.add(moonMesh);
+
+    let currentLOD = lodGeometries.length - 1;
+
+    function updateLOD() {
+      const dist = camera.position.length();
+      for (let i = 0; i < LOD_LEVELS.length; i++) {
+        if (dist >= LOD_LEVELS[i].dist) {
+          if (currentLOD !== i) {
+            moonMesh.geometry = lodGeometries[i];
+            currentLOD = i;
+          }
+          return;
+        }
+      }
+    }
 
     const moonTex = texLoader.load(
       'textures/moon_color.jpg',
@@ -678,8 +713,6 @@
     );
     moonTex.colorSpace = THREE.SRGBColorSpace;
     moonTex.anisotropy = isMobile ? 2 : 8;
-
-    // Мипмапы отключены на всех устройствах
     moonTex.generateMipmaps = false;
     moonTex.minFilter = THREE.LinearFilter;
 
@@ -832,6 +865,8 @@
         earthGroup.rotation.y += moonRotSpeed;
       }
 
+      updateLOD();
+
       controls.update();
       renderer.render(scene, camera);
     }
@@ -844,8 +879,9 @@
     });
 
     addEventListener('beforeunload', () => {
+      lodGeometries.forEach(g => g.dispose());
       scene.traverse(o => {
-        if (o.geometry) o.geometry.dispose();
+        if (o.geometry && !lodGeometries.includes(o.geometry)) o.geometry.dispose();
         if (o.material) {
           if (Array.isArray(o.material)) o.material.forEach(m => m.dispose());
           else o.material.dispose();
