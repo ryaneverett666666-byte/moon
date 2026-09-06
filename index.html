@@ -67,12 +67,32 @@
     .info-cell.territory .info-value { color: #ff6644; text-shadow: 0 0 8px rgba(255,102,68,0.4); }
     .info-cell.turn .info-value { color: #fff; text-shadow: 0 0 8px rgba(255,255,255,0.3); }
 
-    #categories {
-      position: fixed; left: 0; top: 50%; transform: translateY(-50%);
-      z-index: 25; display: flex; flex-direction: column;
-      background: rgba(5,12,25,0.85); border: 1px solid rgba(0,229,255,0.12);
-      border-left: none; border-radius: 0 6px 6px 0; backdrop-filter: blur(8px); padding: 8px 0;
+    /* === КНОПКА-ПЕРЕКЛЮЧАТЕЛЬ КАТЕГОРИЙ === */
+    #cat-toggle {
+      position: fixed; left: 14px; top: 100px; z-index: 26;
+      width: 36px; height: 36px;
+      background: rgba(5,12,25,0.85); border: 1px solid rgba(0,229,255,0.2);
+      border-radius: 6px; color: #00e5ff; cursor: pointer;
+      backdrop-filter: blur(8px); font-size: 18px; font-family: inherit;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s; flex-shrink: 0;
     }
+    #cat-toggle:hover { background: rgba(0,229,255,0.15); border-color: #00e5ff; }
+    #cat-toggle:active { transform: scale(0.92); }
+    #cat-toggle.active { background: rgba(0,229,255,0.15); border-color: #00e5ff; }
+
+    /* === ВЫЕЗЖАЮЩАЯ ПАНЕЛЬ КАТЕГОРИЙ === */
+    #categories {
+      position: fixed; left: 0; top: 144px; z-index: 25;
+      display: flex; flex-direction: column;
+      background: rgba(5,12,25,0.92); border: 1px solid rgba(0,229,255,0.15);
+      border-left: none; border-radius: 0 6px 6px 0; backdrop-filter: blur(8px);
+      padding: 8px 0; min-width: 175px;
+      transform: translateX(-100%);
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 4px 0 20px rgba(0,0,0,0.3);
+    }
+    #categories.show { transform: translateX(0); }
     .cat-btn {
       padding: 8px 14px; background: transparent; border: none;
       color: #5a7a9a; font-size: 11px; cursor: pointer; text-align: left;
@@ -162,12 +182,13 @@
     }
 
     @media (max-width: 768px) {
-      #topbar { padding: 6px 10px; padding-top: max(6px, env(safe-area-inset-top)); }
-      #logo-icon { width: 22px; height: 22px; }
-      #logo-text { font-size: clamp(8px, 2.5vw, 10px); letter-spacing: 1px; }
-      #logo-text .sub { font-size: clamp(6px, 1.5vw, 7px); letter-spacing: 1px; }
-      #topbar-right { font-size: clamp(6px, 1.8vw, 8px); letter-spacing: 1px; }
-      #topbar-right .val { font-size: clamp(8px, 2.5vw, 10px); }
+      #topbar { padding: 10px 16px; padding-top: max(10px, env(safe-area-inset-top)); justify-content: space-between; align-items: flex-start; }
+      #logo { display: flex; align-items: center; gap: 10px; }
+      #logo-icon { width: 32px; height: 32px; }
+      #logo-text { font-size: clamp(10px, 3vw, 14px); letter-spacing: 2px; text-transform: uppercase; color: #00e5ff; font-weight: 600; white-space: nowrap; }
+      #logo-text .sub { display: block; color: #456; font-size: clamp(7px, 2vw, 9px); letter-spacing: 1px; font-weight: 400; margin-top: 2px; white-space: nowrap; }
+      #topbar-right { pointer-events: auto; text-align: right; font-size: clamp(9px, 2.5vw, 12px); color: #456; letter-spacing: 1px; text-transform: uppercase; white-space: normal; line-height: 1.3; }
+      #topbar-right .val { color: #ff6644; font-size: clamp(11px, 3.2vw, 15px); font-weight: 700; display: block; }
 
       #info-panel {
         top: 38px; border-radius: 4px; max-width: calc(100vw - 8px);
@@ -178,7 +199,8 @@
       .info-label { font-size: clamp(5px, 1.8vw, 7px); letter-spacing: 0.5px; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
       .info-value { font-size: clamp(10px, 3.2vw, 13px); }
 
-      #categories { padding: 4px 0; gap: 0; }
+      #cat-toggle { left: 10px; top: 78px; width: 32px; height: 32px; font-size: 16px; }
+      #categories { top: 118px; min-width: 160px; padding: 4px 0; gap: 0; }
       .cat-btn { padding: 6px clamp(6px, 2vw, 10px); font-size: clamp(8px, 2.5vw, 10px); gap: 4px; }
       .cat-btn .cat-dot { width: 5px; height: 5px; }
 
@@ -269,11 +291,13 @@
     </div>
   </div>
 
+  <button id="cat-toggle">☰</button>
+
   <div id="categories">
     <button class="cat-btn active" data-cat="all"><span class="cat-dot" style="background:#00e5ff;--cat-color:#00e5ff;"></span>Все</button>
     <button class="cat-btn" data-cat="colony"><span class="cat-dot" style="background:#44aaff;--cat-color:#44aaff;"></span>Колонии</button>
     <button class="cat-btn" data-cat="mine"><span class="cat-dot" style="background:#ffaa44;--cat-color:#ffaa44;"></span>Шахты</button>
-    <button class="cat-btn" data-cat="lab"><span class="cat-dot" style="background:#7fff7f;--cat-color:#7fff7f;"></span>Лаб.</button>
+    <button class="cat-btn" data-cat="lab"><span class="cat-dot" style="background:#7fff7f;--cat-color:#7fff7f;"></span>Лаборатории</button>
     <button class="cat-btn" data-cat="ruin"><span class="cat-dot" style="background:#ff6644;--cat-color:#ff6644;"></span>Руины</button>
     <button class="cat-btn" data-cat="beacon"><span class="cat-dot" style="background:#ff44ff;--cat-color:#ff44ff;"></span>Маяки</button>
     <button class="cat-btn" data-cat="crater"><span class="cat-dot" style="background:#888;--cat-color:#888;"></span>Кратеры</button>
@@ -380,7 +404,17 @@
     scene.fog = new THREE.FogExp2(0x01020a, 0.0035);
 
     const camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 0.1, 600);
-    camera.position.set(0, 1.2, 7);
+
+    // === АДАПТАЦИЯ КАМЕРЫ ПОД МОБИЛЬНЫЕ ===
+    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (isMobile) {
+      camera.position.set(0, 2.2, 10.5);
+      camera.fov = 36;
+    } else {
+      camera.position.set(0, 1.2, 7);
+      camera.fov = 42;
+    }
+    camera.updateProjectionMatrix();
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     renderer.setSize(innerWidth, innerHeight);
@@ -771,6 +805,21 @@
         handlePick(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
       }
     }, { passive: true });
+
+    // === ПЕРЕКЛЮЧЕНИЕ ПАНЕЛИ КАТЕГОРИЙ ===
+    const catToggle = document.getElementById('cat-toggle');
+    const categoriesPanel = document.getElementById('categories');
+    catToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      categoriesPanel.classList.toggle('show');
+      catToggle.classList.toggle('active');
+    });
+    document.addEventListener('click', (e) => {
+      if (!categoriesPanel.contains(e.target) && e.target !== catToggle) {
+        categoriesPanel.classList.remove('show');
+        catToggle.classList.remove('active');
+      }
+    });
 
     // === УПРАВЛЕНИЕ ===
     const controls = new OrbitControls(camera, renderer.domElement);
