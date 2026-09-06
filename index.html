@@ -6,13 +6,18 @@
   <title>Луна 2087 — Хроники</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html, body { width: 100%; height: 100%; overflow: hidden; overscroll-behavior: none; }
+    html, body {
+      width: 100%; height: 100%; overflow: hidden !important; overscroll-behavior: none !important;
+    }
     body {
       background: #01020a; font-family: 'Segoe UI', Arial, sans-serif;
       touch-action: none; color: #c8e6ff; position: fixed; inset: 0;
       -webkit-user-select: none; user-select: none;
     }
-    canvas { display: block; }
+    canvas {
+      display: block; width: 100%; height: 100%;
+      position: absolute; top: 0; left: 0; z-index: 1;
+    }
 
     #topbar {
       position: fixed; top: 0; left: 0; right: 0; z-index: 25;
@@ -382,6 +387,11 @@
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.15;
+    renderer.domElement.style.position = 'absolute';
+    renderer.domElement.style.top = '0';
+    renderer.domElement.style.left = '0';
+    renderer.domElement.style.width = '100%';
+    renderer.domElement.style.height = '100%';
     document.body.appendChild(renderer.domElement);
 
     // === ЗАГРУЗКА ТЕКСТУР ===
@@ -447,7 +457,6 @@
     sunGroup.add(new THREE.Mesh(new THREE.SphereGeometry(10.0, 32, 32), sunGlow2Mat));
 
     // === ЗЕМЛЯ НА ФОНЕ ===
-    // Радиус: 7.92 * 2.21 = 17.50 (исходный × 2.21: +30% затем +70%)
     const EARTH_R = 7.92 * 2.21;
     const earthGroup = new THREE.Group();
     earthGroup.position.set(-19.745, -2.805, -40.645);
@@ -463,7 +472,6 @@
     earthColorTex.colorSpace = THREE.SRGBColorSpace;
     earthColorTex.anisotropy = 4;
 
-    // Направления
     const earthToSun = sunPos.clone().sub(earthGroup.position).normalize();
     const earthToMoon = new THREE.Vector3(0, 0, 0).sub(earthGroup.position).normalize();
     const moonToEarth = earthGroup.position.clone().normalize();
@@ -492,16 +500,13 @@
           vec3 texColor = texture2D(uTexture, vUv).rgb;
           float light = max(dot(normalize(vN), uLightDir), 0.0);
 
-          // Базовое освещение: яркость 0.679 (0.7 * 0.97)
           vec3 color = texColor * (light * 0.97 + 0.08);
           color *= 0.679;
 
-          // Красноватый оттенок от пожаров — прозрачнее на 40% (0.108 * 0.6 = 0.0648)
           vec3 fireColor = vec3(0.7, 0.15, 0.03);
           float fireAmount = light * 0.0648;
           color = mix(color, color + fireColor * fireAmount, step(0.01, light));
 
-          // Тень от Луны
           float moonAlign = max(dot(normalize(vN), uMoonDir), 0.0);
           float shadow = smoothstep(0.88, 0.99, moonAlign) * light * 0.55;
           color *= (1.0 - shadow);
@@ -511,7 +516,6 @@
     });
     earthGroup.add(new THREE.Mesh(new THREE.SphereGeometry(EARTH_R, 96, 96), earthMat));
 
-    // Ореол атмосферы
     const earthAtmoMat = new THREE.ShaderMaterial({
       uniforms: { uTime: { value: 0 } },
       vertexShader: `varying vec3 vN; void main(){ vN=normalize(normalMatrix*normal); gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
@@ -565,8 +569,6 @@
     sunLight.position.copy(sunPos);
     scene.add(sunLight);
 
-    // === EARTHSHINE — отражённый красноватый свет от горящей Земли ===
-    // Интенсивность 0.189 (0.18 * 1.05, +5% к тёмной стороне обращённой к Земле)
     const earthShine = new THREE.DirectionalLight(0xff4422, 0.189);
     earthShine.position.copy(moonToEarth);
     scene.add(earthShine);
