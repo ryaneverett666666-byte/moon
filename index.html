@@ -3,345 +3,191 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Луна 2087 — Хроники</title>
+  <title>Луна 2087: Рассвет</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html, body {
-      width: 100%; height: 100%; overflow: hidden !important; overscroll-behavior: none !important;
-    }
-    body {
-      background: #01020a; font-family: 'Segoe UI', Arial, sans-serif;
-      touch-action: none; color: #c8e6ff; position: fixed; inset: 0;
-      -webkit-user-select: none; user-select: none;
-    }
-    canvas {
-      display: block; width: 100%; height: 100%;
-      position: absolute; top: 0; left: 0; z-index: 1;
-    }
+    html, body { width: 100%; height: 100%; overflow: hidden !important; overscroll-behavior: none !important; }
+    body { background: #01020a; font-family: 'Segoe UI', Arial, sans-serif; touch-action: none; color: #c8e6ff; position: fixed; inset: 0; -webkit-user-select: none; user-select: none; }
+    canvas { display: block; width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
 
-    #topbar {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 25;
-      display: flex; justify-content: flex-start; align-items: flex-start;
-      padding: 0 18px;
-      padding-top: max(8px, env(safe-area-inset-top));
-      pointer-events: none;
-    }
-    #logo { pointer-events: auto; display: flex; align-items: center; gap: 8px; }
-    #logo-icon {
-      width: 28px; height: 28px; border: 2px solid #00e5ff; border-radius: 50%;
-      position: relative; box-shadow: 0 0 10px rgba(0,229,255,0.4); flex-shrink: 0;
-    }
-    #logo-icon::after {
-      content: ''; position: absolute; inset: 3px; border-radius: 50%;
-      background: radial-gradient(circle at 35% 35%, rgba(0,229,255,0.2), #003344);
-    }
-    #logo-text { font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: #00e5ff; font-weight: 600; white-space: nowrap; }
-
-    #info-panel {
-      position: fixed; top: 52px; left: 50%; transform: translateX(-50%);
-      z-index: 25; display: flex; gap: 0;
-      background: rgba(5,12,25,0.85); border: 1px solid rgba(0,229,255,0.15);
-      border-radius: 6px; overflow: hidden; backdrop-filter: blur(8px);
-    }
-    .info-cell {
-      padding: 12px 14px;
-      display: flex; flex-direction: column; align-items: center;
-      gap: 3px;
-      border-right: 1px solid rgba(0,229,255,0.08);
-      min-width: 72px;
-    }
-    .info-cell:last-child { border-right: none; }
-    .info-label {
-      font-size: 8px; color: #aaccff; letter-spacing: 1.5px;
-      text-transform: uppercase; opacity: 0.95; text-align: center; white-space: nowrap;
-    }
-    .info-value {
-      font-size: 14px; color: #00e5ff; font-weight: 700;
-      text-shadow: 0 0 8px rgba(0,229,255,0.35); text-align: center; white-space: nowrap;
-    }
-    .info-cell.energy .info-value { color: #ffaa44; text-shadow: 0 0 8px rgba(255,170,68,0.4); }
-    .info-cell.credits .info-value { color: #7fff7f; text-shadow: 0 0 8px rgba(127,255,127,0.4); }
-    .info-cell.pop .info-value { color: #44aaff; text-shadow: 0 0 8px rgba(68,170,255,0.4); }
-    .info-cell.territory .info-value { color: #ff6644; text-shadow: 0 0 8px rgba(255,102,68,0.4); }
-    .info-cell.turn .info-value { color: #fff; text-shadow: 0 0 8px rgba(255,255,255,0.3); }
-
-    #cat-toggle {
-      position: fixed; left: 14px; top: 130px; z-index: 26;
-      width: 54px; height: 54px;
-      background: rgba(5,12,25,0.72);
-      border: 1px solid rgba(0,229,255,0.2);
-      border-radius: 8px; color: #00e5ff; cursor: pointer;
-      backdrop-filter: blur(8px); font-size: 24px; font-family: inherit;
-      display: flex; align-items: center; justify-content: center;
-      transition: all 0.2s; flex-shrink: 0;
-    }
-    #cat-toggle:hover { background: rgba(0,229,255,0.15); border-color: #00e5ff; }
-    #cat-toggle:active { transform: scale(0.92); }
-    #cat-toggle.active { background: rgba(0,229,255,0.15); border-color: #00e5ff; }
-
-    #categories {
-      position: fixed; left: 0; top: 198px; z-index: 25;
-      display: flex; flex-direction: column;
-      background: rgba(5,12,25,0.92); border: 1px solid rgba(0,229,255,0.15);
-      border-left: none; border-radius: 0 6px 6px 0; backdrop-filter: blur(8px);
-      padding: 8px 0; min-width: 185px;
-      transform: translateX(-100%);
-      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-      box-shadow: 4px 0 20px rgba(0,0,0,0.3);
-    }
-    #categories.show { transform: translateX(0); }
-    .cat-btn {
-      padding: 8px 14px; background: transparent; border: none;
-      color: #5a7a9a; font-size: 13px; cursor: pointer; text-align: left;
-      transition: all 0.2s; font-family: inherit;
-      border-left: 2px solid transparent; display: flex; align-items: center; gap: 6px;
-    }
-    .cat-btn .cat-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-    .cat-btn:hover { color: #8ac; background: rgba(0,229,255,0.04); }
-    .cat-btn.active { color: #fff; border-left-color: var(--cat-color); background: rgba(0,229,255,0.06); }
-    .cat-btn.active .cat-dot { box-shadow: 0 0 8px var(--cat-color); }
-
-    #card {
-      position: fixed; right: 20px; top: 50%; transform: translateY(-50%) translateX(380px);
-      width: 340px; max-height: 80vh; z-index: 30;
-      background: rgba(5,12,25,0.94); border: 1px solid rgba(0,229,255,0.25);
-      border-radius: 8px; backdrop-filter: blur(12px);
-      transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
-      overflow-y: auto; box-shadow: 0 0 40px rgba(0,229,255,0.06);
-    }
-    #card.show { transform: translateY(-50%) translateX(0); }
-    #card-glow { position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, transparent, #00e5ff, transparent); }
-    #card-header { padding: 14px 18px; background: linear-gradient(135deg, rgba(0,229,255,0.05), transparent); border-bottom: 1px solid rgba(0,229,255,0.1); }
-    #card-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
-    #card-year { font-size: 10px; color: #00e5ff; letter-spacing: 2px; font-weight: 700; padding: 2px 6px; background: rgba(0,229,255,0.1); border-radius: 3px; }
-    #card-cat-badge { font-size: 10px; padding: 2px 6px; border-radius: 3px; letter-spacing: 1px; font-weight: 600; }
-    #card-title { font-size: 18px; color: #fff; font-weight: 600; line-height: 1.3; }
-    #card-coords { font-size: 10px; color: #456; margin-top: 4px; letter-spacing: 1px; }
-    #card-body { padding: 14px 18px; font-size: 13px; line-height: 1.5; color: #aacce6; }
-    #card-body p { margin-bottom: 10px; }
-    #card-stats { display: flex; gap: 12px; padding: 0 18px 14px; flex-wrap: wrap; }
-    .card-stat { font-size: 10px; color: #456; letter-spacing: 1px; }
-    .card-stat .val { color: #00e5ff; font-size: 16px; font-weight: 600; display: block; }
-    #card-author { padding: 10px 18px; border-top: 1px solid rgba(0,229,255,0.06); font-size: 10px; color: #456; letter-spacing: 1px; }
-    #card-close {
-      position: absolute; top: 10px; right: 10px; width: 28px; height: 28px;
-      border: 1px solid rgba(0,229,255,0.2); background: transparent;
-      color: #00e5ff; border-radius: 5px; cursor: pointer; font-size: 17px;
-      transition: all 0.2s; font-family: inherit;
-      display: flex; align-items: center; justify-content: center;
-    }
-    #card-close:hover { background: rgba(0,229,255,0.1); transform: rotate(90deg); }
-
-    #stats {
-      position: fixed; bottom: 0; left: 0; right: 0; z-index: 25;
-      display: flex; justify-content: center; gap: 36px;
-      padding: 12px 18px; pointer-events: none;
-      padding-bottom: max(12px, env(safe-area-inset-bottom));
-    }
-    .stat-item { text-align: center; color: #456; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; }
-    .stat-value { font-size: 20px; color: #00e5ff; font-weight: 700; text-shadow: 0 0 10px rgba(0,229,255,0.4); display: block; margin-bottom: 2px; }
-    #stats .danger .stat-value { color: #ff5522; text-shadow: 0 0 10px rgba(255,80,30,0.4); }
-
-    #zoom-controls { position: fixed; right: 20px; bottom: 64px; z-index: 25; display: flex; flex-direction: column; gap: 4px; }
-    .zoom-btn {
-      width: 38px; height: 38px; border: 1px solid rgba(0,229,255,0.2);
-      background: rgba(5,12,25,0.7); color: #00e5ff; border-radius: 6px;
-      cursor: pointer; font-size: 17px; backdrop-filter: blur(6px);
-      transition: all 0.15s; font-family: inherit;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .zoom-btn:hover { background: rgba(0,229,255,0.15); border-color: #00e5ff; }
-    .zoom-btn:active { transform: scale(0.92); }
-
-    #earth-panel { position: fixed; left: 20px; bottom: 64px; z-index: 25; max-width: 240px; pointer-events: none; }
-    #earth-panel-title { font-size: 10px; color: #ff5522; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; font-weight: 600; text-shadow: 0 0 6px rgba(255,80,30,0.3); }
-    #earth-panel-bar { width: 100%; height: 3px; background: rgba(255,80,30,0.15); border-radius: 2px; overflow: hidden; margin-bottom: 8px; }
-    #earth-panel-fill { height: 100%; width: 92%; border-radius: 2px; background: linear-gradient(90deg, #ff8844, #ff3322); box-shadow: 0 0 6px rgba(255,80,30,0.4); }
-    #earth-panel-text { font-size: 11px; color: #766; line-height: 1.4; }
-
-    #loading {
-      position: fixed; inset: 0; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; background: #01020a; z-index: 100;
-      transition: opacity 0.6s;
-    }
-    #loading-text { color: #00e5ff; font-size: 13px; letter-spacing: 5px; margin-top: 22px; text-transform: uppercase; text-shadow: 0 0 12px rgba(0,229,255,0.5); }
-    #loading-progress {
-      width: 180px; height: 2px; margin-top: 16px;
-      background: rgba(0,229,255,0.1); border-radius: 1px; overflow: hidden;
-    }
-    #loading-bar {
-      height: 100%; width: 0%; border-radius: 1px;
-      background: linear-gradient(90deg, #00e5ff, #0088ff);
-      box-shadow: 0 0 8px rgba(0,229,255,0.5);
-      transition: width 0.3s ease;
-    }
-    .spinner {
-      width: 50px; height: 50px; border: 2px solid rgba(0,229,255,0.12);
-      border-top-color: #00e5ff; border-right-color: rgba(0,229,255,0.2);
-      border-radius: 50%; animation: spin 1s linear infinite;
-    }
+    #loading { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #01020a; z-index: 100; transition: opacity 0.6s; }
+    .spinner { width: 50px; height: 50px; border: 2px solid rgba(0,229,255,0.12); border-top-color: #00e5ff; border-right-color: rgba(0,229,255,0.2); border-radius: 50%; animation: spin 1s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
+    #loading-text { color: #00e5ff; font-size: 13px; letter-spacing: 5px; margin-top: 22px; text-transform: uppercase; text-shadow: 0 0 12px rgba(0,229,255,0.5); }
+    #loading-progress { width: 180px; height: 2px; margin-top: 16px; background: rgba(0,229,255,0.1); border-radius: 1px; overflow: hidden; }
+    #loading-bar { height: 100%; width: 0%; border-radius: 1px; background: linear-gradient(90deg, #00e5ff, #0088ff); box-shadow: 0 0 8px rgba(0,229,255,0.5); transition: width 0.3s ease; }
+    #nowebgl { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; background: #01020a; color: #ff5555; font-size: 15px; text-align: center; z-index: 200; padding: 30px; }
 
-    #nowebgl {
-      position: fixed; inset: 0; display: none; flex-direction: column;
-      align-items: center; justify-content: center; background: #01020a;
-      color: #ff5555; font-size: 15px; text-align: center; z-index: 200; padding: 30px;
-    }
+    #topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 25; display: flex; justify-content: space-between; align-items: flex-start; padding: 0 14px; padding-top: max(6px, env(safe-area-inset-top)); pointer-events: none; flex-wrap: wrap; gap: 4px; }
+    #logo { pointer-events: auto; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    #logo-icon { width: 26px; height: 26px; border: 2px solid #00e5ff; border-radius: 50%; position: relative; box-shadow: 0 0 10px rgba(0,229,255,0.4); flex-shrink: 0; }
+    #logo-icon::after { content: ''; position: absolute; inset: 3px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, rgba(0,229,255,0.2), #003344); }
+    #logo-text { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #00e5ff; font-weight: 600; white-space: nowrap; }
+
+    #res-bar { pointer-events: auto; display: flex; gap: 0; background: rgba(5,12,25,0.85); border: 1px solid rgba(0,229,255,0.15); border-radius: 6px; overflow: hidden; backdrop-filter: blur(8px); flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; max-width: 100%; }
+    #res-bar::-webkit-scrollbar { display: none; }
+    .res-cell { padding: 5px 8px; display: flex; flex-direction: column; align-items: center; gap: 1px; border-right: 1px solid rgba(0,229,255,0.08); min-width: 50px; flex: 0 0 auto; }
+    .res-cell:last-child { border-right: none; }
+    .res-label { font-size: 7px; color: #aaccff; letter-spacing: 1px; text-transform: uppercase; opacity: 0.9; white-space: nowrap; }
+    .res-value { font-size: 12px; color: #00e5ff; font-weight: 700; white-space: nowrap; }
+    .res-cell.regolith .res-value { color: #ffaa44; }
+    .res-cell.helium .res-value { color: #7fff7f; }
+    .res-cell.energy .res-value { color: #44aaff; }
+    .res-cell.pop .res-value { color: #ff66aa; }
+    .res-cell.pp .res-value { color: #ff44ff; }
+    .res-cell.logistics .res-value { color: #ff8844; }
+    .res-cell.low .res-value { color: #ff4444 !important; animation: pulse-red 1s infinite; }
+    @keyframes pulse-red { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+    #debuff-bar { position: fixed; top: 52px; left: 50%; transform: translateX(-50%); z-index: 24; display: none; background: rgba(255,60,60,0.2); border: 1px solid rgba(255,80,80,0.4); border-radius: 6px; padding: 4px 12px; font-size: 10px; color: #ff8888; backdrop-filter: blur(8px); white-space: nowrap; }
+    #debuff-bar.show { display: block; }
+
+    #ai-panel { position: fixed; left: 8px; top: 90px; z-index: 23; background: rgba(255,60,60,0.1); border: 1px solid rgba(255,80,80,0.2); border-radius: 6px; padding: 6px 8px; backdrop-filter: blur(8px); max-width: 160px; pointer-events: none; }
+    #ai-panel-title { font-size: 8px; color: #ff6666; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 3px; font-weight: 600; }
+    #ai-panel-info { font-size: 9px; color: #aa8888; line-height: 1.3; }
+
+    #save-indicator { position: fixed; top: 52px; right: 10px; z-index: 24; font-size: 9px; color: #456; padding: 2px 6px; background: rgba(5,12,25,0.7); border-radius: 3px; display: none; }
+    #save-indicator.show { display: block; }
+
+    #log { position: fixed; right: 10px; top: 110px; z-index: 23; display: flex; flex-direction: column; gap: 2px; pointer-events: none; max-width: 200px; }
+    .log-msg { font-size: 9px; color: #889; background: rgba(5,12,25,0.7); padding: 3px 6px; border-radius: 3px; border-left: 2px solid #00e5ff; animation: logfade 8s forwards; }
+    .log-msg.warn { border-left-color: #ffaa44; color: #aa8; }
+    .log-msg.bad { border-left-color: #ff4444; color: #aa6666; }
+    .log-msg.good { border-left-color: #7fff7f; color: #88aa88; }
+    @keyframes logfade { 0% { opacity: 0; transform: translateX(20px); } 5% { opacity: 1; transform: translateX(0); } 85% { opacity: 1; } 100% { opacity: 0; } }
+
+    #zoom-controls { position: fixed; right: 8px; bottom: 54px; z-index: 25; display: flex; flex-direction: column; gap: 3px; }
+    .zoom-btn { width: 34px; height: 34px; border: 1px solid rgba(0,229,255,0.2); background: rgba(5,12,25,0.7); color: #00e5ff; border-radius: 5px; cursor: pointer; font-size: 15px; backdrop-filter: blur(6px); transition: all 0.15s; font-family: inherit; display: flex; align-items: center; justify-content: center; }
+    .zoom-btn:active { transform: scale(0.9); }
+
+    #earth-panel { position: fixed; left: 8px; bottom: 54px; z-index: 25; max-width: 160px; pointer-events: none; }
+    #earth-panel-title { font-size: 8px; color: #ff5522; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 3px; font-weight: 600; }
+    #earth-panel-bar { width: 100%; height: 2px; background: rgba(255,80,30,0.15); border-radius: 1px; overflow: hidden; margin-bottom: 4px; }
+    #earth-panel-fill { height: 100%; width: 92%; border-radius: 1px; background: linear-gradient(90deg, #ff8844, #ff3322); }
+    #earth-panel-text { font-size: 8px; color: #766; line-height: 1.3; }
+
+    #tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 26; display: flex; justify-content: center; gap: 0; padding: 0; padding-bottom: max(0px, env(safe-area-inset-bottom)); background: rgba(5,12,25,0.92); border-top: 1px solid rgba(0,229,255,0.15); backdrop-filter: blur(8px); }
+    .tab-btn { flex: 1; padding: 8px 4px; background: transparent; border: none; color: #5a7a9a; font-size: 9px; cursor: pointer; font-family: inherit; display: flex; flex-direction: column; align-items: center; gap: 2px; transition: all 0.2s; border-top: 2px solid transparent; max-width: 80px; }
+    .tab-btn .tab-icon { font-size: 18px; line-height: 1; }
+    .tab-btn:active { transform: scale(0.92); }
+    .tab-btn.active { color: #fff; border-top-color: #00e5ff; background: rgba(0,229,255,0.06); }
+
+    #panel { position: fixed; left: 0; right: 0; bottom: 42px; z-index: 25; max-height: 55vh; overflow-y: auto; background: rgba(5,12,25,0.95); border-top: 1px solid rgba(0,229,255,0.12); backdrop-filter: blur(10px); padding: 10px; display: none; }
+    #panel.show { display: block; }
+    .panel-title { font-size: 13px; color: #00e5ff; font-weight: 600; margin-bottom: 8px; letter-spacing: 1px; text-transform: uppercase; }
+    .build-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+    .build-card { background: rgba(0,229,255,0.05); border: 1px solid rgba(0,229,255,0.15); border-radius: 6px; padding: 10px; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; }
+    .build-card:active { transform: scale(0.96); }
+    .build-card.affordable { border-color: rgba(0,229,255,0.35); }
+    .build-card.affordable:hover { background: rgba(0,229,255,0.1); }
+    .build-card.unaffordable { opacity: 0.45; cursor: not-allowed; }
+    .build-card.building { border-color: #ffaa44; cursor: wait; }
+    .build-name { font-size: 12px; color: #fff; font-weight: 600; margin-bottom: 3px; }
+    .build-desc { font-size: 9px; color: #789; line-height: 1.3; margin-bottom: 6px; }
+    .build-cost { display: flex; flex-wrap: wrap; gap: 4px; font-size: 9px; }
+    .build-cost span { white-space: nowrap; }
+    .cost-r { color: #ffaa44; } .cost-h { color: #7fff7f; } .cost-e { color: #44aaff; } .cost-p { color: #ff66aa; } .cost-l { color: #ff8844; }
+    .build-timer { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: rgba(255,170,68,0.2); overflow: hidden; }
+    .build-timer-fill { height: 100%; background: linear-gradient(90deg, #ffaa44, #ff8844); transition: width 0.3s; }
+
+    .unit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+    .unit-card { background: rgba(255,100,100,0.05); border: 1px solid rgba(255,100,100,0.15); border-radius: 6px; padding: 10px; cursor: pointer; transition: all 0.2s; }
+    .unit-card:active { transform: scale(0.96); }
+    .unit-card.affordable { border-color: rgba(255,100,100,0.35); }
+    .unit-card.unaffordable { opacity: 0.45; cursor: not-allowed; }
+    .unit-name { font-size: 12px; color: #fff; font-weight: 600; margin-bottom: 3px; }
+    .unit-desc { font-size: 9px; color: #789; line-height: 1.3; margin-bottom: 6px; }
+    .unit-stats { display: flex; gap: 8px; font-size: 9px; color: #a88; }
+    .unit-stat { display: flex; flex-direction: column; align-items: center; }
+    .unit-stat .val { color: #ff8844; font-size: 11px; font-weight: 600; }
+
+    .pol-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
+    .pol-card { background: rgba(0,229,255,0.05); border: 1px solid rgba(0,229,255,0.15); border-radius: 6px; padding: 12px; cursor: pointer; transition: all 0.2s; position: relative; }
+    .pol-card:active { transform: scale(0.96); }
+    .pol-card.current { border-color: #00e5ff; background: rgba(0,229,255,0.12); cursor: default; }
+    .pol-card.current::after { content: 'АКТИВЕН'; position: absolute; top: 4px; right: 6px; font-size: 7px; color: #00e5ff; font-weight: 700; letter-spacing: 1px; }
+    .pol-card.unaffordable { opacity: 0.5; }
+    .pol-name { font-size: 13px; color: #fff; font-weight: 600; margin-bottom: 4px; }
+    .pol-pros { font-size: 9px; color: #7fff7f; line-height: 1.3; margin-bottom: 3px; }
+    .pol-cons { font-size: 9px; color: #ff6644; line-height: 1.3; margin-bottom: 6px; }
+    .pol-card .pp-cost { font-size: 10px; color: #ff44ff; font-weight: 600; }
 
     @media (max-width: 768px) {
-      #topbar { padding: 0 12px; padding-top: calc(max(8px, env(safe-area-inset-top)) + 5px); }
-      #logo-icon { width: 26px; height: 26px; }
-      #logo-text { font-size: clamp(8px, 2.4vw, 11px); letter-spacing: 1px; }
-      #info-panel { top: 61px; border-radius: 4px; max-width: calc(100vw - 8px); flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-      #info-panel::-webkit-scrollbar { display: none; }
-      .info-cell { padding: 6px clamp(4px, 2vw, 10px); min-width: 0; flex: 1 1 0; gap: 2px; }
-      .info-label { font-size: clamp(5px, 1.8vw, 7px); letter-spacing: 0.5px; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-      .info-value { font-size: clamp(10px, 3.2vw, 13px); }
-      #cat-toggle { left: 10px; top: 132px; width: 48px; height: 48px; font-size: 24px; }
-      #categories { top: 192px; min-width: 165px; padding: 4px 0; gap: 0; }
-      .cat-btn { padding: 6px clamp(6px, 2vw, 10px); font-size: clamp(10px, 3vw, 12px); gap: 4px; }
-      .cat-btn .cat-dot { width: 5px; height: 5px; }
-      #card { right: 0; left: 0; top: auto; bottom: 0; width: 100%; max-height: 60vh; transform: translateY(100%); border-radius: 12px 12px 0 0; border-bottom: none; }
-      #card.show { transform: translateY(0); }
-      #card-header { padding: 12px 14px; }
-      #card-title { font-size: clamp(14px, 4vw, 16px); }
-      #card-body { padding: 12px 14px; font-size: clamp(11px, 3vw, 12px); line-height: 1.45; }
-      #card-stats { gap: 8px; padding: 0 14px 12px; }
-      .card-stat { font-size: clamp(8px, 2vw, 10px); }
-      .card-stat .val { font-size: clamp(12px, 3.5vw, 15px); }
-      #card-author { padding: 8px 14px; font-size: clamp(8px, 2vw, 10px); }
-      #card-close { width: 26px; height: 26px; font-size: 15px; top: 8px; right: 8px; }
-      #stats { gap: clamp(6px, 3vw, 14px); padding: 6px 8px; padding-bottom: max(6px, env(safe-area-inset-bottom)); flex-wrap: wrap; }
-      .stat-item { font-size: clamp(6px, 1.8vw, 8px); letter-spacing: 1px; }
-      .stat-value { font-size: clamp(13px, 4vw, 16px); margin-bottom: 1px; }
-      #zoom-controls { right: 10px; bottom: clamp(48px, 12vh, 58px); gap: 3px; }
-      .zoom-btn { width: clamp(32px, 9vw, 36px); height: clamp(32px, 9vw, 36px); font-size: clamp(14px, 4vw, 16px); }
-      #earth-panel { left: 10px; bottom: clamp(48px, 12vh, 58px); max-width: clamp(130px, 40vw, 180px); }
-      #earth-panel-title { font-size: clamp(7px, 2vw, 9px); letter-spacing: 1px; margin-bottom: 4px; }
-      #earth-panel-bar { height: 2px; margin-bottom: 6px; }
-      #earth-panel-text { font-size: clamp(8px, 2.2vw, 10px); line-height: 1.35; }
-    }
-    @media (max-width: 380px) {
-      .info-cell { padding: 5px 3px; }
-      .info-label { font-size: 5px; letter-spacing: 0; }
-      .info-value { font-size: 10px; }
-      #logo-text { font-size: 8px; letter-spacing: 0.5px; }
-      .stat-item { font-size: 6px; }
-      .stat-value { font-size: 13px; }
-    }
-    @media (min-width: 769px) and (max-width: 1024px) {
-      #card { width: 300px; }
-      #stats { gap: 24px; }
-      #info-panel { max-width: 90vw; }
+      #logo-text { font-size: 9px; letter-spacing: 1px; }
+      #logo-icon { width: 22px; height: 22px; }
+      .res-cell { padding: 4px 5px; min-width: 42px; }
+      .res-label { font-size: 6px; letter-spacing: 0.5px; }
+      .res-value { font-size: 10px; }
+      .tab-btn { font-size: 7px; padding: 6px 2px; max-width: 60px; }
+      .tab-btn .tab-icon { font-size: 16px; }
+      #panel { bottom: 38px; max-height: 50vh; padding: 8px; }
+      .build-grid, .unit-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+      .pol-grid { grid-template-columns: 1fr; }
+      .zoom-btn { width: 30px; height: 30px; font-size: 13px; }
+      #ai-panel { max-width: 130px; }
+      #log { max-width: 160px; top: 90px; }
     }
   </style>
 </head>
 <body>
   <div id="loading">
     <div class="spinner"></div>
-    <div id="loading-text">Луна 2087</div>
+    <div id="loading-text">Луна 2087: Рассвет</div>
     <div id="loading-progress"><div id="loading-bar"></div></div>
   </div>
-
   <div id="nowebgl">
     <h2>WebGL не поддерживается</h2>
-    <p style="margin-top:10px; color:#8ac;">Попробуйте другой браузер</p>
+    <p style="margin-top:10px;color:#8ac;">Попробуйте другой браузер</p>
   </div>
 
   <div id="topbar">
-    <div id="logo">
-      <div id="logo-icon"></div>
-      <div id="logo-text">Луна 2087</div>
+    <div id="logo"><div id="logo-icon"></div><div id="logo-text">Луна 2087: Рассвет</div></div>
+    <div id="res-bar">
+      <div class="res-cell regolith"><span class="res-label">Реголит</span><span class="res-value" id="r-regolith">0</span></div>
+      <div class="res-cell helium"><span class="res-label">Гелий-3</span><span class="res-value" id="r-helium">0</span></div>
+      <div class="res-cell energy"><span class="res-label">Энергия</span><span class="res-value" id="r-energy">0/0</span></div>
+      <div class="res-cell pop"><span class="res-label">Население</span><span class="res-value" id="r-pop">0/0</span></div>
+      <div class="res-cell pp"><span class="res-label">Полит.оч.</span><span class="res-value" id="r-pp">0</span></div>
+      <div class="res-cell logistics"><span class="res-label">Логист.</span><span class="res-value" id="r-logistics">0/0</span></div>
     </div>
   </div>
 
-  <div id="info-panel">
-    <div class="info-cell turn">
-      <span class="info-label">Ходы времени</span>
-      <span class="info-value" id="info-turn">2087</span>
-    </div>
-    <div class="info-cell credits">
-      <span class="info-label">Кредиты</span>
-      <span class="info-value" id="info-credits">12 450</span>
-    </div>
-    <div class="info-cell energy">
-      <span class="info-label">Энергосеть</span>
-      <span class="info-value" id="info-energy">86%</span>
-    </div>
-    <div class="info-cell pop">
-      <span class="info-label">Население</span>
-      <span class="info-value" id="info-pop">6 000</span>
-    </div>
-    <div class="info-cell territory">
-      <span class="info-label">Территория</span>
-      <span class="info-value" id="info-territory">4</span>
-    </div>
-  </div>
-
-  <button id="cat-toggle">☰</button>
-
-  <div id="categories">
-    <button class="cat-btn active" data-cat="all"><span class="cat-dot" style="background:#00e5ff;--cat-color:#00e5ff;"></span>Все</button>
-    <button class="cat-btn" data-cat="colony"><span class="cat-dot" style="background:#44aaff;--cat-color:#44aaff;"></span>Колонии</button>
-    <button class="cat-btn" data-cat="mine"><span class="cat-dot" style="background:#ffaa44;--cat-color:#ffaa44;"></span>Шахты</button>
-    <button class="cat-btn" data-cat="lab"><span class="cat-dot" style="background:#7fff7f;--cat-color:#7fff7f;"></span>Лаборатории</button>
-    <button class="cat-btn" data-cat="ruin"><span class="cat-dot" style="background:#ff6644;--cat-color:#ff6644;"></span>Руины</button>
-    <button class="cat-btn" data-cat="beacon"><span class="cat-dot" style="background:#ff44ff;--cat-color:#ff44ff;"></span>Маяки</button>
-    <button class="cat-btn" data-cat="crater"><span class="cat-dot" style="background:#888;--cat-color:#888;"></span>Кратеры</button>
-  </div>
-
-  <div id="card">
-    <div id="card-glow"></div>
-    <button id="card-close">×</button>
-    <div id="card-header">
-      <div id="card-meta">
-        <span id="card-year">2087</span>
-        <span id="card-cat-badge">—</span>
-      </div>
-      <div id="card-title">—</div>
-      <div id="card-coords">—</div>
-    </div>
-    <div id="card-body"><p id="card-text">—</p></div>
-    <div id="card-stats"></div>
-    <div id="card-author">—</div>
-  </div>
-
-  <div id="stats">
-    <div class="stat-item"><span class="stat-value" id="stat-total">0</span>Объектов</div>
-    <div class="stat-item"><span class="stat-value" id="stat-active">0</span>Активных</div>
-    <div class="stat-item danger"><span class="stat-value" id="stat-ruined">0</span>Разрушено</div>
-    <div class="stat-item"><span class="stat-value" id="stat-year">2087</span>Год</div>
-  </div>
+  <div id="ai-panel"><div id="ai-panel-title">Колония «Арес»</div><div id="ai-panel-info">ИИ-противник</div></div>
+  <div id="debuff-bar"></div>
+  <div id="save-indicator">Сохранено</div>
+  <div id="log"></div>
 
   <div id="zoom-controls">
     <button class="zoom-btn" id="btn-zoom-in">+</button>
     <button class="zoom-btn" id="btn-zoom-out">−</button>
-    <button class="zoom-btn" id="btn-reset" style="font-size:14px;">↻</button>
+    <button class="zoom-btn" id="btn-reset" style="font-size:12px;">↻</button>
   </div>
 
   <div id="earth-panel">
     <div id="earth-panel-title">Состояние Земли</div>
     <div id="earth-panel-bar"><div id="earth-panel-fill"></div></div>
-    <div id="earth-panel-text">
-      Атмосфера разрушена. Поверхность горит 16 лет.
-      Связь потеряна в 2073.
-    </div>
+    <div id="earth-panel-text">Атмосфера разрушена. Поверхность горит 16 лет. Связь потеряна в 2073.</div>
+  </div>
+
+  <div id="panel"><div id="panel-content"></div></div>
+
+  <div id="tabs">
+    <button class="tab-btn" data-tab="build"><span class="tab-icon">🏗</span>Стройка</button>
+    <button class="tab-btn" data-tab="units"><span class="tab-icon">🪖</span>Войска</button>
+    <button class="tab-btn" data-tab="politics"><span class="tab-icon">🏛</span>Политика</button>
+    <button class="tab-btn" data-tab="map"><span class="tab-icon">🗺</span>Карта</button>
+    <button class="tab-btn" data-tab="info"><span class="tab-icon">ℹ</span>Инфо</button>
   </div>
 
   <script type="importmap">
-    {
-      "imports": {
-        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-      }
-    }
+    { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
   </script>
 
   <script type="module">
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-    // === ПРОВЕРКА WEBGL (внутри модуля, как в оригинале) ===
+    // === WEBGL CHECK ===
     const tc = document.createElement('canvas');
     if (!tc.getContext('webgl2') && !tc.getContext('webgl')) {
       document.getElementById('loading').style.display = 'none';
@@ -349,70 +195,177 @@
       throw new Error('No WebGL');
     }
 
-    // === ЯНДЕКС SDK — динамическая загрузка (не блокирует страницу) ===
+    // === YANDEX SDK (динамическая загрузка, не блокирует страницу) ===
     let ysdk = null;
     const sdkScript = document.createElement('script');
     sdkScript.src = 'https://yandex.ru/games/sdk/v1';
-    sdkScript.onload = () => {
-      if (typeof YaGames !== 'undefined') {
-        YaGames.init().then(s => {
-          ysdk = s;
-          s.features.LoadingAPI?.ready();
-        }).catch(e => console.warn('SDK:', e));
-      }
-    };
+    sdkScript.onload = () => { if (typeof YaGames !== 'undefined') YaGames.init().then(s => { ysdk = s; s.features.LoadingAPI?.ready(); }).catch(e => console.warn('SDK:', e)); };
     sdkScript.onerror = () => console.warn('Yandex SDK не загружен');
     document.head.appendChild(sdkScript);
 
-    // === ДАННЫЕ ===
-    const CAT_INFO = {
-      colony: { name: 'Колония',     color: 0x44aaff },
-      mine:   { name: 'Шахта',       color: 0xffaa44 },
-      lab:    { name: 'Лаборатория', color: 0x7fff7f },
-      ruin:   { name: 'Руины',       color: 0xff6644 },
-      beacon: { name: 'Маяк',        color: 0xff44ff },
-      crater: { name: 'Кратер',      color: 0x888888 }
+    // =====================
+    // === ИГРОВЫЕ ДАННЫЕ ===
+    // =====================
+    const REGIMES = {
+      technocracy: { name: 'Технократия', ppCost: 0, pros: '+30% к исследованиям\nДредноуты: −20% Гелий-3\nШахты работают без людей', cons: 'Дорогое содержание куполов\nСлабая пехота', mods: { research: 1.3, heliumUse: 0.8, domeUpkeep: 1.5, infantryPower: 0.7, minePopNeed: 0 } },
+      military:    { name: 'Военная Хунта', ppCost: 200, pros: 'Войска строятся +40% быстрее\nТурели бьют дальше', cons: '−25% к добыче ресурсов\nВысокий риск бунтов', mods: { buildSpeed: 1.4, resourceRate: 0.75, turretRange: 1.3, revoltRisk: 1.5 } },
+      corporate:   { name: 'Корпоратократия', ppCost: 200, pros: 'Торговые сделки +50%\nРеголит добывается быстрее', cons: 'Наёмники требуют постоянной оплаты', mods: { tradeBonus: 1.5, regolithRate: 1.3, mercUpkeep: 1.5 } },
+      collective:  { name: 'Социал-Коллективизм', ppCost: 200, pros: 'Содержание населения −50%\nВысокая стабильность', cons: 'Медленные технологии\nТяжёлая техника строится дольше', mods: { popUpkeep: 0.5, research: 0.7, heavyBuildSpeed: 0.7, revoltRisk: 0.3 } },
     };
 
-    const OBJECTS = [
-      { title: 'Колония «Новая Надежда»', lat: 12.5, lon: 38.0, year: 2087, cat: 'colony', text: 'Главная колония. 4 200 жителей в подповерхностных куполах. Энергия — гелий-3.', pop: '4 200', energy: '86%', status: 'Стабильна' },
-      { title: 'Колония «Заря»', lat: -15.2, lon: 145.0, year: 2087, cat: 'colony', text: 'Вторая колония. 1 800 жителей. Биоинженерия и клонирование тканей.', pop: '1 800', energy: '72%', status: 'Стабильна' },
-      { title: 'Колония «Кесалой»', lat: 43.2, lon: 46.1, year: 2087, cat: 'colony', text: 'Колония в кратере Кесалой. Опорный пункт на северном полушарии.', pop: '3 000', energy: '68%', status: 'Стабильна' },
-      { title: 'Шахта «Альфа»', lat: 35.1, lon: -22.5, year: 2087, cat: 'mine', text: 'Глубинная шахта на границе Моря Дождей. Добыча гелия-3.', depth: '420 м', output: '12 т/год', status: 'Активна' },
-      { title: 'Шахта «Коперник»', lat: 9.7, lon: -20.0, year: 2087, cat: 'mine', text: 'Добыча льда и редких металлов.', depth: '180 м', output: '40 т/год', status: 'Истощается' },
-      { title: 'Шахта «Полярная»', lat: -82.0, lon: 0.0, year: 2087, cat: 'mine', text: 'Полярная шахта водяного льда. Источник воды и кислорода.', depth: '300 м', output: '60 т/год', status: 'Активна' },
-      { title: 'Лаборатория «Путь»', lat: -42.0, lon: 12.0, year: 2087, cat: 'lab', text: 'Генетическая лаборатория. Культуры для подповерхностных ферм.', staff: '48', projects: '12', status: 'Активна' },
-      { title: 'Лаборатория «Тень»', lat: 52.0, lon: 80.0, year: 2087, cat: 'lab', text: 'Засекреченный объект. Попытка терраформации Луны.', staff: '?', projects: '?', status: 'Засекречено' },
-      { title: 'Лаборатория «Возрождение»', lat: -25.0, lon: -90.0, year: 2087, cat: 'lab', text: 'Проект восстановления биосферы Земли.', staff: '120', projects: '8', status: 'Активна' },
-      { title: 'Руины базы «Рассвет»', lat: 0.5, lon: 23.5, year: 2087, cat: 'ruin', text: 'Первая постоянная база. Уничтожена метеоритным дождём 2071. 18 погибших.', casualties: '18', year_built: '2035', status: 'Разрушена' },
-      { title: 'Руины телескопа «Око»', lat: -28.5, lon: -60.0, year: 2087, cat: 'ruin', text: 'Радиотелескоп. Разрушен корональным выбросом 2080.', built: '2041', dish: '500 м', status: 'Разрушена' },
-      { title: 'Руины «Аполлон-17»', lat: 20.2, lon: 30.8, year: 2087, cat: 'ruin', text: 'Последняя высадка XX века. Исторический памятник.', built: '1972', visitors: '1 200/год', status: 'Мемориал' },
-      { title: 'Маяк «Орёл»', lat: 8.5, lon: 0.0, year: 2087, cat: 'beacon', text: 'Главный ретранслятор. Последние сигналы с Земли — 2073.', range: '3 400 км', power: '50 кВт', status: 'Активен' },
-      { title: 'Маяк «Северный»', lat: 78.0, lon: 45.0, year: 2087, cat: 'beacon', text: 'Полярный маяк навигации для луноходов.', range: '1 200 км', power: '20 кВт', status: 'Активен' },
-      { title: 'Маяк «Тихий»', lat: -60.0, lon: 180.0, year: 2087, cat: 'beacon', text: 'Маяк на обратной стороне. Связь через спутники-ретрансляторы.', range: '2 800 км', power: '35 кВт', status: 'Активен' },
-      { title: 'Кратер Тихо', lat: -43.3, lon: -11.0, year: 2087, cat: 'crater', text: '85 км. Высокая концентрация минералов. Разведка.', diameter: '85 км', depth: '4.8 км', status: 'Разведка' },
-      { title: 'Кратер Шрёдингер', lat: -75.0, lon: 132.0, year: 2087, cat: 'crater', text: '312 км. Залежи водяного льда — стратегический ресурс.', diameter: '312 км', depth: '2.5 км', status: 'Добыча льда' },
-    ];
+    const BUILDINGS = {
+      dome:    { name: 'Жилой Купол',   desc: 'Жильё для 100 человек. Генерирует Полит. очки.', cost: { regolith: 50, helium: 10, energy: 5 },   buildTime: 30000, popCap: 100, ppRate: 0.05, energyUse: 5, icon: '⌂' },
+      mine:    { name: 'Шахта',         desc: 'Добыча реголита и гелия-3. Ставится на месторождения.', cost: { regolith: 30, helium: 5, energy: 3 },   buildTime: 20000, regolithRate: 0.5, heliumRate: 0.15, energyUse: 3, popNeed: 5, icon: '⛏' },
+      beacon:  { name: 'Маяк Связи',    desc: 'Расширяет радиус контроля. Открывает туман войны.', cost: { regolith: 40, helium: 5, energy: 2 },  buildTime: 15000, controlRadius: 1, energyUse: 2, icon: '📡' },
+      outpost: { name: 'Аванпост',      desc: 'Укреплённая точка. Удерживает дальние шахты.', cost: { regolith: 60, helium: 15, energy: 4 },  buildTime: 40000, energyUse: 4, defense: 10, icon: '🛡' },
+      lab:     { name: 'Лаборатория',   desc: 'Искусственное выращивание населения. +10 населения/мин.', cost: { regolith: 45, helium: 20, energy: 6 }, buildTime: 35000, popRate: 0.17, energyUse: 6, popNeed: 10, icon: '🔬' },
+      turret:  { name: 'Турель',        desc: 'Автоматическая защита базы. Бьёт по врагам.', cost: { regolith: 35, helium: 10, energy: 3 },   buildTime: 25000, energyUse: 3, defense: 15, icon: '🔫' },
+    };
 
-    // === ОПРЕДЕЛЕНИЕ УСТРОЙСТВА ===
+    const UNITS = {
+      builder:     { name: 'Строитель',  desc: 'Возводит здания, ремонтирует технику. Беззащитен в бою.', cost: { regolith: 20, energy: 2 },         buildTime: 15000, popNeed: 1, attack: 1,  defense: 2,  speed: 1,   type: 'infantry', icon: '🔧' },
+      assault:     { name: 'Штурмовик',  desc: 'Космопехота. Захват аванпостов и шлюзов.', cost: { regolith: 30, helium: 5, energy: 3 },     buildTime: 20000, popNeed: 1, attack: 8,  defense: 5,  speed: 1.5, type: 'infantry', icon: '🔫' },
+      dreadnought: { name: 'Дредноут',   desc: 'Тяжёлый лунный танк на Гелии-3. Огромный радиус. Жрёт энергию.', cost: { regolith: 80, helium: 30, energy: 8 }, buildTime: 45000, popNeed: 3, attack: 25, defense: 20, speed: 0.5, type: 'heavy', energyUpkeep: 2, icon: '🚜' },
+    };
+
+    // =====================
+    // === СОСТОЯНИЕ ИГРЫ ===
+    // =====================
+    const SAVE_KEY = 'luna2087_rassvet_save';
+    function defaultState() {
+      return {
+        regolith: 100, helium: 30, energy: 200, energyMax: 200, pop: 50, popMax: 100,
+        politicalPoints: 0, ppMax: 1000, logistics: 5, logisticsMax: 5,
+        regime: 'technocracy', debuffEnd: 0, debuffType: null,
+        buildings: [{ id: 'dome', x: 0, z: 0, built: true, progress: 1 }],
+        units: [], buildQueue: [],
+        ai: { regolith: 50, helium: 20, pop: 30, popMax: 60, buildings: 1, units: 0, aggression: 0.3, techLevel: 1 },
+        gameTime: 0,
+      };
+    }
+    let state = null;
+    try {
+      const saved = localStorage.getItem(SAVE_KEY);
+      if (saved) { state = JSON.parse(saved); const d = defaultState(); for (let k in d) if (state[k] === undefined) state[k] = d[k]; }
+      else state = defaultState();
+    } catch (e) { state = defaultState(); }
+
+    function getMod(key) {
+      const mods = REGIMES[state.regime].mods || {};
+      let m = mods[key] !== undefined ? mods[key] : 1;
+      if (state.debuffEnd > Date.now() && (key === 'regolithRate' || key === 'heliumRate')) m *= 0.5;
+      return m;
+    }
+
+    function saveGame() {
+      try {
+        localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+        const si = document.getElementById('save-indicator');
+        si.classList.add('show'); setTimeout(() => si.classList.remove('show'), 1000);
+      } catch (e) { console.warn('Save failed', e); }
+    }
+    function resetGame() { localStorage.removeItem(SAVE_KEY); state = defaultState(); addLog('Новая игра', 'good'); updateUI(); }
+
+    function addLog(msg, type) {
+      const logEl = document.getElementById('log');
+      const div = document.createElement('div');
+      div.className = 'log-msg' + (type ? ' ' + type : '');
+      div.textContent = msg;
+      logEl.appendChild(div);
+      setTimeout(() => div.remove(), 8000);
+      while (logEl.children.length > 5) logEl.removeChild(logEl.firstChild);
+    }
+
+    // =====================
+    // === ИГРОВОЙ ТИК =====
+    // =====================
+    function gameTick(dt) {
+      let regRate = 0, helRate = 0, energyProd = 0, energyCons = 0, ppRate = 0, popRate = 0;
+      state.buildings.forEach(b => {
+        if (!b.built) return;
+        const def = BUILDINGS[b.id];
+        if (def.regolithRate) regRate += def.regolithRate * getMod('regolithRate');
+        if (def.heliumRate)   helRate += def.heliumRate * getMod('heliumRate');
+        if (def.ppRate)       ppRate += def.ppRate;
+        if (def.popRate)      popRate += def.popRate;
+        if (def.energyUse)    energyCons += def.energyUse;
+        if (b.id === 'dome')  energyProd += 2;
+      });
+      state.energy = Math.min(state.energyMax, state.energy + energyProd * dt * 0.1);
+      energyCons += state.units.length * 0.5;
+      state.energy = Math.max(0, state.energy - energyCons * dt * 0.01);
+      state.regolith = Math.min(9999, state.regolith + regRate * dt);
+      state.helium = Math.min(9999, state.helium + helRate * dt);
+      state.politicalPoints = Math.min(state.ppMax, state.politicalPoints + ppRate * dt);
+      state.pop = Math.min(state.popMax, state.pop + popRate * dt);
+      state.logistics = Math.min(state.logisticsMax, state.logistics + dt * 0.01);
+
+      state.buildQueue.forEach(q => {
+        q.remaining -= dt * 1000;
+        if (q.remaining <= 0) {
+          q.built = true;
+          state.buildings.push({ id: q.id, x: q.x, z: q.z, built: true, progress: 1 });
+          addLog('Построено: ' + BUILDINGS[q.id].name, 'good');
+        }
+      });
+      state.buildQueue = state.buildQueue.filter(q => q.remaining > 0);
+
+      aiTick(dt);
+
+      if (state.debuffEnd <= Date.now() && state.debuffType) {
+        state.debuffType = null;
+        addLog('Политическая нестабильность завершена', 'good');
+      }
+
+      state.gameTime += dt;
+      if (state.gameTime % 30 < dt) saveGame();
+    }
+
+    function aiTick(dt) {
+      const ai = state.ai;
+      ai.regolith += 0.3 * dt; ai.helium += 0.1 * dt;
+      ai.pop = Math.min(ai.popMax, ai.pop + 0.05 * dt);
+      if (Math.random() < 0.001 * dt && ai.buildings < 10) {
+        ai.buildings++; ai.regolith -= 40; ai.helium -= 10;
+        const types = ['mine', 'lab', 'dome'];
+        const t = types[Math.floor(Math.random() * types.length)];
+        addLog('Колония «Арес» построила: ' + (BUILDINGS[t]?.name || 'новое здание'), 'warn');
+      }
+      if (Math.random() < 0.0008 * dt && ai.units < 20) {
+        ai.units++; ai.regolith -= 25;
+        if (Math.random() < 0.3) addLog('Колония «Арес» готовит войска', 'warn');
+      }
+      if (ai.units >= 5 && Math.random() < ai.aggression * 0.0003 * dt) {
+        const atkForce = Math.min(ai.units, Math.floor(ai.units * 0.6));
+        ai.units -= atkForce;
+        const myDef = state.units.reduce((s, u) => s + u.defense, 0) + state.buildings.reduce((s, b) => s + (BUILDINGS[b.id]?.defense || 0), 0);
+        if (atkForce * 10 > myDef) {
+          addLog('⚠ Атака «Арес»! Потери: ' + Math.floor(atkForce * 0.3) + ' юнитов', 'bad');
+          if (state.units.length > 0) {
+            const lost = Math.min(state.units.length, Math.floor(atkForce * 0.1));
+            state.units.splice(0, lost);
+            addLog('Потеряно юнитов: ' + lost, 'bad');
+          }
+          state.regolith = Math.max(0, state.regolith - 20);
+        } else {
+          addLog('Атака «Арес» отбита!', 'good');
+        }
+      }
+    }
+
+    // ============================
+    // === 3D СЦЕНА (ПОЛНАЯ) ======
+    // ============================
     const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
     const MOBILE_CAM = { x: 0, y: 2.2, z: 10.5 };
     const DESKTOP_CAM = { x: 0, y: 1.2, z: 7 };
 
-    // === СЦЕНА ===
     const scene = new THREE.Scene();
     scene.fog = new THREE.FogExp2(0x01020a, 0.0025);
 
     const camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 0.1, 600);
-
-    if (isMobile) {
-      camera.position.set(MOBILE_CAM.x, MOBILE_CAM.y, MOBILE_CAM.z);
-      camera.fov = 36;
-    } else {
-      camera.position.set(DESKTOP_CAM.x, DESKTOP_CAM.y, DESKTOP_CAM.z);
-      camera.fov = 42;
-    }
+    if (isMobile) { camera.position.set(MOBILE_CAM.x, MOBILE_CAM.y, MOBILE_CAM.z); camera.fov = 36; }
+    else { camera.position.set(DESKTOP_CAM.x, DESKTOP_CAM.y, DESKTOP_CAM.z); camera.fov = 42; }
     camera.updateProjectionMatrix();
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
@@ -421,62 +374,39 @@
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.0;
     renderer.domElement.style.position = 'absolute';
-    renderer.domElement.style.top = '0';
-    renderer.domElement.style.left = '0';
-    renderer.domElement.style.width = '100%';
-    renderer.domElement.style.height = '100%';
+    renderer.domElement.style.top = '0'; renderer.domElement.style.left = '0';
+    renderer.domElement.style.width = '100%'; renderer.domElement.style.height = '100%';
     document.body.appendChild(renderer.domElement);
 
-    // === ЗАГРУЗКА ТЕКСТУР ===
+    // --- Текстуры ---
     const texLoader = new THREE.TextureLoader();
     const loadingBar = document.getElementById('loading-bar');
     let texturesLoaded = 0;
-    const totalTextures = 3;
+    const totalTextures = 4;
     let loadingHidden = false;
 
-    function updateProgress() {
-      const pct = Math.round((texturesLoaded / totalTextures) * 100);
-      if (loadingBar) loadingBar.style.width = pct + '%';
-    }
-
-    function onTextureDone() {
-      texturesLoaded++;
-      updateProgress();
-      tryHideLoading();
-    }
-
+    function updateProgress() { const pct = Math.round((texturesLoaded / totalTextures) * 100); if (loadingBar) loadingBar.style.width = pct + '%'; }
+    function onTextureDone() { texturesLoaded++; updateProgress(); tryHideLoading(); }
     function tryHideLoading() {
       if (loadingHidden) return;
       if (texturesLoaded >= totalTextures) {
         loadingHidden = true;
         if (loadingBar) loadingBar.style.width = '100%';
-        setTimeout(() => {
-          const ld = document.getElementById('loading');
-          ld.style.opacity = '0';
-          setTimeout(() => ld.style.display = 'none', 600);
-        }, 200);
+        setTimeout(() => { const ld = document.getElementById('loading'); ld.style.opacity = '0'; setTimeout(() => ld.style.display = 'none', 600); }, 200);
       }
     }
-
     setTimeout(() => {
       if (!loadingHidden) {
         loadingHidden = true;
         if (loadingBar) loadingBar.style.width = '100%';
-        const ld = document.getElementById('loading');
-        ld.style.opacity = '0';
+        const ld = document.getElementById('loading'); ld.style.opacity = '0';
         setTimeout(() => ld.style.display = 'none', 600);
       }
     }, 12000);
 
-    // === ФОН — МЛЕЧНЫЙ ПУТЬ ===
-    const bgTex = texLoader.load(
-      'textures/milky_way.jpg',
-      () => { onTextureDone(); },
-      undefined,
-      (err) => { console.error('milky_way.jpg:', err); onTextureDone(); }
-    );
+    // --- Фон: Млечный Путь ---
+    const bgTex = texLoader.load('textures/milky_way.jpg', () => onTextureDone(), undefined, (err) => { console.error('milky_way.jpg:', err); onTextureDone(); });
     bgTex.colorSpace = THREE.SRGBColorSpace;
-
     const bgMat = new THREE.ShaderMaterial({
       uniforms: { uTexture: { value: bgTex }, uBrightness: { value: 0.35 } },
       vertexShader: `varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
@@ -487,14 +417,12 @@
     bgSphere.renderOrder = -1;
     scene.add(bgSphere);
 
-    // === СОЛНЦЕ ===
+    // --- Солнце ---
     const sunPos = new THREE.Vector3(84, 30.8, 56);
     const sunGroup = new THREE.Group();
     sunGroup.position.copy(sunPos);
     scene.add(sunGroup);
-
     sunGroup.add(new THREE.Mesh(new THREE.SphereGeometry(2.25, 24, 24), new THREE.MeshBasicMaterial({ color: 0xfff5dd, fog: false })));
-
     const sunGlow1Mat = new THREE.ShaderMaterial({
       uniforms: { uColor: { value: new THREE.Color(0xfff0bb) } },
       vertexShader: `varying vec3 vN; void main(){ vN=normalize(normalMatrix*normal); gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
@@ -502,7 +430,6 @@
       side: THREE.BackSide, transparent: true, blending: THREE.AdditiveBlending, fog: false, depthWrite: false
     });
     sunGroup.add(new THREE.Mesh(new THREE.SphereGeometry(4.125, 24, 24), sunGlow1Mat));
-
     const sunGlow2Mat = new THREE.ShaderMaterial({
       uniforms: { uColor: { value: new THREE.Color(0xffddaa) } },
       vertexShader: `varying vec3 vN; void main(){ vN=normalize(normalMatrix*normal); gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
@@ -511,19 +438,14 @@
     });
     sunGroup.add(new THREE.Mesh(new THREE.SphereGeometry(7.5, 24, 24), sunGlow2Mat));
 
-    // === ЗЕМЛЯ НА ФОНЕ ===
+    // --- Земля на фоне (полная версия) ---
     const EARTH_R = 7.92 * 2.21;
     const earthGroup = new THREE.Group();
     earthGroup.position.set(-19.745, -2.805, -40.645);
     earthGroup.rotation.set(0.2, -0.3, 0);
     scene.add(earthGroup);
 
-    const earthColorTex = texLoader.load(
-      'textures/earth_color.jpg',
-      () => { onTextureDone(); },
-      undefined,
-      (err) => { console.error('earth_color.jpg:', err); onTextureDone(); }
-    );
+    const earthColorTex = texLoader.load('textures/earth_color.jpg', () => onTextureDone(), undefined, (err) => { console.error('earth_color.jpg:', err); onTextureDone(); });
     earthColorTex.colorSpace = THREE.SRGBColorSpace;
     earthColorTex.anisotropy = isMobile ? 2 : 4;
 
@@ -532,38 +454,9 @@
     const moonToEarth = earthGroup.position.clone().normalize();
 
     const earthMat = new THREE.ShaderMaterial({
-      uniforms: {
-        uLightDir: { value: earthToSun },
-        uMoonDir:  { value: earthToMoon },
-        uTexture:  { value: earthColorTex }
-      },
-      vertexShader: `
-        varying vec3 vN;
-        varying vec2 vUv;
-        void main() {
-          vN = normalize(mat3(modelMatrix) * normal);
-          vUv = uv;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }`,
-      fragmentShader: `
-        uniform vec3 uLightDir;
-        uniform vec3 uMoonDir;
-        uniform sampler2D uTexture;
-        varying vec3 vN;
-        varying vec2 vUv;
-        void main() {
-          vec3 texColor = texture2D(uTexture, vUv).rgb;
-          float light = max(dot(normalize(vN), uLightDir), 0.0);
-          vec3 color = texColor * (light * 0.97 + 0.08);
-          color *= 0.679;
-          vec3 fireColor = vec3(0.7, 0.15, 0.03);
-          float fireAmount = light * 0.0648;
-          color = mix(color, color + fireColor * fireAmount, step(0.01, light));
-          float moonAlign = max(dot(normalize(vN), uMoonDir), 0.0);
-          float shadow = smoothstep(0.88, 0.99, moonAlign) * light * 0.55;
-          color *= (1.0 - shadow);
-          gl_FragColor = vec4(color, 1.0);
-        }`
+      uniforms: { uLightDir: { value: earthToSun }, uMoonDir: { value: earthToMoon }, uTexture: { value: earthColorTex } },
+      vertexShader: `varying vec3 vN; varying vec2 vUv; void main() { vN = normalize(mat3(modelMatrix) * normal); vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+      fragmentShader: `uniform vec3 uLightDir; uniform vec3 uMoonDir; uniform sampler2D uTexture; varying vec3 vN; varying vec2 vUv; void main() { vec3 texColor = texture2D(uTexture, vUv).rgb; float light = max(dot(normalize(vN), uLightDir), 0.0); vec3 color = texColor * (light * 0.97 + 0.08); color *= 0.679; vec3 fireColor = vec3(0.7, 0.15, 0.03); float fireAmount = light * 0.0648; color = mix(color, color + fireColor * fireAmount, step(0.01, light)); float moonAlign = max(dot(normalize(vN), uMoonDir), 0.0); float shadow = smoothstep(0.88, 0.99, moonAlign) * light * 0.55; color *= (1.0 - shadow); gl_FragColor = vec4(color, 1.0); }`
     });
     const earthSegs = isMobile ? 48 : 96;
     earthGroup.add(new THREE.Mesh(new THREE.SphereGeometry(EARTH_R, earthSegs, earthSegs), earthMat));
@@ -571,62 +464,46 @@
     const earthAtmoMat = new THREE.ShaderMaterial({
       uniforms: { uTime: { value: 0 } },
       vertexShader: `varying vec3 vN; void main(){ vN=normalize(normalMatrix*normal); gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
-      fragmentShader: `
-        varying vec3 vN;
-        void main() {
-          float edge = 1.0 - abs(dot(vN, vec3(0.0, 0.0, 1.0)));
-          float glow = pow(edge, 0.3) * 0.135;
-          vec3 col = vec3(0.25, 0.55, 1.0) * glow;
-          gl_FragColor = vec4(col, glow * 0.525);
-        }`,
+      fragmentShader: `varying vec3 vN; void main() { float edge = 1.0 - abs(dot(vN, vec3(0.0, 0.0, 1.0))); float glow = pow(edge, 0.3) * 0.135; vec3 col = vec3(0.25, 0.55, 1.0) * glow; gl_FragColor = vec4(col, glow * 0.525); }`,
       side: THREE.BackSide, transparent: true, blending: THREE.AdditiveBlending, fog: false, depthWrite: false
     });
     earthGroup.add(new THREE.Mesh(new THREE.SphereGeometry(EARTH_R + 0.72, 24, 24), earthAtmoMat));
 
+    // Дым над Землёй
     const smokeGeo = new THREE.BufferGeometry();
     const sN = 500, sP = new Float32Array(sN * 3);
     for (let i = 0; i < sN; i++) {
       const r = EARTH_R + 0.18 + Math.random() * 0.84;
       const t = Math.random() * Math.PI * 2;
       const p = Math.acos(2 * Math.random() - 1);
-      sP[i*3] = r * Math.sin(p) * Math.cos(t);
-      sP[i*3+1] = r * Math.sin(p) * Math.sin(t);
-      sP[i*3+2] = r * Math.cos(p);
+      sP[i*3] = r * Math.sin(p) * Math.cos(t); sP[i*3+1] = r * Math.sin(p) * Math.sin(t); sP[i*3+2] = r * Math.cos(p);
     }
     smokeGeo.setAttribute('position', new THREE.BufferAttribute(sP, 3));
-    earthGroup.add(new THREE.Points(smokeGeo, new THREE.PointsMaterial({
-      color: 0x553311, size: 0.20, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, fog: false
-    })));
+    earthGroup.add(new THREE.Points(smokeGeo, new THREE.PointsMaterial({ color: 0x553311, size: 0.20, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, fog: false })));
 
+    // Обломки вокруг Земли
     const debrisGeo = new THREE.BufferGeometry();
     const dN = 100, dP = new Float32Array(dN * 3);
     for (let i = 0; i < dN; i++) {
       const r = EARTH_R + 1.2 + Math.random() * 2.4;
       const t = Math.random() * Math.PI * 2;
       const p = Math.acos(2 * Math.random() - 1);
-      dP[i*3] = r * Math.sin(p) * Math.cos(t);
-      dP[i*3+1] = r * Math.sin(p) * Math.sin(t);
-      dP[i*3+2] = r * Math.cos(p);
+      dP[i*3] = r * Math.sin(p) * Math.cos(t); dP[i*3+1] = r * Math.sin(p) * Math.sin(t); dP[i*3+2] = r * Math.cos(p);
     }
     debrisGeo.setAttribute('position', new THREE.BufferAttribute(dP, 3));
-    earthGroup.add(new THREE.Points(debrisGeo, new THREE.PointsMaterial({
-      color: 0x886655, size: 0.06, transparent: true, opacity: 0.55, fog: false
-    })));
+    earthGroup.add(new THREE.Points(debrisGeo, new THREE.PointsMaterial({ color: 0x886655, size: 0.06, transparent: true, opacity: 0.55, fog: false })));
 
-    // === СВЕТ ===
+    // --- Свет ---
     scene.add(new THREE.AmbientLight(0x223344, 0.5));
     const sunLight = new THREE.DirectionalLight(0xddeeff, 1.3);
     sunLight.position.copy(sunPos);
     scene.add(sunLight);
-
     const earthShine = new THREE.DirectionalLight(0xff4422, 0.15);
     earthShine.position.copy(moonToEarth);
     scene.add(earthShine);
+    scene.add(new THREE.AmbientLight(0x332222, 0.25));
 
-    const moonAmbient = new THREE.AmbientLight(0x332222, 0.25);
-    scene.add(moonAmbient);
-
-    // === ЗВЁЗДЫ ===
+    // --- Звёзды ---
     function makeStars(n, minR, maxR, color, size, opacity) {
       const geo = new THREE.BufferGeometry();
       const pos = new Float32Array(n * 3);
@@ -634,341 +511,286 @@
         const r = minR + Math.random() * (maxR - minR);
         const t = Math.random() * Math.PI * 2;
         const p = Math.acos(2 * Math.random() - 1);
-        pos[i*3] = r * Math.sin(p) * Math.cos(t);
-        pos[i*3+1] = r * Math.sin(p) * Math.sin(t);
-        pos[i*3+2] = r * Math.cos(p);
+        pos[i*3] = r * Math.sin(p) * Math.cos(t); pos[i*3+1] = r * Math.sin(p) * Math.sin(t); pos[i*3+2] = r * Math.cos(p);
       }
       geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
       return new THREE.Points(geo, new THREE.PointsMaterial({ color, size, transparent: true, opacity, fog: false }));
     }
-    const starCount1 = isMobile ? 900 : 1800;
-    const starCount2 = isMobile ? 150 : 300;
-    scene.add(makeStars(starCount1, 100, 200, 0x8899cc, 0.14, 0.5));
-    scene.add(makeStars(starCount2, 80, 120, 0xff6633, 0.1, 0.25));
+    scene.add(makeStars(isMobile ? 900 : 1800, 100, 200, 0x8899cc, 0.14, 0.5));
+    scene.add(makeStars(isMobile ? 150 : 300, 80, 120, 0xff6633, 0.1, 0.25));
 
-    // === ЛУНА (с динамическим LOD) ===
+    // --- Луна с LOD ---
     const MOON_R = 2.2;
     const moonGroup = new THREE.Group();
     scene.add(moonGroup);
-
-    const moonMat = new THREE.MeshStandardMaterial({
-      color: 0x888888, roughness: 1.0, metalness: 0.0
-    });
-
-    // Пороги LOD — расстояние от ПОВЕРХНОСТИ Луны
+    const moonMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 1.0, metalness: 0.0 });
     const LOD_LEVELS = isMobile
-      ? [
-          { dist: 20, segs: 32 },
-          { dist: 10, segs: 64 },
-          { dist: 4,  segs: 96 },
-          { dist: 0,  segs: 128 }
-        ]
-      : [
-          { dist: 8, segs: 48 },
-          { dist: 3, segs: 96 },
-          { dist: 0, segs: 128 }
-        ];
-
-    const lodGeometries = LOD_LEVELS.map(lvl =>
-      new THREE.SphereGeometry(MOON_R, lvl.segs, lvl.segs)
-    );
-
+      ? [{ dist: 20, segs: 32 }, { dist: 10, segs: 64 }, { dist: 4, segs: 96 }, { dist: 0, segs: 128 }]
+      : [{ dist: 8, segs: 48 }, { dist: 3, segs: 96 }, { dist: 0, segs: 128 }];
+    const lodGeometries = LOD_LEVELS.map(lvl => new THREE.SphereGeometry(MOON_R, lvl.segs, lvl.segs));
     const moonMesh = new THREE.Mesh(lodGeometries[lodGeometries.length - 1], moonMat);
     moonGroup.add(moonMesh);
-
     let currentLOD = lodGeometries.length - 1;
-
     function updateLOD() {
-      // Расстояние от камеры до ПОВЕРХНОСТИ Луны
       const dist = camera.position.length() - MOON_R;
       for (let i = 0; i < LOD_LEVELS.length; i++) {
-        if (dist >= LOD_LEVELS[i].dist) {
-          if (currentLOD !== i) {
-            moonMesh.geometry = lodGeometries[i];
-            currentLOD = i;
-          }
-          return;
-        }
+        if (dist >= LOD_LEVELS[i].dist) { if (currentLOD !== i) { moonMesh.geometry = lodGeometries[i]; currentLOD = i; } return; }
       }
     }
+    const moonTex = texLoader.load('textures/moon_color.jpg', () => { moonMat.map = moonTex; moonMat.color.set(0xffffff); moonMat.needsUpdate = true; onTextureDone(); }, undefined, (err) => { console.error('moon_color.jpg:', err); onTextureDone(); });
+    moonTex.colorSpace = THREE.SRGBColorSpace; moonTex.anisotropy = isMobile ? 2 : 8; moonTex.generateMipmaps = true; moonTex.minFilter = THREE.LinearMipmapLinearFilter;
 
-    const moonTex = texLoader.load(
-      'textures/moon_color.jpg',
-      () => {
-        moonMat.map = moonTex;
-        moonMat.color.set(0xffffff);
-        moonMat.needsUpdate = true;
-        onTextureDone();
-      },
-      undefined,
-      (err) => {
-        console.error('moon_color.jpg:', err);
-        onTextureDone();
-      }
-    );
-    moonTex.colorSpace = THREE.SRGBColorSpace;
-    moonTex.anisotropy = isMobile ? 2 : 8;
-    // Мипмапы включены — текстура не мерцает при удалении
-    moonTex.generateMipmaps = true;
-    moonTex.minFilter = THREE.LinearMipmapLinearFilter;
-
-    // === МАРКЕРЫ ОБЪЕКТОВ ===
+    // --- Маркеры объектов ---
     function latLonToVec3(lat, lon, radius) {
       const phi = (90 - lat) * Math.PI / 180;
       const theta = (lon + 180) * Math.PI / 180;
-      return new THREE.Vector3(
-        -radius * Math.sin(phi) * Math.cos(theta),
-         radius * Math.cos(phi),
-         radius * Math.sin(phi) * Math.sin(theta)
-      );
+      return new THREE.Vector3(-radius * Math.sin(phi) * Math.cos(theta), radius * Math.cos(phi), radius * Math.sin(phi) * Math.sin(theta));
     }
-
     const markers = [];
     const glowMeshes = [];
-
-    OBJECTS.forEach(obj => {
-      const pos = latLonToVec3(obj.lat, obj.lon, MOON_R * 1.02);
-      const info = CAT_INFO[obj.cat];
-
-      const markerMat = new THREE.MeshBasicMaterial({ color: info.color });
-      const marker = new THREE.Mesh(
-        new THREE.SphereGeometry(0.05, 12, 12),
-        markerMat
-      );
-      marker.position.copy(pos);
-      marker.userData = obj;
-
-      const glowMat = new THREE.MeshBasicMaterial({
-        color: info.color, transparent: true, opacity: 0.25,
-        blending: THREE.AdditiveBlending, depthWrite: false
-      });
-      const glow = new THREE.Mesh(
-        new THREE.SphereGeometry(0.11, 12, 12),
-        glowMat
-      );
-      glow.position.copy(pos);
-      marker.userData.glow = glow;
-      glowMeshes.push(glow);
-
-      moonGroup.add(marker);
-      moonGroup.add(glow);
-      markers.push(marker);
+    const OBJ_DATA = [
+      { title: 'Главная База', lat: 0, lon: 0, cat: 'base' },
+      { title: 'Шахта Альфа', lat: 15, lon: 30, cat: 'mine' },
+      { title: 'Шахта Коперник', lat: 10, lon: -20, cat: 'mine' },
+      { title: 'Шахта Полярная', lat: -82, lon: 0, cat: 'mine' },
+      { title: 'Лаборатория Путь', lat: -42, lon: 12, cat: 'lab' },
+      { title: 'Лаборатория Тень', lat: 52, lon: 80, cat: 'lab' },
+      { title: 'Маяк Орёл', lat: 8, lon: 0, cat: 'beacon' },
+      { title: 'Маяк Северный', lat: 78, lon: 45, cat: 'beacon' },
+      { title: 'Маяк Тихий', lat: -60, lon: 180, cat: 'beacon' },
+      { title: 'Аванпост Юг', lat: -30, lon: 60, cat: 'outpost' },
+      { title: 'Аванпост Запад', lat: 20, lon: -50, cat: 'outpost' },
+      { title: 'Колония Арес (ИИ)', lat: -15, lon: 145, cat: 'enemy' },
+    ];
+    const CAT_COLORS = { base: 0x00ff88, mine: 0xffaa44, lab: 0x7fff7f, beacon: 0xff44ff, outpost: 0x66aaff, enemy: 0xff4444 };
+    OBJ_DATA.forEach(o => {
+      const pos = latLonToVec3(o.lat, o.lon, MOON_R * 1.02);
+      const col = CAT_COLORS[o.cat] || 0x00e5ff;
+      const m = new THREE.Mesh(new THREE.SphereGeometry(o.cat === 'base' ? 0.08 : 0.05, 12, 12), new THREE.MeshBasicMaterial({ color: col }));
+      m.position.copy(pos); m.userData = o;
+      const glow = new THREE.Mesh(new THREE.SphereGeometry(o.cat === 'base' ? 0.15 : 0.11, 12, 12), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.25, blending: THREE.AdditiveBlending, depthWrite: false }));
+      glow.position.copy(pos); m.userData.glow = glow;
+      moonGroup.add(m); moonGroup.add(glow); markers.push(m); glowMeshes.push(glow);
     });
 
-    // === RAYCASTING ДЛЯ КЛИКА ПО МАРКЕРАМ ===
+    // --- Raycasting ---
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
-    let pointerDownPos = null;
-    let pointerDownTime = 0;
-
-    renderer.domElement.addEventListener('pointerdown', (e) => {
-      pointerDownPos = { x: e.clientX, y: e.clientY };
-      pointerDownTime = Date.now();
-    });
-
-    renderer.domElement.addEventListener('pointerup', (e) => {
-      if (!pointerDownPos) return;
-      const dx = e.clientX - pointerDownPos.x;
-      const dy = e.clientY - pointerDownPos.y;
-      const moveDist = Math.sqrt(dx * dx + dy * dy);
-      const elapsed = Date.now() - pointerDownTime;
-      pointerDownPos = null;
-
-      // Клик, а не перетаскивание
-      if (moveDist < 8 && elapsed < 400) {
-        pointer.x = (e.clientX / innerWidth) * 2 - 1;
+    let pDown = null, pTime = 0;
+    renderer.domElement.addEventListener('pointerdown', e => { pDown = { x: e.clientX, y: e.clientY }; pTime = Date.now(); });
+    renderer.domElement.addEventListener('pointerup', e => {
+      if (!pDown) return;
+      const dx = e.clientX - pDown.x, dy = e.clientY - pDown.y;
+      if (Math.sqrt(dx * dx + dy * dy) < 8 && Date.now() - pTime < 400) {
+        pointer.x = e.clientX / innerWidth * 2 - 1;
         pointer.y = -(e.clientY / innerHeight) * 2 + 1;
         raycaster.setFromCamera(pointer, camera);
-        const visibleMarkers = markers.filter(m => m.visible);
-        const hits = raycaster.intersectObjects(visibleMarkers);
-        if (hits.length > 0) {
-          showCard(hits[0].object.userData);
-        }
+        const hits = raycaster.intersectObjects(markers);
+        if (hits.length > 0) addLog('Выбран: ' + hits[0].object.userData.title);
       }
+      pDown = null;
     });
-
-    // Курсор-подсказка на десктопе
     if (!isMobile) {
-      renderer.domElement.addEventListener('pointermove', (e) => {
+      renderer.domElement.addEventListener('pointermove', e => {
         if (e.buttons > 0) return;
-        pointer.x = (e.clientX / innerWidth) * 2 - 1;
+        pointer.x = e.clientX / innerWidth * 2 - 1;
         pointer.y = -(e.clientY / innerHeight) * 2 + 1;
         raycaster.setFromCamera(pointer, camera);
-        const visibleMarkers = markers.filter(m => m.visible);
-        const hits = raycaster.intersectObjects(visibleMarkers);
+        const hits = raycaster.intersectObjects(markers);
         renderer.domElement.style.cursor = hits.length > 0 ? 'pointer' : 'grab';
       });
     }
 
-    // === КАРТОЧКА ===
-    const card = document.getElementById('card');
-    let cardViews = 0;
-
-    function showCard(obj) {
-      const info = CAT_INFO[obj.cat];
-      document.getElementById('card-year').textContent = obj.year;
-      const badge = document.getElementById('card-cat-badge');
-      badge.textContent = info.name;
-      const hex = '#' + info.color.toString(16).padStart(6, '0');
-      badge.style.color = hex;
-      badge.style.background = hex + '15';
-      document.getElementById('card-title').textContent = obj.title;
-      document.getElementById('card-coords').textContent =
-        `${obj.lat >= 0 ? 'N' : 'S'} ${Math.abs(obj.lat).toFixed(1)}°  ${obj.lon >= 0 ? 'E' : 'W'} ${Math.abs(obj.lon).toFixed(1)}°`;
-      document.getElementById('card-text').textContent = obj.text;
-
-      const statsEl = document.getElementById('card-stats');
-      statsEl.innerHTML = '';
-      const labels = {
-        pop: 'Население', energy: 'Энергия', depth: 'Глубина', output: 'Добыча',
-        staff: 'Персонал', projects: 'Проекты', casualties: 'Погибшие',
-        year_built: 'Построена', built: 'Год', dish: 'Антенна', range: 'Дальность',
-        power: 'Мощность', diameter: 'Диаметр', visitors: 'Посетителей'
-      };
-      Object.keys(labels).forEach(k => {
-        if (obj[k] !== undefined) {
-          statsEl.innerHTML += `<div class="card-stat"><span class="val">${obj[k]}</span>${labels[k]}</div>`;
-        }
-      });
-      if (obj.status) {
-        const sc = obj.status.includes('Разруш') || obj.status.includes('Мемориал') ? '#ff5522' : '#7fff7f';
-        statsEl.innerHTML += `<div class="card-stat"><span class="val" style="color:${sc}">${obj.status}</span>Статус</div>`;
-      }
-      document.getElementById('card-author').textContent = 'Архив колонии «Новая Надежда»';
-      card.classList.add('show');
-
-      if (ysdk) {
-        cardViews++;
-        if (cardViews % 5 === 0) {
-          ysdk.adv?.showFullscreenAdv?.({ callbacks: { onClose: () => {}, onError: () => {} } });
-        }
-      }
-    }
-    document.getElementById('card-close').addEventListener('click', () => card.classList.remove('show'));
-
-    // === ПЕРЕКЛЮЧЕНИЕ ПАНЕЛИ КАТЕГОРИЙ ===
-    const catToggle = document.getElementById('cat-toggle');
-    const categoriesPanel = document.getElementById('categories');
-    catToggle.addEventListener('click', (e) => {
-      e.stopPropagation();
-      categoriesPanel.classList.toggle('show');
-      catToggle.classList.toggle('active');
-    });
-    document.addEventListener('click', (e) => {
-      if (!categoriesPanel.contains(e.target) && e.target !== catToggle) {
-        categoriesPanel.classList.remove('show');
-        catToggle.classList.remove('active');
-      }
-    });
-
-    let activeCat = 'all';
-
-    function updateMarkerVisibility() {
-      markers.forEach(m => {
-        const visible = (activeCat === 'all' || m.userData.cat === activeCat);
-        m.visible = visible;
-        if (m.userData.glow) m.userData.glow.visible = visible;
-      });
-    }
-
-    document.querySelectorAll('.cat-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        activeCat = btn.dataset.cat;
-        updateMarkerVisibility();
-      });
-    });
-
-    // === СТАТИСТИКА ===
-    (function updateStats() {
-      const total = OBJECTS.length;
-      const ruinedStatuses = ['Разрушен', 'Разрушена', 'Мемориал'];
-      const active = OBJECTS.filter(o =>
-        o.status && !ruinedStatuses.some(r => o.status.includes(r))
-      ).length;
-      const ruined = OBJECTS.filter(o =>
-        o.status && ruinedStatuses.some(r => o.status.includes(r))
-      ).length;
-      document.getElementById('stat-total').textContent = total;
-      document.getElementById('stat-active').textContent = active;
-      document.getElementById('stat-ruined').textContent = ruined;
-    })();
-
-    // === УПРАВЛЕНИЕ ===
+    // --- OrbitControls ---
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.07;
-    controls.minDistance = 3.5;
-    controls.maxDistance = isMobile ? 28 : 14;
-    controls.enablePan = false;
-    controls.rotateSpeed = 0.55;
-    controls.autoRotate = false;
-    controls.autoRotateSpeed = 0.35;
+    controls.enableDamping = true; controls.dampingFactor = 0.07;
+    controls.minDistance = 3.5; controls.maxDistance = isMobile ? 28 : 14;
+    controls.enablePan = false; controls.rotateSpeed = 0.55;
+    controls.autoRotate = true; controls.autoRotateSpeed = 0.35;
 
-    // === ЛОГИКА ВРАЩЕНИЯ ===
+    let lastInteract = Date.now();
+    renderer.domElement.addEventListener('pointerdown', () => { controls.autoRotate = false; lastInteract = Date.now(); });
+    renderer.domElement.addEventListener('touchstart', () => { controls.autoRotate = false; lastInteract = Date.now(); }, { passive: true });
+
+    // Zoom buttons
+    document.getElementById('btn-zoom-in').addEventListener('click', () => { const d = camera.position.length(); camera.position.multiplyScalar(Math.max(controls.minDistance, d - (isMobile ? 2.4 : 1.6)) / d); controls.update(); });
+    document.getElementById('btn-zoom-out').addEventListener('click', () => { const d = camera.position.length(); camera.position.multiplyScalar(Math.min(controls.maxDistance, d + (isMobile ? 2.4 : 1.6)) / d); controls.update(); });
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      if (isMobile) camera.position.set(MOBILE_CAM.x, MOBILE_CAM.y, MOBILE_CAM.z);
+      else camera.position.set(DESKTOP_CAM.x, DESKTOP_CAM.y, DESKTOP_CAM.z);
+      controls.target.set(0, 0, 0); controls.autoRotate = true; controls.update();
+    });
+
+    // =====================
+    // === ИНТЕРФЕЙС =======
+    // =====================
+    function canAfford(cost) { for (let k in cost) if (state[k] === undefined || state[k] < cost[k]) return false; return true; }
+    function spendCost(cost) { for (let k in cost) state[k] -= cost[k]; }
+    function fmtNum(n) { if (n >= 1000) return (n / 1000).toFixed(1) + 'к'; return Math.floor(n).toString(); }
+
+    function updateUI() {
+      document.getElementById('r-regolith').textContent = fmtNum(state.regolith);
+      document.getElementById('r-helium').textContent = fmtNum(state.helium);
+      let eProd = 0, eUse = 0;
+      state.buildings.forEach(b => { if (!b.built) return; const d = BUILDINGS[b.id]; if (d.energyUse) eUse += d.energyUse; if (b.id === 'dome') eProd += 2; });
+      eUse += state.units.length * 0.5;
+      document.getElementById('r-energy').textContent = Math.floor(state.energy) + '/' + state.energyMax;
+      document.getElementById('r-energy').parentElement.classList.toggle('low', state.energy < eUse);
+      document.getElementById('r-pop').textContent = Math.floor(state.pop) + '/' + state.popMax;
+      document.getElementById('r-pp').textContent = Math.floor(state.politicalPoints);
+      document.getElementById('r-logistics').textContent = Math.floor(state.logistics) + '/' + state.logisticsMax;
+      const db = document.getElementById('debuff-bar');
+      if (state.debuffEnd > Date.now()) { const min = Math.ceil((state.debuffEnd - Date.now()) / 60000); db.textContent = '⚠ Политическая нестабильность: −50% добычи (' + min + ' мин)'; db.classList.add('show'); }
+      else db.classList.remove('show');
+      document.getElementById('ai-panel-info').textContent = 'Зданий: ' + state.ai.buildings + ' | Войска: ' + state.ai.units + ' | Население: ' + Math.floor(state.ai.pop);
+    }
+
+    let activeTab = null;
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tab = btn.dataset.tab;
+        if (activeTab === tab) { document.getElementById('panel').classList.remove('show'); btn.classList.remove('active'); activeTab = null; return; }
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active'); activeTab = tab;
+        document.getElementById('panel').classList.add('show');
+        renderPanel(tab);
+      });
+    });
+
+    function renderPanel(tab) {
+      const c = document.getElementById('panel-content');
+      if (tab === 'build') {
+        let html = '<div class="panel-title">Строительство</div><div class="build-grid">';
+        Object.keys(BUILDINGS).forEach(id => {
+          const b = BUILDINGS[id]; const aff = canAfford(b.cost); const inQueue = state.buildQueue.some(q => q.id === id);
+          let costHtml = ''; const ck = { regolith: 'r', helium: 'h', energy: 'e', pop: 'p' };
+          for (let k in b.cost) { const cls = ck[k] || ''; costHtml += '<span class="cost-' + cls + '">' + b.cost[k] + ' ' + (k === 'regolith' ? 'Рег' : k === 'helium' ? 'Гел' : k === 'energy' ? 'Эн' : k) + '</span>'; }
+          html += '<div class="build-card ' + (aff ? 'affordable' : 'unaffordable') + (inQueue ? ' building' : '') + '" data-build="' + id + '"><div class="build-name">' + b.icon + ' ' + b.name + '</div><div class="build-desc">' + b.desc + '</div><div class="build-cost">' + costHtml + ' <span class="cost-l">⏱' + Math.ceil(b.buildTime / 1000) + 'с</span></div>' + (inQueue ? '<div class="build-timer"><div class="build-timer-fill" style="width:50%"></div></div>' : '') + '</div>';
+        });
+        html += '</div>';
+        c.innerHTML = html;
+        c.querySelectorAll('.build-card').forEach(card => {
+          card.addEventListener('click', () => {
+            const id = card.dataset.build; const b = BUILDINGS[id];
+            if (!canAfford(b.cost)) { addLog('Недостаточно ресурсов', 'bad'); return; }
+            if (state.buildQueue.some(q => q.id === id)) { addLog('Уже строится', 'warn'); return; }
+            if (state.logistics < 1) { addLog('Недостаточно очков логистики', 'bad'); return; }
+            spendCost(b.cost); state.logistics--;
+            const speedMod = b.id === 'dreadnought' ? getMod('heavyBuildSpeed') || 1 : getMod('buildSpeed') || 1;
+            state.buildQueue.push({ id: id, remaining: b.buildTime / speedMod, built: false, x: (Math.random() - 0.5) * 4, z: (Math.random() - 0.5) * 4 });
+            addLog('Начато строительство: ' + b.name, 'good'); renderPanel('build');
+          });
+        });
+      } else if (tab === 'units') {
+        let html = '<div class="panel-title">Военная система</div>';
+        html += '<div style="margin-bottom:8px;font-size:10px;color:#789;">Ваши юниты: ' + state.units.length + '</div>';
+        html += '<div class="unit-grid">';
+        Object.keys(UNITS).forEach(id => {
+          const u = UNITS[id]; const aff = canAfford(u.cost);
+          let costHtml = ''; const ck = { regolith: 'r', helium: 'h', energy: 'e' };
+          for (let k in u.cost) { const cls = ck[k] || ''; costHtml += '<span class="cost-' + cls + '">' + u.cost[k] + ' ' + (k === 'regolith' ? 'Рег' : k === 'helium' ? 'Гел' : k === 'energy' ? 'Эн' : k) + '</span>'; }
+          html += '<div class="unit-card ' + (aff ? 'affordable' : 'unaffordable') + '" data-unit="' + id + '"><div class="unit-name">' + u.icon + ' ' + u.name + '</div><div class="unit-desc">' + u.desc + '</div><div class="unit-stats"><div class="unit-stat"><span class="val">' + u.attack + '</span>Атака</div><div class="unit-stat"><span class="val">' + u.defense + '</span>Защита</div></div><div class="build-cost">' + costHtml + ' <span class="cost-p">👥' + u.popNeed + '</span></div></div>';
+        });
+        html += '</div>';
+        html += '<div style="margin-top:10px;font-size:9px;color:#789;line-height:1.4;"><b style="color:#ff6644">Атака на «Арес»:</b><br><button id="btn-attack" style="margin-top:6px;padding:6px 12px;background:rgba(255,60,60,.15);border:1px solid rgba(255,80,80,.3);color:#ff8866;border-radius:5px;cursor:pointer;font-family:inherit;font-size:11px;">⚔ Атаковать колонию «Арес»</button></div>';
+        c.innerHTML = html;
+        c.querySelectorAll('.unit-card').forEach(card => {
+          card.addEventListener('click', () => {
+            const id = card.dataset.unit; const u = UNITS[id];
+            if (!canAfford(u.cost)) { addLog('Недостаточно ресурсов', 'bad'); return; }
+            const popUsed = state.units.reduce((s, un) => s + (UNITS[un.id]?.popNeed || 0), 0);
+            if (state.pop < u.popNeed + popUsed) { addLog('Недостаточно населения', 'bad'); return; }
+            spendCost(u.cost);
+            const speedMod = u.type === 'heavy' ? getMod('heavyBuildSpeed') || 1 : getMod('buildSpeed') || 1;
+            setTimeout(() => { state.units.push({ id: id, hp: u.defense * 2, attack: u.attack, defense: u.defense }); addLog('Юнит готов: ' + u.name, 'good'); updateUI(); }, u.buildTime / speedMod);
+            addLog('Начато обучение: ' + u.name, 'good'); renderPanel('units');
+          });
+        });
+        document.getElementById('btn-attack')?.addEventListener('click', () => attackAI());
+      } else if (tab === 'politics') {
+        let html = '<div class="panel-title">Политический строй</div>';
+        html += '<div style="margin-bottom:8px;font-size:10px;color:#789;">Полит. очки: <b style="color:#ff44ff">' + Math.floor(state.politicalPoints) + '</b> / ' + state.ppMax + '</div>';
+        html += '<div class="pol-grid">';
+        Object.keys(REGIMES).forEach(id => {
+          const r = REGIMES[id]; const isCur = state.regime === id; const canChange = !isCur && state.politicalPoints >= r.ppCost;
+          const cls = isCur ? 'current' : canChange ? '' : 'unaffordable';
+          html += '<div class="pol-card ' + cls + '" data-regime="' + id + '"><div class="pol-name">' + r.name + '</div><div class="pol-pros">' + r.pros.replace(/\n/g, '<br>') + '</div><div class="pol-cons">' + r.cons.replace(/\n/g, '<br>') + '</div>' + (isCur ? '' : '<div class="pp-cost">Стоимость: ' + r.ppCost + ' ПО</div>') + '</div>';
+        });
+        html += '</div>';
+        html += '<div style="margin-top:10px;font-size:9px;color:#789;line-height:1.4;">Смена строя вызывает <b style="color:#ff4444">политическую нестабильность</b> на 5 минут: добыча ресурсов −50%.</div>';
+        c.innerHTML = html;
+        c.querySelectorAll('.pol-card').forEach(card => {
+          card.addEventListener('click', () => {
+            const id = card.dataset.regime; if (id === state.regime) return;
+            const r = REGIMES[id];
+            if (state.politicalPoints < r.ppCost) { addLog('Недостаточно полит. очков', 'bad'); return; }
+            state.politicalPoints -= r.ppCost; state.regime = id;
+            state.debuffEnd = Date.now() + 300000; state.debuffType = 'instability';
+            addLog('Смена строя: ' + r.name + '. Нестабильность 5 минут!', 'warn'); renderPanel('politics');
+          });
+        });
+      } else if (tab === 'map') {
+        let html = '<div class="panel-title">Карта Луны</div><div style="font-size:10px;color:#789;line-height:1.6;">';
+        html += '<div style="margin-bottom:6px;">Зданий: <b style="color:#00e5ff">' + state.buildings.filter(b => b.built).length + '</b></div>';
+        html += '<div style="margin-bottom:6px;">Юнитов: <b style="color:#ff8844">' + state.units.length + '</b></div>';
+        html += '<div style="margin-bottom:6px;">Время игры: <b style="color:#00e5ff">' + Math.floor(state.gameTime / 60) + ' мин</b></div>';
+        html += '<div style="margin-bottom:6px;">Текущий строй: <b style="color:#ff44ff">' + REGIMES[state.regime].name + '</b></div>';
+        html += '<div style="margin-bottom:10px;">ИИ «Арес»: <b style="color:#ff4444">' + state.ai.buildings + ' зданий, ' + state.ai.units + ' юнитов</b></div>';
+        html += '</div>';
+        html += '<button id="btn-save" style="padding:8px 14px;background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.25);color:#00e5ff;border-radius:5px;cursor:pointer;font-family:inherit;font-size:11px;margin-right:6px;">💾 Сохранить</button>';
+        html += '<button id="btn-reset" style="padding:8px 14px;background:rgba(255,60,60,.1);border:1px solid rgba(255,80,80,.25);color:#ff6666;border-radius:5px;cursor:pointer;font-family:inherit;font-size:11px;">🗑 Новая игра</button>';
+        c.innerHTML = html;
+        document.getElementById('btn-save')?.addEventListener('click', () => { saveGame(); addLog('Игра сохранена', 'good'); });
+        document.getElementById('btn-reset')?.addEventListener('click', () => { if (confirm('Начать новую игру? Весь прогресс будет потерян.')) { resetGame(); renderPanel('map'); } });
+      } else if (tab === 'info') {
+        let html = '<div class="panel-title">Луна 2087: Рассвет</div><div style="font-size:11px;color:#aacce6;line-height:1.6;">';
+        html += '<p style="margin-bottom:8px;">2087 год. Земля погибла — атмосфера горит уже 16 лет. Последние люди выживают в колониях на Луне.</p>';
+        html += '<p style="margin-bottom:8px;"><b style="color:#00e5ff">Ресурсы:</b><br>• <b style="color:#ffaa44">Реголит</b> — строительный материал, добывается в шахтах<br>• <b style="color:#7fff7f">Гелий-3</b> — топливо для реакторов, добывается в шахтах<br>• <b style="color:#44aaff">Энергия</b> — если потребление выше выработки, база отключается<br>• <b style="color:#ff66aa">Население</b> — выращивается в лабораториях, нужно для шахт и юнитов<br>• <b style="color:#ff44ff">Полит. очки</b> — генерируются куполами, нужны для реформ<br>• <b style="color:#ff8844">Логистика</b> — тратится на стройку, восстанавливается со временем</p>';
+        html += '<p style="margin-bottom:8px;"><b style="color:#00e5ff">Строи:</b><br>• <b>Технократия</b> — +30% исследования, шахты без людей<br>• <b>Военная Хунта</b> — +40% скорость войск, −25% ресурсы<br>• <b>Корпоратократия</b> — +50% торговля, +реголит<br>• <b>Социал-Коллективизм</b> — −50% содержание, медленные технологии</p>';
+        html += '<p style="margin-bottom:8px;"><b style="color:#00e5ff">Юниты:</b><br>• <b>Строитель</b> — строит/ремонтирует, беззащитен<br>• <b>Штурмовик</b> — космопехота, захват аванпостов<br>• <b>Дредноут</b> — танк на Гелии-3, огромная мощь</p>';
+        html += '<p style="font-size:9px;color:#456;margin-top:10px;">Оффлайн-режим: ИИ управляет колонией «Арес». Архитектура готова к переходу в онлайн.</p></div>';
+        c.innerHTML = html;
+      }
+    }
+
+    function attackAI() {
+      if (state.units.length < 3) { addLog('Недостаточно юнитов для атаки (нужно 3+)', 'bad'); return; }
+      const myPower = state.units.reduce((s, u) => s + u.attack, 0);
+      const aiDef = state.ai.units * 8 + state.ai.buildings * 5;
+      if (myPower > aiDef * 0.8) {
+        const lost = Math.floor(state.units.length * 0.3); state.units.splice(0, lost);
+        const gain = Math.floor(state.ai.regolith * 0.3) + Math.floor(state.ai.helium * 0.2);
+        state.regolith += gain; state.ai.buildings = Math.max(0, state.ai.buildings - 1); state.ai.units = Math.max(0, state.ai.units - 3);
+        addLog('Победа! Захвачено ресурсов: ' + gain + '. Потеряно юнитов: ' + lost, 'good');
+      } else {
+        const lost = Math.floor(state.units.length * 0.6); state.units.splice(0, lost);
+        addLog('Поражение! Потеряно юнитов: ' + lost, 'bad');
+      }
+      updateUI();
+    }
+
+    // =====================
+    // === ГЛАВНЫЙ ЦИКЛ ====
+    // =====================
+    let lastTime = performance.now();
+    const clock = new THREE.Clock();
     const earthRotSpeed = 0.000476;
     const moonRotSpeed = earthRotSpeed * 0.95;
-    let moonAutoRotate = true;
-    let lastInteractionTime = Date.now();
-    const AUTO_ROTATE_DELAY = 30000;
 
-    function onUserInteraction() {
-      moonAutoRotate = false;
-      lastInteractionTime = Date.now();
-    }
-
-    renderer.domElement.addEventListener('pointerdown', onUserInteraction);
-    renderer.domElement.addEventListener('touchstart', onUserInteraction, { passive: true });
-    renderer.domElement.addEventListener('pointermove', (e) => {
-      if (e.buttons > 0) onUserInteraction();
-    });
-    renderer.domElement.addEventListener('touchmove', onUserInteraction, { passive: true });
-
-    const zoomStep = isMobile ? 2.4 : 1.6;
-
-    document.getElementById('btn-zoom-in').addEventListener('click', () => {
-      const d = camera.position.length();
-      const target = Math.max(controls.minDistance, d - zoomStep);
-      camera.position.multiplyScalar(target / d);
-      controls.update();
-    });
-
-    document.getElementById('btn-zoom-out').addEventListener('click', () => {
-      const d = camera.position.length();
-      const target = Math.min(controls.maxDistance, d + zoomStep);
-      camera.position.multiplyScalar(target / d);
-      controls.update();
-    });
-
-    document.getElementById('btn-reset').addEventListener('click', () => {
-      if (isMobile) {
-        camera.position.set(MOBILE_CAM.x, MOBILE_CAM.y, MOBILE_CAM.z);
-      } else {
-        camera.position.set(DESKTOP_CAM.x, DESKTOP_CAM.y, DESKTOP_CAM.z);
-      }
-      controls.target.set(0, 0, 0);
-      moonAutoRotate = true;
-      lastInteractionTime = Date.now();
-      controls.update();
-    });
-
-    // === АНИМАЦИЯ ===
-    const clock = new THREE.Clock();
     function animate() {
       requestAnimationFrame(animate);
+      const now = performance.now();
+      const dt = Math.min(0.1, (now - lastTime) / 1000);
+      lastTime = now;
       const t = clock.getElapsedTime();
+
+      gameTick(dt);
 
       earthAtmoMat.uniforms.uTime.value = t;
 
-      // Пульсация маркеров
       markers.forEach((m, i) => {
-        if (!m.visible) return;
         const pulse = 1 + Math.sin(t * 3 + i * 0.7) * 0.2;
-        if (m.userData.glow) {
-          m.userData.glow.scale.setScalar(pulse);
-          m.userData.glow.material.opacity = 0.15 + Math.sin(t * 3 + i * 0.7) * 0.1;
-        }
+        if (m.userData.glow) { m.userData.glow.scale.setScalar(pulse); m.userData.glow.material.opacity = 0.15 + Math.sin(t * 3 + i * 0.7) * 0.1; }
       });
 
       const camDir = camera.position.clone().normalize();
@@ -976,18 +798,14 @@
       bgSphere.rotation.x = camDir.y * 0.03;
       bgSphere.rotation.z = camDir.x * 0.015;
 
-      if (!moonAutoRotate && (Date.now() - lastInteractionTime > AUTO_ROTATE_DELAY)) {
-        moonAutoRotate = true;
-      }
-      if (moonAutoRotate) {
-        moonGroup.rotation.y += moonRotSpeed;
-        earthGroup.rotation.y += earthRotSpeed;
-      }
+      if (Date.now() - lastInteract > 30000) controls.autoRotate = true;
+      if (controls.autoRotate) { moonGroup.rotation.y += moonRotSpeed; earthGroup.rotation.y += earthRotSpeed; }
 
       updateLOD();
-
       controls.update();
       renderer.render(scene, camera);
+
+      if (Math.floor(t * 2) !== Math.floor((t - dt) * 2)) updateUI();
     }
 
     addEventListener('resize', () => {
@@ -996,28 +814,11 @@
       renderer.setSize(innerWidth, innerHeight);
       renderer.setPixelRatio(Math.min(devicePixelRatio, isMobile ? 1.5 : 2));
     });
+    addEventListener('beforeunload', saveGame);
 
-    addEventListener('beforeunload', () => {
-      lodGeometries.forEach(g => g.dispose());
-      markers.forEach(m => {
-        m.geometry.dispose();
-        m.material.dispose();
-      });
-      glowMeshes.forEach(g => {
-        g.geometry.dispose();
-        g.material.dispose();
-      });
-      scene.traverse(o => {
-        if (o.geometry && !lodGeometries.includes(o.geometry) && !markers.includes(o) && !glowMeshes.includes(o)) o.geometry.dispose();
-        if (o.material) {
-          if (Array.isArray(o.material)) o.material.forEach(m => m.dispose());
-          else o.material.dispose();
-        }
-      });
-      renderer.dispose();
-    });
-
+    updateUI();
     animate();
+    addLog('Луна 2087: Рассвет запущена', 'good');
   </script>
 </body>
 </html>
