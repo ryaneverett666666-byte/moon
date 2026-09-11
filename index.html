@@ -3,13 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Луна 2087: Рассвет</title>
+  <title>Луна 2087: Новый рубеж</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     html, body { width: 100%; height: 100%; overflow: hidden !important; overscroll-behavior: none !important; }
     body { background: #01020a; font-family: 'Segoe UI', Arial, sans-serif; touch-action: none; color: #c8e6ff; position: fixed; inset: 0; -webkit-user-select: none; user-select: none; }
     canvas { display: block; width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
-
     #loading { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #01020a; z-index: 100; transition: opacity 0.6s; }
     .spinner { width: 50px; height: 50px; border: 2px solid rgba(0,229,255,0.12); border-top-color: #00e5ff; border-right-color: rgba(0,229,255,0.2); border-radius: 50%; animation: spin 1s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
@@ -17,13 +16,15 @@
     #loading-progress { width: 180px; height: 2px; margin-top: 16px; background: rgba(0,229,255,0.1); border-radius: 1px; overflow: hidden; }
     #loading-bar { height: 100%; width: 0%; border-radius: 1px; background: linear-gradient(90deg, #00e5ff, #0088ff); box-shadow: 0 0 8px rgba(0,229,255,0.5); transition: width 0.3s ease; }
     #nowebgl { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; background: #01020a; color: #ff5555; font-size: 15px; text-align: center; z-index: 200; padding: 30px; }
-
     #topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 25; display: flex; justify-content: space-between; align-items: flex-start; padding: 0 14px; padding-top: max(6px, env(safe-area-inset-top)); pointer-events: none; flex-wrap: wrap; gap: 4px; }
     #logo { pointer-events: auto; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
     #logo-icon { width: 26px; height: 26px; border: 2px solid #00e5ff; border-radius: 50%; position: relative; box-shadow: 0 0 10px rgba(0,229,255,0.4); flex-shrink: 0; }
     #logo-icon::after { content: ''; position: absolute; inset: 3px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, rgba(0,229,255,0.2), #003344); }
     #logo-text { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #00e5ff; font-weight: 600; white-space: nowrap; }
-
+    #topbar-right { display: flex; align-items: center; gap: 6px; pointer-events: auto; flex-shrink: 0; }
+    #btn-settings { width: 30px; height: 30px; background: rgba(5,12,25,0.85); border: 1px solid rgba(0,229,255,0.2); border-radius: 6px; color: #00e5ff; cursor: pointer; font-size: 16px; backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-family: inherit; }
+    #btn-settings:active { transform: scale(0.9); }
+    #btn-settings.active { background: rgba(0,229,255,0.15); border-color: #00e5ff; }
     #res-bar { pointer-events: auto; display: flex; gap: 0; background: rgba(5,12,25,0.85); border: 1px solid rgba(0,229,255,0.15); border-radius: 6px; overflow: hidden; backdrop-filter: blur(8px); flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; max-width: 100%; }
     #res-bar::-webkit-scrollbar { display: none; }
     .res-cell { padding: 5px 8px; display: flex; flex-direction: column; align-items: center; gap: 1px; border-right: 1px solid rgba(0,229,255,0.08); min-width: 50px; flex: 0 0 auto; }
@@ -38,40 +39,32 @@
     .res-cell.logistics .res-value { color: #ff8844; }
     .res-cell.low .res-value { color: #ff4444 !important; animation: pulse-red 1s infinite; }
     @keyframes pulse-red { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
-
     #debuff-bar { position: fixed; top: 52px; left: 50%; transform: translateX(-50%); z-index: 24; display: none; background: rgba(255,60,60,0.2); border: 1px solid rgba(255,80,80,0.4); border-radius: 6px; padding: 4px 12px; font-size: 10px; color: #ff8888; backdrop-filter: blur(8px); white-space: nowrap; }
     #debuff-bar.show { display: block; }
-
     #ai-panel { position: fixed; left: 8px; top: 90px; z-index: 23; background: rgba(255,60,60,0.1); border: 1px solid rgba(255,80,80,0.2); border-radius: 6px; padding: 6px 8px; backdrop-filter: blur(8px); max-width: 160px; pointer-events: none; }
     #ai-panel-title { font-size: 8px; color: #ff6666; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 3px; font-weight: 600; }
     #ai-panel-info { font-size: 9px; color: #aa8888; line-height: 1.3; }
-
-    #save-indicator { position: fixed; top: 52px; right: 10px; z-index: 24; font-size: 9px; color: #456; padding: 2px 6px; background: rgba(5,12,25,0.7); border-radius: 3px; display: none; }
+    #save-indicator { position: fixed; top: 52px; right: 50px; z-index: 24; font-size: 9px; color: #456; padding: 2px 6px; background: rgba(5,12,25,0.7); border-radius: 3px; display: none; }
     #save-indicator.show { display: block; }
-
     #log { position: fixed; right: 10px; top: 110px; z-index: 23; display: flex; flex-direction: column; gap: 2px; pointer-events: none; max-width: 200px; }
     .log-msg { font-size: 9px; color: #889; background: rgba(5,12,25,0.7); padding: 3px 6px; border-radius: 3px; border-left: 2px solid #00e5ff; animation: logfade 8s forwards; }
     .log-msg.warn { border-left-color: #ffaa44; color: #aa8; }
     .log-msg.bad { border-left-color: #ff4444; color: #aa6666; }
     .log-msg.good { border-left-color: #7fff7f; color: #88aa88; }
     @keyframes logfade { 0% { opacity: 0; transform: translateX(20px); } 5% { opacity: 1; transform: translateX(0); } 85% { opacity: 1; } 100% { opacity: 0; } }
-
     #zoom-controls { position: fixed; right: 8px; bottom: 54px; z-index: 25; display: flex; flex-direction: column; gap: 3px; }
     .zoom-btn { width: 34px; height: 34px; border: 1px solid rgba(0,229,255,0.2); background: rgba(5,12,25,0.7); color: #00e5ff; border-radius: 5px; cursor: pointer; font-size: 15px; backdrop-filter: blur(6px); transition: all 0.15s; font-family: inherit; display: flex; align-items: center; justify-content: center; }
     .zoom-btn:active { transform: scale(0.9); }
-
     #earth-panel { position: fixed; left: 8px; bottom: 54px; z-index: 25; max-width: 160px; pointer-events: none; }
     #earth-panel-title { font-size: 8px; color: #ff5522; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 3px; font-weight: 600; }
     #earth-panel-bar { width: 100%; height: 2px; background: rgba(255,80,30,0.15); border-radius: 1px; overflow: hidden; margin-bottom: 4px; }
     #earth-panel-fill { height: 100%; width: 92%; border-radius: 1px; background: linear-gradient(90deg, #ff8844, #ff3322); }
     #earth-panel-text { font-size: 8px; color: #766; line-height: 1.3; }
-
     #tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 26; display: flex; justify-content: center; gap: 0; padding: 0; padding-bottom: max(0px, env(safe-area-inset-bottom)); background: rgba(5,12,25,0.92); border-top: 1px solid rgba(0,229,255,0.15); backdrop-filter: blur(8px); }
     .tab-btn { flex: 1; padding: 8px 4px; background: transparent; border: none; color: #5a7a9a; font-size: 9px; cursor: pointer; font-family: inherit; display: flex; flex-direction: column; align-items: center; gap: 2px; transition: all 0.2s; border-top: 2px solid transparent; max-width: 80px; }
     .tab-btn .tab-icon { font-size: 18px; line-height: 1; }
     .tab-btn:active { transform: scale(0.92); }
     .tab-btn.active { color: #fff; border-top-color: #00e5ff; background: rgba(0,229,255,0.06); }
-
     #panel { position: fixed; left: 0; right: 0; bottom: 42px; z-index: 25; max-height: 55vh; overflow-y: auto; background: rgba(5,12,25,0.95); border-top: 1px solid rgba(0,229,255,0.12); backdrop-filter: blur(10px); padding: 10px; display: none; }
     #panel.show { display: block; }
     .panel-title { font-size: 13px; color: #00e5ff; font-weight: 600; margin-bottom: 8px; letter-spacing: 1px; text-transform: uppercase; }
@@ -89,29 +82,42 @@
     .cost-r { color: #ffaa44; } .cost-h { color: #7fff7f; } .cost-e { color: #44aaff; } .cost-p { color: #ff66aa; } .cost-l { color: #ff8844; }
     .build-timer { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: rgba(255,170,68,0.2); overflow: hidden; }
     .build-timer-fill { height: 100%; background: linear-gradient(90deg, #ffaa44, #ff8844); transition: width 0.3s; }
-
     .unit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
     .unit-card { background: rgba(255,100,100,0.05); border: 1px solid rgba(255,100,100,0.15); border-radius: 6px; padding: 10px; cursor: pointer; transition: all 0.2s; }
     .unit-card:active { transform: scale(0.96); }
     .unit-card.affordable { border-color: rgba(255,100,100,0.35); }
     .unit-card.unaffordable { opacity: 0.45; cursor: not-allowed; }
+    .unit-card.locked { opacity: 0.3; cursor: not-allowed; }
     .unit-name { font-size: 12px; color: #fff; font-weight: 600; margin-bottom: 3px; }
     .unit-desc { font-size: 9px; color: #789; line-height: 1.3; margin-bottom: 6px; }
     .unit-stats { display: flex; gap: 8px; font-size: 9px; color: #a88; }
     .unit-stat { display: flex; flex-direction: column; align-items: center; }
     .unit-stat .val { color: #ff8844; font-size: 11px; font-weight: 600; }
-
     .pol-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
     .pol-card { background: rgba(0,229,255,0.05); border: 1px solid rgba(0,229,255,0.15); border-radius: 6px; padding: 12px; cursor: pointer; transition: all 0.2s; position: relative; }
     .pol-card:active { transform: scale(0.96); }
     .pol-card.current { border-color: #00e5ff; background: rgba(0,229,255,0.12); cursor: default; }
-    .pol-card.current::after { content: 'АКТИВЕН'; position: absolute; top: 4px; right: 6px; font-size: 7px; color: #00e5ff; font-weight: 700; letter-spacing: 1px; }
+    .pol-card.current::after { content: attr(data-active-label); position: absolute; top: 4px; right: 6px; font-size: 7px; color: #00e5ff; font-weight: 700; letter-spacing: 1px; }
     .pol-card.unaffordable { opacity: 0.5; }
     .pol-name { font-size: 13px; color: #fff; font-weight: 600; margin-bottom: 4px; }
     .pol-pros { font-size: 9px; color: #7fff7f; line-height: 1.3; margin-bottom: 3px; }
     .pol-cons { font-size: 9px; color: #ff6644; line-height: 1.3; margin-bottom: 6px; }
     .pol-card .pp-cost { font-size: 10px; color: #ff44ff; font-weight: 600; }
-
+    .pol-card.anarchy { border-color: #ff4444; background: rgba(255,60,60,0.05); }
+    .set-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(0,229,255,0.06); }
+    .set-row:last-child { border-bottom: none; }
+    .set-label { font-size: 12px; color: #aacce6; }
+    .set-desc { font-size: 9px; color: #456; margin-top: 2px; }
+    .set-control { display: flex; align-items: center; gap: 8px; }
+    .set-toggle { width: 40px; height: 22px; background: rgba(0,229,255,0.1); border: 1px solid rgba(0,229,255,0.25); border-radius: 11px; cursor: pointer; position: relative; transition: all 0.2s; flex-shrink: 0; }
+    .set-toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #456; transition: all 0.2s; }
+    .set-toggle.on { background: rgba(0,229,255,0.3); border-color: #00e5ff; }
+    .set-toggle.on::after { left: 20px; background: #00e5ff; box-shadow: 0 0 6px rgba(0,229,255,0.5); }
+    .set-slider { -webkit-appearance: none; appearance: none; width: 100px; height: 4px; background: rgba(0,229,255,0.15); border-radius: 2px; outline: none; cursor: pointer; }
+    .set-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #00e5ff; cursor: pointer; box-shadow: 0 0 4px rgba(0,229,255,0.4); }
+    .set-slider::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: #00e5ff; cursor: pointer; border: none; }
+    .set-lang-btn { padding: 4px 10px; background: rgba(0,229,255,0.1); border: 1px solid rgba(0,229,255,0.25); color: #00e5ff; border-radius: 4px; cursor: pointer; font-family: inherit; font-size: 11px; transition: all 0.2s; }
+    .set-lang-btn.active { background: rgba(0,229,255,0.25); border-color: #00e5ff; color: #fff; }
     @media (max-width: 768px) {
       #logo-text { font-size: 9px; letter-spacing: 1px; }
       #logo-icon { width: 22px; height: 22px; }
@@ -132,7 +138,7 @@
 <body>
   <div id="loading">
     <div class="spinner"></div>
-    <div id="loading-text">Луна 2087: Рассвет</div>
+    <div id="loading-text">Луна 2087: Новый рубеж</div>
     <div id="loading-progress"><div id="loading-bar"></div></div>
   </div>
   <div id="nowebgl">
@@ -141,18 +147,21 @@
   </div>
 
   <div id="topbar">
-    <div id="logo"><div id="logo-icon"></div><div id="logo-text">Луна 2087: Рассвет</div></div>
-    <div id="res-bar">
-      <div class="res-cell regolith"><span class="res-label">Реголит</span><span class="res-value" id="r-regolith">0</span></div>
-      <div class="res-cell helium"><span class="res-label">Гелий-3</span><span class="res-value" id="r-helium">0</span></div>
-      <div class="res-cell energy"><span class="res-label">Энергия</span><span class="res-value" id="r-energy">0/0</span></div>
-      <div class="res-cell pop"><span class="res-label">Население</span><span class="res-value" id="r-pop">0/0</span></div>
-      <div class="res-cell pp"><span class="res-label">Полит.оч.</span><span class="res-value" id="r-pp">0</span></div>
-      <div class="res-cell logistics"><span class="res-label">Логист.</span><span class="res-value" id="r-logistics">0/0</span></div>
+    <div id="logo"><div id="logo-icon"></div><div id="logo-text">Луна 2087: Новый рубеж</div></div>
+    <div id="topbar-right">
+      <div id="res-bar">
+        <div class="res-cell regolith"><span class="res-label" data-i18n="regolith">Реголит</span><span class="res-value" id="r-regolith">0</span></div>
+        <div class="res-cell helium"><span class="res-label" data-i18n="helium">Гелий-3</span><span class="res-value" id="r-helium">0</span></div>
+        <div class="res-cell energy"><span class="res-label" data-i18n="energy">Энергия</span><span class="res-value" id="r-energy">0/0</span></div>
+        <div class="res-cell pop"><span class="res-label" data-i18n="population">Население</span><span class="res-value" id="r-pop">0/0</span></div>
+        <div class="res-cell pp"><span class="res-label" data-i18n="polpoints">Полит.оч.</span><span class="res-value" id="r-pp">0</span></div>
+        <div class="res-cell logistics"><span class="res-label" data-i18n="logistics">Логист.</span><span class="res-value" id="r-logistics">0/0</span></div>
+      </div>
+      <button id="btn-settings">⚙</button>
     </div>
   </div>
 
-  <div id="ai-panel"><div id="ai-panel-title">Колония «Арес»</div><div id="ai-panel-info">ИИ-противник</div></div>
+  <div id="ai-panel"><div id="ai-panel-title" data-i18n="ai_colony">Колония «Арес»</div><div id="ai-panel-info">ИИ-противник</div></div>
   <div id="debuff-bar"></div>
   <div id="save-indicator">Сохранено</div>
   <div id="log"></div>
@@ -164,19 +173,19 @@
   </div>
 
   <div id="earth-panel">
-    <div id="earth-panel-title">Состояние Земли</div>
+    <div id="earth-panel-title" data-i18n="earth_status">Состояние Земли</div>
     <div id="earth-panel-bar"><div id="earth-panel-fill"></div></div>
-    <div id="earth-panel-text">Атмосфера разрушена. Поверхность горит 16 лет. Связь потеряна в 2073.</div>
+    <div id="earth-panel-text" data-i18n="earth_desc">Атмосфера разрушена. Поверхность горит 16 лет. Связь потеряна в 2073.</div>
   </div>
 
   <div id="panel"><div id="panel-content"></div></div>
 
   <div id="tabs">
-    <button class="tab-btn" data-tab="build"><span class="tab-icon">🏗</span>Стройка</button>
-    <button class="tab-btn" data-tab="units"><span class="tab-icon">🪖</span>Войска</button>
-    <button class="tab-btn" data-tab="politics"><span class="tab-icon">🏛</span>Политика</button>
-    <button class="tab-btn" data-tab="map"><span class="tab-icon">🗺</span>Карта</button>
-    <button class="tab-btn" data-tab="info"><span class="tab-icon">ℹ</span>Инфо</button>
+    <button class="tab-btn" data-tab="build"><span class="tab-icon">🏗</span><span data-i18n="tab_build">Стройка</span></button>
+    <button class="tab-btn" data-tab="units"><span class="tab-icon">🪖</span><span data-i18n="tab_units">Войска</span></button>
+    <button class="tab-btn" data-tab="politics"><span class="tab-icon">🏛</span><span data-i18n="tab_politics">Политика</span></button>
+    <button class="tab-btn" data-tab="map"><span class="tab-icon">🗺</span><span data-i18n="tab_map">Карта</span></button>
+    <button class="tab-btn" data-tab="info"><span class="tab-icon">ℹ</span><span data-i18n="tab_info">Инфо</span></button>
   </div>
 
   <script type="importmap">
@@ -195,7 +204,7 @@
       throw new Error('No WebGL');
     }
 
-    // === YANDEX SDK (динамическая загрузка, не блокирует страницу) ===
+    // === YANDEX SDK ===
     let ysdk = null;
     const sdkScript = document.createElement('script');
     sdkScript.src = 'https://yandex.ru/games/sdk/v1';
@@ -204,34 +213,266 @@
     document.head.appendChild(sdkScript);
 
     // =====================
+    // === ЛОКАЛИЗАЦИЯ ====
+    // =====================
+    const I18N = {
+      ru: {
+        regolith: 'Реголит', helium: 'Гелий-3', energy: 'Энергия', population: 'Население', polpoints: 'Полит.оч.', logistics: 'Логист.',
+        ai_colony: 'Колония «Арес»', ai_info: 'ИИ-противник', earth_status: 'Состояние Земли', earth_desc: 'Атмосфера разрушена. Поверхность горит 16 лет. Связь потеряна в 2073.',
+        tab_build: 'Стройка', tab_units: 'Войска', tab_politics: 'Политика', tab_map: 'Карта', tab_info: 'Инфо',
+        saved: 'Сохранено', new_game: 'Новая игра', game_started: 'Луна 2087: Новый рубеж запущена',
+        build_title: 'Строительство', unit_title: 'Военная система', pol_title: 'Политический строй', map_title: 'Карта Луны',
+        your_units: 'Ваши юниты', attack_ares: '⚔ Атаковать колонию «Арес»', not_enough_res: 'Недостаточно ресурсов', not_enough_pop: 'Недостаточно населения',
+        not_enough_log: 'Недостаточно очков логистики', not_enough_pp: 'Недостаточно полит. очков', already_building: 'Уже строится',
+        started_build: 'Начато строительство: ', built_done: 'Построено: ', started_training: 'Начато обучение: ', unit_ready: 'Юнит готов: ',
+        units_locked: '⚠ Анархия: наём войск запрещён', not_enough_units: 'Недостаточно юнитов для атаки (нужно 3+)',
+        victory: 'Победа! Захвачено ресурсов: ', defeat: 'Поражение! Потеряно юнитов: ',
+        instability: '⚠ Политическая нестабильность: −50% добычи (', min: ' мин)',
+        instability_end: 'Политическая нестабильность завершена',
+        regime_change: 'Смена строя: ', instability5: '. Нестабильность 5 минут!',
+        regime_cost: 'Стоимость: ', po: ' ПО', active: 'АКТИВЕН',
+        reg_change_warning: 'Смена строя вызывает <b style="color:#ff4444">политическую нестабильность</b> (анархию) на 5 минут: производство −50%, наём войск запрещён.',
+        pp_available: 'Полит. очки: ', buildings_count: 'Зданий: ', units_count: 'Юнитов: ', play_time: 'Время игры: ', min: ' мин',
+        current_regime: 'Текущий строй: ', ai_stats: 'ИИ «Арес»: ', ai_units: ' юнитов',
+        save: '💾 Сохранить', reset_confirm: 'Начать новую игру? Весь прогресс будет потерян.', reset_btn: '🗑 Новая игра',
+        info_title: 'Луна 2087: Новый рубеж', info_year: '2087 год. Земля погибла — атмосфера горит уже 16 лет. Последние люди выживают в колониях на Луне.',
+        info_resources: 'Ресурсы', info_regimes: 'Строи', info_units_h: 'Юниты', info_offline: 'Оффлайн-режим: ИИ управляет колонией «Арес». Архитектура готова к переходу в онлайн.',
+        settings_title: 'Настройки', language: 'Язык', master_vol: 'Общая громкость', master_desc: 'Общий уровень звука',
+        music: 'Фоновая музыка', music_desc: 'Амбиент-музыка космоса', sfx: 'Звуковые эффекты', sfx_desc: 'Клики, постройка, бой',
+        mute_all: 'Отключить весь звук', mute_desc: 'Полная тишина',
+        selected: 'Выбран: ', ared_built: 'Колония «Арес» построила: ', ared_forces: 'Колония «Арес» готовит войска',
+        ared_attack: '⚠ Атака «Арес»! Потери: ', ared_attack_lost: 'Потеряно юнитов: ', ared_repelled: 'Атака «Арес» отбита!',
+        ared_unit: ' юнитов', ared_bldg: 'новое здание',
+        regolith_short: 'Рег', helium_short: 'Гел', energy_short: 'Эн', pop_short: 'Нас',
+        time_short: 'с', attack: 'Атака', defense: 'Защита',
+        // buildings
+        b_dome: 'Жилой Купол', b_dome_d: 'Жильё для 100 человек. Генерирует Полит. очки.',
+        b_mine: 'Шахта', b_mine_d: 'Добыча реголита и гелия-3. Ставится на месторождения.',
+        b_beacon: 'Маяк Связи', b_beacon_d: 'Расширяет радиус контроля. Открывает туман войны.',
+        b_outpost: 'Аванпост', b_outpost_d: 'Укреплённая точка. Удерживает дальние шахты.',
+        b_lab: 'Лаборатория', b_lab_d: 'Искусственное выращивание населения. +10 населения/мин.',
+        b_turret: 'Турель', b_turret_d: 'Автоматическая защита базы. Бьёт по врагам.',
+        // units
+        u_builder: 'Строитель', u_builder_d: 'Возводит здания, ремонтирует технику. Беззащитен в бою.',
+        u_assault: 'Штурмовик', u_assault_d: 'Космопехота. Захват аванпостов и шлюзов.',
+        u_dreadnought: 'Дредноут', u_dreadnought_d: 'Тяжёлый лунный танк на Гелии-3. Огромный радиус. Жрёт энергию.',
+        // regime descriptions
+        reg_communism: 'Коммунизм', reg_democracy: 'Демократия', reg_dictatorship: 'Диктатура', reg_theocracy: 'Теократия', reg_technocracy: 'Технократия', reg_anarchy: 'Анархия',
+        // regime pros/cons
+        communism_p: '+20% к скорости строительства\n+15% к добыче ресурсов', communism_c: '−25% к торговле\n−10% к шпионажу',
+        democracy_p: '+30% к налогам\n+20% к складам торговли', democracy_c: '−15% к атаке\n+10% к содержанию армии',
+        dictatorship_p: '+20% к урону\n−20% к стоимости войск\n+30% к трофеям', dictatorship_c: '−30% к торговле\n−15% к росту населения\n+10% к содержанию',
+        theocracy_p: '+20% к защите войск\n+25% к контршпионажу', theocracy_c: '−15% к науке\n−10% к тяжёлым ресурсам',
+        technocracy_p: '+35% к скорости науки\n+15% к защите турелей', technocracy_c: '+20% к стоимости зданий\n−15% к торговле',
+        anarchy_p: 'Переходное состояние при смене строя', anarchy_c: '−50% ко всем ресурсам\nНаём войск запрещён',
+      },
+      en: {
+        regolith: 'Regolith', helium: 'Helium-3', energy: 'Energy', population: 'Population', polpoints: 'Pol.Points', logistics: 'Logist.',
+        ai_colony: 'Colony "Ares"', ai_info: 'AI opponent', earth_status: 'Earth Status', earth_desc: 'Atmosphere destroyed. Surface burning for 16 years. Contact lost in 2073.',
+        tab_build: 'Build', tab_units: 'Units', tab_politics: 'Politics', tab_map: 'Map', tab_info: 'Info',
+        saved: 'Saved', new_game: 'New Game', game_started: 'Luna 2087: New Frontier started',
+        build_title: 'Construction', unit_title: 'Military', pol_title: 'Political Regime', map_title: 'Lunar Map',
+        your_units: 'Your units', attack_ares: '⚔ Attack colony "Ares"', not_enough_res: 'Not enough resources', not_enough_pop: 'Not enough population',
+        not_enough_log: 'Not enough logistics points', not_enough_pp: 'Not enough political points', already_building: 'Already building',
+        started_build: 'Construction started: ', built_done: 'Built: ', started_training: 'Training started: ', unit_ready: 'Unit ready: ',
+        units_locked: '⚠ Anarchy: unit production locked', not_enough_units: 'Not enough units to attack (need 3+)',
+        victory: 'Victory! Resources gained: ', defeat: 'Defeat! Units lost: ',
+        instability: '⚠ Political instability: −50% production (', min: ' min)',
+        instability_end: 'Political instability ended',
+        regime_change: 'Regime change: ', instability5: '. Instability for 5 minutes!',
+        regime_cost: 'Cost: ', po: ' PP', active: 'ACTIVE',
+        reg_change_warning: 'Changing regime causes <b style="color:#ff4444">political instability (anarchy)</b> for 5 minutes: production −50%, unit production locked.',
+        pp_available: 'Political points: ', buildings_count: 'Buildings: ', units_count: 'Units: ', play_time: 'Play time: ', min: ' min',
+        current_regime: 'Current regime: ', ai_stats: 'AI "Ares": ', ai_units: ' units',
+        save: '💾 Save', reset_confirm: 'Start a new game? All progress will be lost.', reset_btn: '🗑 New Game',
+        info_title: 'Luna 2087: New Frontier', info_year: '2087. Earth is dead — atmosphere burning for 16 years. Last humans survive in lunar colonies.',
+        info_resources: 'Resources', info_regimes: 'Regimes', info_units_h: 'Units', info_offline: 'Offline mode: AI controls colony "Ares". Architecture ready for online transition.',
+        settings_title: 'Settings', language: 'Language', master_vol: 'Master Volume', master_desc: 'Overall sound level',
+        music: 'Background Music', music_desc: 'Space ambient music', sfx: 'Sound Effects', sfx_desc: 'Clicks, building, combat',
+        mute_all: 'Mute All', mute_desc: 'Complete silence',
+        selected: 'Selected: ', ared_built: 'Colony "Ares" built: ', ared_forces: 'Colony "Ares" is training forces',
+        ared_attack: '⚠ "Ares" attack! Losses: ', ared_attack_lost: 'Units lost: ', ared_repelled: '"Ares" attack repelled!',
+        ared_unit: ' units', ared_bldg: 'new building',
+        regolith_short: 'Reg', helium_short: 'Hel', energy_short: 'En', pop_short: 'Pop',
+        time_short: 's', attack: 'Attack', defense: 'Defense',
+        b_dome: 'Dome', b_dome_d: 'Housing for 100 people. Generates Political points.',
+        b_mine: 'Mine', b_mine_d: 'Extracts regolith and helium-3. Place on deposits.',
+        b_beacon: 'Beacon', b_beacon_d: 'Expands control radius. Reveals fog of war.',
+        b_outpost: 'Outpost', b_outpost_d: 'Fortified point. Holds distant mines.',
+        b_lab: 'Laboratory', b_lab_d: 'Artificial population growth. +10 pop/min.',
+        b_turret: 'Turret', b_turret_d: 'Automated base defense. Fires at enemies.',
+        u_builder: 'Builder', u_builder_d: 'Constructs buildings, repairs units. Defenseless in combat.',
+        u_assault: 'Assault', u_assault_d: 'Space marines. Captures outposts and gates.',
+        u_dreadnought: 'Dreadnought', u_dreadnought_d: 'Heavy lunar tank on Helium-3. Huge range. Consumes energy.',
+        reg_communism: 'Communism', reg_democracy: 'Democracy', reg_dictatorship: 'Dictatorship', reg_theocracy: 'Theocracy', reg_technocracy: 'Technocracy', reg_anarchy: 'Anarchy',
+        communism_p: '+20% build speed\n+15% resource production', communism_c: '−25% trade\n−10% espionage',
+        democracy_p: '+30% tax income\n+20% trade warehouse', democracy_c: '−15% attack\n+10% army upkeep',
+        dictatorship_p: '+20% damage\n−20% unit cost\n+30% loot', dictatorship_c: '−30% trade\n−15% pop growth\n+10% upkeep',
+        theocracy_p: '+20% defense\n+25% counter-espionage', theocracy_c: '−15% research\n−10% heavy resources',
+        technocracy_p: '+35% research speed\n+15% turret defense', technocracy_c: '+20% building cost\n−15% trade',
+        anarchy_p: 'Transitional state after regime change', anarchy_c: '−50% all production\nUnit production locked',
+      }
+    };
+
+    let currentLang = localStorage.getItem('luna_lang') || 'ru';
+    function t(key) { return I18N[currentLang][key] || I18N.ru[key] || key; }
+    function applyI18n() {
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        el.textContent = t(key);
+      });
+      document.getElementById('logo-text').textContent = currentLang === 'en' ? 'Luna 2087: New Frontier' : 'Луна 2087: Новый рубеж';
+    }
+
+    // =====================
+    // === ЗВУК ====
+    // =====================
+    let audioCtx = null;
+    let masterGain = null, musicGain = null, sfxGain = null;
+    let musicNodes = [];
+    let settings = JSON.parse(localStorage.getItem('luna_settings') || '{"master":0.5,"music":true,"sfx":true,"muted":false}');
+
+    function initAudio() {
+      if (audioCtx) return;
+      try {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        masterGain = audioCtx.createGain();
+        musicGain = audioCtx.createGain();
+        sfxGain = audioCtx.createGain();
+        masterGain.connect(audioCtx.destination);
+        musicGain.connect(masterGain);
+        sfxGain.connect(masterGain);
+        applyAudioSettings();
+      } catch(e) { console.warn('Audio init failed', e); }
+    }
+
+    function applyAudioSettings() {
+      if (!audioCtx) return;
+      const vol = settings.muted ? 0 : settings.master;
+      masterGain.gain.setTargetAtTime(vol, audioCtx.currentTime, 0.05);
+      musicGain.gain.setTargetAtTime(settings.music && !settings.muted ? 1 : 0, audioCtx.currentTime, 0.05);
+      sfxGain.gain.setTargetAtTime(settings.sfx && !settings.muted ? 1 : 0, audioCtx.currentTime, 0.05);
+    }
+
+    function saveSettings() { localStorage.setItem('luna_settings', JSON.stringify(settings)); }
+
+    function playSfx(freq, dur, type) {
+      if (!audioCtx || !settings.sfx || settings.muted) return;
+      type = type || 'sine';
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.3, audioCtx.currentTime + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+      osc.connect(gain); gain.connect(sfxGain);
+      osc.start(); osc.stop(audioCtx.currentTime + dur);
+    }
+    function sfxClick() { playSfx(800, 0.05, 'square'); }
+    function sfxBuild() { playSfx(400, 0.15, 'sawtooth'); setTimeout(() => playSfx(600, 0.1, 'sawtooth'), 100); }
+    function sfxError() { playSfx(200, 0.1, 'square'); }
+    function sfxCombat() { playSfx(150, 0.2, 'sawtooth'); setTimeout(() => playSfx(80, 0.3, 'sawtooth'), 150); }
+    function sfxRegime() { playSfx(300, 0.1, 'triangle'); setTimeout(() => playSfx(500, 0.1, 'triangle'), 80); setTimeout(() => playSfx(700, 0.15, 'triangle'), 160); }
+
+    function startMusic() {
+      if (!audioCtx || musicNodes.length > 0) return;
+      const baseFreq = 55; // A1
+      const intervals = [1, 1.5, 2, 2.5, 3, 4];
+      intervals.forEach((mult, i) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        const lfo = audioCtx.createOscillator();
+        const lfoGain = audioCtx.createGain();
+        osc.type = i < 2 ? 'sine' : 'triangle';
+        osc.frequency.value = baseFreq * mult;
+        lfo.frequency.value = 0.05 + i * 0.02;
+        lfoGain.gain.value = 0.003;
+        gain.gain.value = 0.015 / (i + 1);
+        lfo.connect(lfoGain);
+        lfoGain.connect(gain.gain);
+        osc.connect(gain);
+        gain.connect(musicGain);
+        osc.start(); lfo.start();
+        musicNodes.push(osc, lfo, gain);
+      });
+    }
+
+    function stopMusic() {
+      musicNodes.forEach(n => { try { if (n.stop) n.stop(); } catch(e){} try { n.disconnect(); } catch(e){} });
+      musicNodes = [];
+    }
+
+    // Init audio on first user interaction
+    document.addEventListener('pointerdown', () => { initAudio(); if (settings.music && !settings.muted) startMusic(); }, { once: true });
+
+    // =====================
     // === ИГРОВЫЕ ДАННЫЕ ===
     // =====================
     const REGIMES = {
-      technocracy: { name: 'Технократия', ppCost: 0, pros: '+30% к исследованиям\nДредноуты: −20% Гелий-3\nШахты работают без людей', cons: 'Дорогое содержание куполов\nСлабая пехота', mods: { research: 1.3, heliumUse: 0.8, domeUpkeep: 1.5, infantryPower: 0.7, minePopNeed: 0 } },
-      military:    { name: 'Военная Хунта', ppCost: 200, pros: 'Войска строятся +40% быстрее\nТурели бьют дальше', cons: '−25% к добыче ресурсов\nВысокий риск бунтов', mods: { buildSpeed: 1.4, resourceRate: 0.75, turretRange: 1.3, revoltRisk: 1.5 } },
-      corporate:   { name: 'Корпоратократия', ppCost: 200, pros: 'Торговые сделки +50%\nРеголит добывается быстрее', cons: 'Наёмники требуют постоянной оплаты', mods: { tradeBonus: 1.5, regolithRate: 1.3, mercUpkeep: 1.5 } },
-      collective:  { name: 'Социал-Коллективизм', ppCost: 200, pros: 'Содержание населения −50%\nВысокая стабильность', cons: 'Медленные технологии\nТяжёлая техника строится дольше', mods: { popUpkeep: 0.5, research: 0.7, heavyBuildSpeed: 0.7, revoltRisk: 0.3 } },
+      communism: {
+        name: { ru: 'Коммунизм', en: 'Communism' }, ppCost: 200,
+        pros: { ru: '+20% к скорости строительства\n+15% к добыче ресурсов', en: '+20% build speed\n+15% resource production' },
+        cons: { ru: '−25% к торговле\n−10% к шпионажу', en: '−25% trade\n−10% espionage' },
+        mods: { buildSpeed: 1.2, resourceRate: 1.15, tradeIncome: 0.75, spyEff: 0.9 },
+        key: 'communism'
+      },
+      democracy: {
+        name: { ru: 'Демократия', en: 'Democracy' }, ppCost: 200,
+        pros: { ru: '+30% к налогам\n+20% к складам торговли', en: '+30% tax income\n+20% trade warehouse' },
+        cons: { ru: '−15% к атаке\n+10% к содержанию армии', en: '−15% attack\n+10% army upkeep' },
+        mods: { taxIncome: 1.3, tradeWarehouse: 1.2, attackMod: 0.85, unitUpkeep: 1.1 },
+        key: 'democracy'
+      },
+      dictatorship: {
+        name: { ru: 'Диктатура', en: 'Dictatorship' }, ppCost: 200,
+        pros: { ru: '+20% к урону\n−20% к стоимости войск\n+30% к трофеям', en: '+20% damage\n−20% unit cost\n+30% loot' },
+        cons: { ru: '−30% к торговле\n−15% к росту населения\n+10% к содержанию', en: '−30% trade\n−15% pop growth\n+10% upkeep' },
+        mods: { attackMod: 1.2, unitCost: 0.8, lootMod: 1.3, tradeIncome: 0.7, popGrowth: 0.85, unitUpkeep: 1.1 },
+        key: 'dictatorship'
+      },
+      theocracy: {
+        name: { ru: 'Теократия', en: 'Theocracy' }, ppCost: 200,
+        pros: { ru: '+20% к защите войск\n+25% к контршпионажу', en: '+20% defense\n+25% counter-espionage' },
+        cons: { ru: '−15% к науке\n−10% к тяжёлым ресурсам', en: '−15% research\n−10% heavy resources' },
+        mods: { defenseMod: 1.2, counterSpy: 1.25, research: 0.85, heavyRes: 0.9 },
+        key: 'theocracy'
+      },
+      technocracy: {
+        name: { ru: 'Технократия', en: 'Technocracy' }, ppCost: 200,
+        pros: { ru: '+35% к скорости науки\n+15% к защите турелей', en: '+35% research speed\n+15% turret defense' },
+        cons: { ru: '+20% к стоимости зданий\n−15% к торговле', en: '+20% building cost\n−15% trade' },
+        mods: { research: 1.35, turretDefense: 1.15, buildCost: 1.2, tradeIncome: 0.85 },
+        key: 'technocracy'
+      },
+      anarchy: {
+        name: { ru: 'Анархия', en: 'Anarchy' }, ppCost: 0,
+        pros: { ru: 'Переходное состояние при смене строя', en: 'Transitional state after regime change' },
+        cons: { ru: '−50% ко всем ресурсам\nНаём войск запрещён', en: '−50% all production\nUnit production locked' },
+        mods: { globalProduction: 0.5, unitLock: true },
+        key: 'anarchy'
+      },
     };
 
     const BUILDINGS = {
-      dome:    { name: 'Жилой Купол',   desc: 'Жильё для 100 человек. Генерирует Полит. очки.', cost: { regolith: 50, helium: 10, energy: 5 },   buildTime: 30000, popCap: 100, ppRate: 0.05, energyUse: 5, icon: '⌂' },
-      mine:    { name: 'Шахта',         desc: 'Добыча реголита и гелия-3. Ставится на месторождения.', cost: { regolith: 30, helium: 5, energy: 3 },   buildTime: 20000, regolithRate: 0.5, heliumRate: 0.15, energyUse: 3, popNeed: 5, icon: '⛏' },
-      beacon:  { name: 'Маяк Связи',    desc: 'Расширяет радиус контроля. Открывает туман войны.', cost: { regolith: 40, helium: 5, energy: 2 },  buildTime: 15000, controlRadius: 1, energyUse: 2, icon: '📡' },
-      outpost: { name: 'Аванпост',      desc: 'Укреплённая точка. Удерживает дальние шахты.', cost: { regolith: 60, helium: 15, energy: 4 },  buildTime: 40000, energyUse: 4, defense: 10, icon: '🛡' },
-      lab:     { name: 'Лаборатория',   desc: 'Искусственное выращивание населения. +10 населения/мин.', cost: { regolith: 45, helium: 20, energy: 6 }, buildTime: 35000, popRate: 0.17, energyUse: 6, popNeed: 10, icon: '🔬' },
-      turret:  { name: 'Турель',        desc: 'Автоматическая защита базы. Бьёт по врагам.', cost: { regolith: 35, helium: 10, energy: 3 },   buildTime: 25000, energyUse: 3, defense: 15, icon: '🔫' },
+      dome:    { nameKey: 'b_dome',    descKey: 'b_dome_d',    cost: { regolith: 50, helium: 10, energy: 5 },   buildTime: 30000, popCap: 100, ppRate: 0.05, energyUse: 5, icon: '⌂' },
+      mine:    { nameKey: 'b_mine',    descKey: 'b_mine_d',    cost: { regolith: 30, helium: 5, energy: 3 },    buildTime: 20000, regolithRate: 0.5, heliumRate: 0.15, energyUse: 3, popNeed: 5, icon: '⛏' },
+      beacon:  { nameKey: 'b_beacon',  descKey: 'b_beacon_d',  cost: { regolith: 40, helium: 5, energy: 2 },    buildTime: 15000, controlRadius: 1, energyUse: 2, icon: '📡' },
+      outpost: { nameKey: 'b_outpost', descKey: 'b_outpost_d', cost: { regolith: 60, helium: 15, energy: 4 },  buildTime: 40000, energyUse: 4, defense: 10, icon: '🛡' },
+      lab:     { nameKey: 'b_lab',     descKey: 'b_lab_d',     cost: { regolith: 45, helium: 20, energy: 6 },  buildTime: 35000, popRate: 0.17, energyUse: 6, popNeed: 10, icon: '🔬' },
+      turret:  { nameKey: 'b_turret',  descKey: 'b_turret_d',  cost: { regolith: 35, helium: 10, energy: 3 },   buildTime: 25000, energyUse: 3, defense: 15, icon: '🔫' },
     };
 
     const UNITS = {
-      builder:     { name: 'Строитель',  desc: 'Возводит здания, ремонтирует технику. Беззащитен в бою.', cost: { regolith: 20, energy: 2 },         buildTime: 15000, popNeed: 1, attack: 1,  defense: 2,  speed: 1,   type: 'infantry', icon: '🔧' },
-      assault:     { name: 'Штурмовик',  desc: 'Космопехота. Захват аванпостов и шлюзов.', cost: { regolith: 30, helium: 5, energy: 3 },     buildTime: 20000, popNeed: 1, attack: 8,  defense: 5,  speed: 1.5, type: 'infantry', icon: '🔫' },
-      dreadnought: { name: 'Дредноут',   desc: 'Тяжёлый лунный танк на Гелии-3. Огромный радиус. Жрёт энергию.', cost: { regolith: 80, helium: 30, energy: 8 }, buildTime: 45000, popNeed: 3, attack: 25, defense: 20, speed: 0.5, type: 'heavy', energyUpkeep: 2, icon: '🚜' },
+      builder:     { nameKey: 'u_builder',     descKey: 'u_builder_d',     cost: { regolith: 20, energy: 2 },         buildTime: 15000, popNeed: 1, attack: 1,  defense: 2,  speed: 1,   type: 'infantry', icon: '🔧' },
+      assault:     { nameKey: 'u_assault',     descKey: 'u_assault_d',     cost: { regolith: 30, helium: 5, energy: 3 },     buildTime: 20000, popNeed: 1, attack: 8,  defense: 5,  speed: 1.5, type: 'infantry', icon: '🔫' },
+      dreadnought: { nameKey: 'u_dreadnought', descKey: 'u_dreadnought_d', cost: { regolith: 80, helium: 30, energy: 8 }, buildTime: 45000, popNeed: 3, attack: 25, defense: 20, speed: 0.5, type: 'heavy', energyUpkeep: 2, icon: '🚜' },
     };
 
     // =====================
-    // === СОСТОЯНИЕ ИГРЫ ===
+    // === СОСТОЯНИЕ ====
     // =====================
-    const SAVE_KEY = 'luna2087_rassvet_save';
+    const SAVE_KEY = 'luna2087_newfrontier_save';
     function defaultState() {
       return {
         regolith: 100, helium: 30, energy: 200, energyMax: 200, pop: 50, popMax: 100,
@@ -251,20 +492,28 @@
     } catch (e) { state = defaultState(); }
 
     function getMod(key) {
+      // Check anarchy debuff first
+      if (state.debuffEnd > Date.now() && state.debuffType === 'anarchy') {
+        if (key === 'globalProduction' || key === 'regolithRate' || key === 'heliumRate' || key === 'popRate' || key === 'ppRate') return 0.5;
+        if (key === 'unitLock') return true;
+      }
       const mods = REGIMES[state.regime].mods || {};
       let m = mods[key] !== undefined ? mods[key] : 1;
-      if (state.debuffEnd > Date.now() && (key === 'regolithRate' || key === 'heliumRate')) m *= 0.5;
+      // Also apply build cost mod
       return m;
     }
 
+    function isUnitLocked() {
+      return state.debuffEnd > Date.now() && state.debuffType === 'anarchy';
+    }
+
     function saveGame() {
-      try {
-        localStorage.setItem(SAVE_KEY, JSON.stringify(state));
-        const si = document.getElementById('save-indicator');
+      try { localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+        const si = document.getElementById('save-indicator'); si.textContent = t('saved');
         si.classList.add('show'); setTimeout(() => si.classList.remove('show'), 1000);
       } catch (e) { console.warn('Save failed', e); }
     }
-    function resetGame() { localStorage.removeItem(SAVE_KEY); state = defaultState(); addLog('Новая игра', 'good'); updateUI(); }
+    function resetGame() { localStorage.removeItem(SAVE_KEY); state = defaultState(); addLog(t('new_game'), 'good'); updateUI(); }
 
     function addLog(msg, type) {
       const logEl = document.getElementById('log');
@@ -277,7 +526,7 @@
     }
 
     // =====================
-    // === ИГРОВОЙ ТИК =====
+    // === ИГРОВОЙ ТИК ===
     // =====================
     function gameTick(dt) {
       let regRate = 0, helRate = 0, energyProd = 0, energyCons = 0, ppRate = 0, popRate = 0;
@@ -286,11 +535,15 @@
         const def = BUILDINGS[b.id];
         if (def.regolithRate) regRate += def.regolithRate * getMod('regolithRate');
         if (def.heliumRate)   helRate += def.heliumRate * getMod('heliumRate');
-        if (def.ppRate)       ppRate += def.ppRate;
-        if (def.popRate)      popRate += def.popRate;
+        if (def.ppRate)       ppRate += def.ppRate * getMod('ppRate');
+        if (def.popRate)      popRate += def.popRate * getMod('popRate');
         if (def.energyUse)    energyCons += def.energyUse;
         if (b.id === 'dome')  energyProd += 2;
       });
+      // Apply global production penalty from anarchy
+      if (state.debuffEnd > Date.now() && state.debuffType === 'anarchy') {
+        regRate *= 0.5; helRate *= 0.5; ppRate *= 0.5; popRate *= 0.5;
+      }
       state.energy = Math.min(state.energyMax, state.energy + energyProd * dt * 0.1);
       energyCons += state.units.length * 0.5;
       state.energy = Math.max(0, state.energy - energyCons * dt * 0.01);
@@ -305,7 +558,8 @@
         if (q.remaining <= 0) {
           q.built = true;
           state.buildings.push({ id: q.id, x: q.x, z: q.z, built: true, progress: 1 });
-          addLog('Построено: ' + BUILDINGS[q.id].name, 'good');
+          addLog(t('built_done') + BUILDINGS[q.id].nameKey.split('_').map(w => w[0].toUpperCase()+w.slice(1)).join(' '), 'good');
+          sfxBuild();
         }
       });
       state.buildQueue = state.buildQueue.filter(q => q.remaining > 0);
@@ -314,7 +568,7 @@
 
       if (state.debuffEnd <= Date.now() && state.debuffType) {
         state.debuffType = null;
-        addLog('Политическая нестабильность завершена', 'good');
+        addLog(t('instability_end'), 'good');
       }
 
       state.gameTime += dt;
@@ -327,28 +581,27 @@
       ai.pop = Math.min(ai.popMax, ai.pop + 0.05 * dt);
       if (Math.random() < 0.001 * dt && ai.buildings < 10) {
         ai.buildings++; ai.regolith -= 40; ai.helium -= 10;
-        const types = ['mine', 'lab', 'dome'];
-        const t = types[Math.floor(Math.random() * types.length)];
-        addLog('Колония «Арес» построила: ' + (BUILDINGS[t]?.name || 'новое здание'), 'warn');
+        addLog(t('ared_built') + t('ared_bldg'), 'warn');
       }
       if (Math.random() < 0.0008 * dt && ai.units < 20) {
         ai.units++; ai.regolith -= 25;
-        if (Math.random() < 0.3) addLog('Колония «Арес» готовит войска', 'warn');
+        if (Math.random() < 0.3) addLog(t('ared_forces'), 'warn');
       }
       if (ai.units >= 5 && Math.random() < ai.aggression * 0.0003 * dt) {
         const atkForce = Math.min(ai.units, Math.floor(ai.units * 0.6));
         ai.units -= atkForce;
         const myDef = state.units.reduce((s, u) => s + u.defense, 0) + state.buildings.reduce((s, b) => s + (BUILDINGS[b.id]?.defense || 0), 0);
         if (atkForce * 10 > myDef) {
-          addLog('⚠ Атака «Арес»! Потери: ' + Math.floor(atkForce * 0.3) + ' юнитов', 'bad');
+          addLog(t('ared_attack') + Math.floor(atkForce * 0.3) + t('ared_unit'), 'bad');
+          sfxCombat();
           if (state.units.length > 0) {
             const lost = Math.min(state.units.length, Math.floor(atkForce * 0.1));
             state.units.splice(0, lost);
-            addLog('Потеряно юнитов: ' + lost, 'bad');
+            addLog(t('ared_attack_lost') + lost, 'bad');
           }
           state.regolith = Math.max(0, state.regolith - 20);
         } else {
-          addLog('Атака «Арес» отбита!', 'good');
+          addLog(t('ared_repelled'), 'good');
         }
       }
     }
@@ -384,7 +637,6 @@
     let texturesLoaded = 0;
     const totalTextures = 4;
     let loadingHidden = false;
-
     function updateProgress() { const pct = Math.round((texturesLoaded / totalTextures) * 100); if (loadingBar) loadingBar.style.width = pct + '%'; }
     function onTextureDone() { texturesLoaded++; updateProgress(); tryHideLoading(); }
     function tryHideLoading() {
@@ -397,15 +649,14 @@
     }
     setTimeout(() => {
       if (!loadingHidden) {
-        loadingHidden = true;
-        if (loadingBar) loadingBar.style.width = '100%';
+        loadingHidden = true; if (loadingBar) loadingBar.style.width = '100%';
         const ld = document.getElementById('loading'); ld.style.opacity = '0';
         setTimeout(() => ld.style.display = 'none', 600);
       }
     }, 12000);
 
     // --- Фон: Млечный Путь ---
-    const bgTex = texLoader.load('textures/milky_way.jpg', () => onTextureDone(), undefined, (err) => { console.error('milky_way.jpg:', err); onTextureDone(); });
+    const bgTex = texLoader.load('textures/milky_way.jpg', () => onTextureDone(), undefined, () => onTextureDone());
     bgTex.colorSpace = THREE.SRGBColorSpace;
     const bgMat = new THREE.ShaderMaterial({
       uniforms: { uTexture: { value: bgTex }, uBrightness: { value: 0.35 } },
@@ -417,26 +668,13 @@
     bgSphere.renderOrder = -1;
     scene.add(bgSphere);
 
-    // --- Солнце ---
+    // --- Солнце (без ореола, на 20% меньше) ---
     const sunPos = new THREE.Vector3(84, 30.8, 56);
     const sunGroup = new THREE.Group();
     sunGroup.position.copy(sunPos);
     scene.add(sunGroup);
-    sunGroup.add(new THREE.Mesh(new THREE.SphereGeometry(2.25, 24, 24), new THREE.MeshBasicMaterial({ color: 0xfff5dd, fog: false })));
-    const sunGlow1Mat = new THREE.ShaderMaterial({
-      uniforms: { uColor: { value: new THREE.Color(0xfff0bb) } },
-      vertexShader: `varying vec3 vN; void main(){ vN=normalize(normalMatrix*normal); gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
-      fragmentShader: `varying vec3 vN; uniform vec3 uColor; void main(){ float i=pow(max(0.0,dot(vN,vec3(0,0,1))),1.5); gl_FragColor=vec4(uColor,i*0.7);}`,
-      side: THREE.BackSide, transparent: true, blending: THREE.AdditiveBlending, fog: false, depthWrite: false
-    });
-    sunGroup.add(new THREE.Mesh(new THREE.SphereGeometry(4.125, 24, 24), sunGlow1Mat));
-    const sunGlow2Mat = new THREE.ShaderMaterial({
-      uniforms: { uColor: { value: new THREE.Color(0xffddaa) } },
-      vertexShader: `varying vec3 vN; void main(){ vN=normalize(normalMatrix*normal); gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
-      fragmentShader: `varying vec3 vN; uniform vec3 uColor; void main(){ float i=pow(max(0.0,dot(vN,vec3(0,0,1))),3.0); gl_FragColor=vec4(uColor,i*0.4);}`,
-      side: THREE.BackSide, transparent: true, blending: THREE.AdditiveBlending, fog: false, depthWrite: false
-    });
-    sunGroup.add(new THREE.Mesh(new THREE.SphereGeometry(7.5, 24, 24), sunGlow2Mat));
+    // Ореол убран — только сфера, размер 2.25 * 0.8 = 1.8
+    sunGroup.add(new THREE.Mesh(new THREE.SphereGeometry(1.8, 24, 24), new THREE.MeshBasicMaterial({ color: 0xfff5dd, fog: false })));
 
     // --- Земля на фоне (полная версия) ---
     const EARTH_R = 7.92 * 2.21;
@@ -445,7 +683,7 @@
     earthGroup.rotation.set(0.2, -0.3, 0);
     scene.add(earthGroup);
 
-    const earthColorTex = texLoader.load('textures/earth_color.jpg', () => onTextureDone(), undefined, (err) => { console.error('earth_color.jpg:', err); onTextureDone(); });
+    const earthColorTex = texLoader.load('textures/earth_color.jpg', () => onTextureDone(), undefined, () => onTextureDone());
     earthColorTex.colorSpace = THREE.SRGBColorSpace;
     earthColorTex.anisotropy = isMobile ? 2 : 4;
 
@@ -474,9 +712,9 @@
     const sN = 500, sP = new Float32Array(sN * 3);
     for (let i = 0; i < sN; i++) {
       const r = EARTH_R + 0.18 + Math.random() * 0.84;
-      const t = Math.random() * Math.PI * 2;
-      const p = Math.acos(2 * Math.random() - 1);
-      sP[i*3] = r * Math.sin(p) * Math.cos(t); sP[i*3+1] = r * Math.sin(p) * Math.sin(t); sP[i*3+2] = r * Math.cos(p);
+      const ta = Math.random() * Math.PI * 2;
+      const pa = Math.acos(2 * Math.random() - 1);
+      sP[i*3] = r * Math.sin(pa) * Math.cos(ta); sP[i*3+1] = r * Math.sin(pa) * Math.sin(ta); sP[i*3+2] = r * Math.cos(pa);
     }
     smokeGeo.setAttribute('position', new THREE.BufferAttribute(sP, 3));
     earthGroup.add(new THREE.Points(smokeGeo, new THREE.PointsMaterial({ color: 0x553311, size: 0.20, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, fog: false })));
@@ -486,9 +724,9 @@
     const dN = 100, dP = new Float32Array(dN * 3);
     for (let i = 0; i < dN; i++) {
       const r = EARTH_R + 1.2 + Math.random() * 2.4;
-      const t = Math.random() * Math.PI * 2;
-      const p = Math.acos(2 * Math.random() - 1);
-      dP[i*3] = r * Math.sin(p) * Math.cos(t); dP[i*3+1] = r * Math.sin(p) * Math.sin(t); dP[i*3+2] = r * Math.cos(p);
+      const ta = Math.random() * Math.PI * 2;
+      const pa = Math.acos(2 * Math.random() - 1);
+      dP[i*3] = r * Math.sin(pa) * Math.cos(ta); dP[i*3+1] = r * Math.sin(pa) * Math.sin(ta); dP[i*3+2] = r * Math.cos(pa);
     }
     debrisGeo.setAttribute('position', new THREE.BufferAttribute(dP, 3));
     earthGroup.add(new THREE.Points(debrisGeo, new THREE.PointsMaterial({ color: 0x886655, size: 0.06, transparent: true, opacity: 0.55, fog: false })));
@@ -509,9 +747,9 @@
       const pos = new Float32Array(n * 3);
       for (let i = 0; i < n; i++) {
         const r = minR + Math.random() * (maxR - minR);
-        const t = Math.random() * Math.PI * 2;
-        const p = Math.acos(2 * Math.random() - 1);
-        pos[i*3] = r * Math.sin(p) * Math.cos(t); pos[i*3+1] = r * Math.sin(p) * Math.sin(t); pos[i*3+2] = r * Math.cos(p);
+        const ta = Math.random() * Math.PI * 2;
+        const pa = Math.acos(2 * Math.random() - 1);
+        pos[i*3] = r * Math.sin(pa) * Math.cos(ta); pos[i*3+1] = r * Math.sin(pa) * Math.sin(ta); pos[i*3+2] = r * Math.cos(pa);
       }
       geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
       return new THREE.Points(geo, new THREE.PointsMaterial({ color, size, transparent: true, opacity, fog: false }));
@@ -537,10 +775,10 @@
         if (dist >= LOD_LEVELS[i].dist) { if (currentLOD !== i) { moonMesh.geometry = lodGeometries[i]; currentLOD = i; } return; }
       }
     }
-    const moonTex = texLoader.load('textures/moon_color.jpg', () => { moonMat.map = moonTex; moonMat.color.set(0xffffff); moonMat.needsUpdate = true; onTextureDone(); }, undefined, (err) => { console.error('moon_color.jpg:', err); onTextureDone(); });
+    const moonTex = texLoader.load('textures/moon_color.jpg', () => { moonMat.map = moonTex; moonMat.color.set(0xffffff); moonMat.needsUpdate = true; onTextureDone(); }, undefined, () => onTextureDone());
     moonTex.colorSpace = THREE.SRGBColorSpace; moonTex.anisotropy = isMobile ? 2 : 8; moonTex.generateMipmaps = true; moonTex.minFilter = THREE.LinearMipmapLinearFilter;
 
-    // --- Маркеры объектов ---
+    // --- Маркеры ---
     function latLonToVec3(lat, lon, radius) {
       const phi = (90 - lat) * Math.PI / 180;
       const theta = (lon + 180) * Math.PI / 180;
@@ -586,7 +824,7 @@
         pointer.y = -(e.clientY / innerHeight) * 2 + 1;
         raycaster.setFromCamera(pointer, camera);
         const hits = raycaster.intersectObjects(markers);
-        if (hits.length > 0) addLog('Выбран: ' + hits[0].object.userData.title);
+        if (hits.length > 0) { addLog(t('selected') + hits[0].object.userData.title); sfxClick(); }
       }
       pDown = null;
     });
@@ -612,20 +850,34 @@
     renderer.domElement.addEventListener('pointerdown', () => { controls.autoRotate = false; lastInteract = Date.now(); });
     renderer.domElement.addEventListener('touchstart', () => { controls.autoRotate = false; lastInteract = Date.now(); }, { passive: true });
 
-    // Zoom buttons
-    document.getElementById('btn-zoom-in').addEventListener('click', () => { const d = camera.position.length(); camera.position.multiplyScalar(Math.max(controls.minDistance, d - (isMobile ? 2.4 : 1.6)) / d); controls.update(); });
-    document.getElementById('btn-zoom-out').addEventListener('click', () => { const d = camera.position.length(); camera.position.multiplyScalar(Math.min(controls.maxDistance, d + (isMobile ? 2.4 : 1.6)) / d); controls.update(); });
-    document.getElementById('btn-reset').addEventListener('click', () => {
-      if (isMobile) camera.position.set(MOBILE_CAM.x, MOBILE_CAM.y, MOBILE_CAM.z);
-      else camera.position.set(DESKTOP_CAM.x, DESKTOP_CAM.y, DESKTOP_CAM.z);
-      controls.target.set(0, 0, 0); controls.autoRotate = true; controls.update();
-    });
+    document.getElementById('btn-zoom-in').addEventListener('click', () => { sfxClick(); const d = camera.position.length(); camera.position.multiplyScalar(Math.max(controls.minDistance, d - (isMobile ? 2.4 : 1.6)) / d); controls.update(); });
+    document.getElementById('btn-zoom-out').addEventListener('click', () => { sfxClick(); const d = camera.position.length(); camera.position.multiplyScalar(Math.min(controls.maxDistance, d + (isMobile ? 2.4 : 1.6)) / d); controls.update(); });
+    document.getElementById('btn-reset').addEventListener('click', () => { sfxClick(); if (isMobile) camera.position.set(MOBILE_CAM.x, MOBILE_CAM.y, MOBILE_CAM.z); else camera.position.set(DESKTOP_CAM.x, DESKTOP_CAM.y, DESKTOP_CAM.z); controls.target.set(0, 0, 0); controls.autoRotate = true; controls.update(); });
 
     // =====================
     // === ИНТЕРФЕЙС =======
     // =====================
-    function canAfford(cost) { for (let k in cost) if (state[k] === undefined || state[k] < cost[k]) return false; return true; }
-    function spendCost(cost) { for (let k in cost) state[k] -= cost[k]; }
+    function canAfford(cost) {
+      // Apply build cost modifier
+      const costMod = getMod('buildCost') || 1;
+      for (let k in cost) { const c = Math.ceil(cost[k] * costMod); if (state[k] === undefined || state[k] < c) return false; }
+      return true;
+    }
+    function spendCost(cost) {
+      const costMod = getMod('buildCost') || 1;
+      for (let k in cost) state[k] -= Math.ceil(cost[k] * costMod);
+    }
+    function getUnitCost(cost) {
+      const costMod = getMod('unitCost') || 1;
+      const r = {}; for (let k in cost) r[k] = Math.ceil(cost[k] * costMod); return r;
+    }
+    function canAffordUnit(cost) {
+      const c = getUnitCost(cost);
+      for (let k in c) if (state[k] === undefined || state[k] < c[k]) return false; return true;
+    }
+    function spendUnitCost(cost) {
+      const c = getUnitCost(cost); for (let k in c) state[k] -= c[k];
+    }
     function fmtNum(n) { if (n >= 1000) return (n / 1000).toFixed(1) + 'к'; return Math.floor(n).toString(); }
 
     function updateUI() {
@@ -640,14 +892,14 @@
       document.getElementById('r-pp').textContent = Math.floor(state.politicalPoints);
       document.getElementById('r-logistics').textContent = Math.floor(state.logistics) + '/' + state.logisticsMax;
       const db = document.getElementById('debuff-bar');
-      if (state.debuffEnd > Date.now()) { const min = Math.ceil((state.debuffEnd - Date.now()) / 60000); db.textContent = '⚠ Политическая нестабильность: −50% добычи (' + min + ' мин)'; db.classList.add('show'); }
+      if (state.debuffEnd > Date.now()) { const min2 = Math.ceil((state.debuffEnd - Date.now()) / 60000); db.textContent = t('instability') + min2 + t('min'); db.classList.add('show'); }
       else db.classList.remove('show');
-      document.getElementById('ai-panel-info').textContent = 'Зданий: ' + state.ai.buildings + ' | Войска: ' + state.ai.units + ' | Население: ' + Math.floor(state.ai.pop);
+      document.getElementById('ai-panel-info').textContent = t('buildings_count').replace(': ','') + state.ai.buildings + ' | ' + (currentLang==='en'?'Units:':'Войска: ') + state.ai.units + ' | ' + (currentLang==='en'?'Pop:':'Нас: ') + Math.floor(state.ai.pop);
     }
 
     let activeTab = null;
     document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', () => { sfxClick();
         const tab = btn.dataset.tab;
         if (activeTab === tab) { document.getElementById('panel').classList.remove('show'); btn.classList.remove('active'); activeTab = null; return; }
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -657,114 +909,211 @@
       });
     });
 
+    // --- Settings button ---
+    const settingsBtn = document.getElementById('btn-settings');
+    settingsBtn.addEventListener('click', () => {
+      sfxClick();
+      if (activeTab === 'settings') { document.getElementById('panel').classList.remove('show'); settingsBtn.classList.remove('active'); activeTab = null; return; }
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      settingsBtn.classList.add('active'); activeTab = 'settings';
+      document.getElementById('panel').classList.add('show');
+      renderPanel('settings');
+    });
+
     function renderPanel(tab) {
       const c = document.getElementById('panel-content');
       if (tab === 'build') {
-        let html = '<div class="panel-title">Строительство</div><div class="build-grid">';
+        let html = '<div class="panel-title">' + t('build_title') + '</div><div class="build-grid">';
         Object.keys(BUILDINGS).forEach(id => {
           const b = BUILDINGS[id]; const aff = canAfford(b.cost); const inQueue = state.buildQueue.some(q => q.id === id);
-          let costHtml = ''; const ck = { regolith: 'r', helium: 'h', energy: 'e', pop: 'p' };
-          for (let k in b.cost) { const cls = ck[k] || ''; costHtml += '<span class="cost-' + cls + '">' + b.cost[k] + ' ' + (k === 'regolith' ? 'Рег' : k === 'helium' ? 'Гел' : k === 'energy' ? 'Эн' : k) + '</span>'; }
-          html += '<div class="build-card ' + (aff ? 'affordable' : 'unaffordable') + (inQueue ? ' building' : '') + '" data-build="' + id + '"><div class="build-name">' + b.icon + ' ' + b.name + '</div><div class="build-desc">' + b.desc + '</div><div class="build-cost">' + costHtml + ' <span class="cost-l">⏱' + Math.ceil(b.buildTime / 1000) + 'с</span></div>' + (inQueue ? '<div class="build-timer"><div class="build-timer-fill" style="width:50%"></div></div>' : '') + '</div>';
+          let costHtml = ''; const ck = { regolith: 'r', helium: 'h', energy: 'e' };
+          const costMod = getMod('buildCost') || 1;
+          for (let k in b.cost) { const cls = ck[k] || ''; const v = Math.ceil(b.cost[k] * costMod); costHtml += '<span class="cost-' + cls + '">' + v + ' ' + t(k + '_short') + '</span>'; }
+          const timeStr = Math.ceil(b.buildTime / 1000) + t('time_short');
+          html += '<div class="build-card ' + (aff ? 'affordable' : 'unaffordable') + (inQueue ? ' building' : '') + '" data-build="' + id + '"><div class="build-name">' + b.icon + ' ' + t(b.nameKey) + '</div><div class="build-desc">' + t(b.descKey) + '</div><div class="build-cost">' + costHtml + ' <span class="cost-l">⏱' + timeStr + '</span></div>' + (inQueue ? '<div class="build-timer"><div class="build-timer-fill" style="width:50%"></div></div>' : '') + '</div>';
         });
         html += '</div>';
         c.innerHTML = html;
         c.querySelectorAll('.build-card').forEach(card => {
           card.addEventListener('click', () => {
             const id = card.dataset.build; const b = BUILDINGS[id];
-            if (!canAfford(b.cost)) { addLog('Недостаточно ресурсов', 'bad'); return; }
-            if (state.buildQueue.some(q => q.id === id)) { addLog('Уже строится', 'warn'); return; }
-            if (state.logistics < 1) { addLog('Недостаточно очков логистики', 'bad'); return; }
+            if (!canAfford(b.cost)) { addLog(t('not_enough_res'), 'bad'); sfxError(); return; }
+            if (state.buildQueue.some(q => q.id === id)) { addLog(t('already_building'), 'warn'); return; }
+            if (state.logistics < 1) { addLog(t('not_enough_log'), 'bad'); sfxError(); return; }
             spendCost(b.cost); state.logistics--;
             const speedMod = b.id === 'dreadnought' ? getMod('heavyBuildSpeed') || 1 : getMod('buildSpeed') || 1;
             state.buildQueue.push({ id: id, remaining: b.buildTime / speedMod, built: false, x: (Math.random() - 0.5) * 4, z: (Math.random() - 0.5) * 4 });
-            addLog('Начато строительство: ' + b.name, 'good'); renderPanel('build');
+            addLog(t('started_build') + t(b.nameKey), 'good'); sfxBuild(); renderPanel('build');
           });
         });
       } else if (tab === 'units') {
-        let html = '<div class="panel-title">Военная система</div>';
-        html += '<div style="margin-bottom:8px;font-size:10px;color:#789;">Ваши юниты: ' + state.units.length + '</div>';
+        const locked = isUnitLocked();
+        let html = '<div class="panel-title">' + t('unit_title') + '</div>';
+        if (locked) html += '<div style="margin-bottom:8px;font-size:10px;color:#ff4444;">' + t('units_locked') + '</div>';
+        html += '<div style="margin-bottom:8px;font-size:10px;color:#789;">' + t('your_units') + ': ' + state.units.length + '</div>';
         html += '<div class="unit-grid">';
         Object.keys(UNITS).forEach(id => {
-          const u = UNITS[id]; const aff = canAfford(u.cost);
+          const u = UNITS[id]; const aff = canAffordUnit(u.cost);
+          const cls = locked ? 'locked' : (aff ? 'affordable' : 'unaffordable');
           let costHtml = ''; const ck = { regolith: 'r', helium: 'h', energy: 'e' };
-          for (let k in u.cost) { const cls = ck[k] || ''; costHtml += '<span class="cost-' + cls + '">' + u.cost[k] + ' ' + (k === 'regolith' ? 'Рег' : k === 'helium' ? 'Гел' : k === 'energy' ? 'Эн' : k) + '</span>'; }
-          html += '<div class="unit-card ' + (aff ? 'affordable' : 'unaffordable') + '" data-unit="' + id + '"><div class="unit-name">' + u.icon + ' ' + u.name + '</div><div class="unit-desc">' + u.desc + '</div><div class="unit-stats"><div class="unit-stat"><span class="val">' + u.attack + '</span>Атака</div><div class="unit-stat"><span class="val">' + u.defense + '</span>Защита</div></div><div class="build-cost">' + costHtml + ' <span class="cost-p">👥' + u.popNeed + '</span></div></div>';
+          const uc = getUnitCost(u.cost);
+          for (let k in uc) { const cl = ck[k] || ''; costHtml += '<span class="cost-' + cl + '">' + uc[k] + ' ' + t(k + '_short') + '</span>'; }
+          html += '<div class="unit-card ' + cls + '" data-unit="' + id + '"><div class="unit-name">' + u.icon + ' ' + t(u.nameKey) + '</div><div class="unit-desc">' + t(u.descKey) + '</div><div class="unit-stats"><div class="unit-stat"><span class="val">' + u.attack + '</span>' + t('attack') + '</div><div class="unit-stat"><span class="val">' + u.defense + '</span>' + t('defense') + '</div></div><div class="build-cost">' + costHtml + ' <span class="cost-p">👥' + u.popNeed + '</span></div></div>';
         });
         html += '</div>';
-        html += '<div style="margin-top:10px;font-size:9px;color:#789;line-height:1.4;"><b style="color:#ff6644">Атака на «Арес»:</b><br><button id="btn-attack" style="margin-top:6px;padding:6px 12px;background:rgba(255,60,60,.15);border:1px solid rgba(255,80,80,.3);color:#ff8866;border-radius:5px;cursor:pointer;font-family:inherit;font-size:11px;">⚔ Атаковать колонию «Арес»</button></div>';
+        html += '<div style="margin-top:10px;font-size:9px;color:#789;line-height:1.4;"><b style="color:#ff6644">' + (currentLang==='en'?'Attack "Ares":':'Атака на «Арес»:') + '</b><br><button id="btn-attack" style="margin-top:6px;padding:6px 12px;background:rgba(255,60,60,.15);border:1px solid rgba(255,80,80,.3);color:#ff8866;border-radius:5px;cursor:pointer;font-family:inherit;font-size:11px;">' + t('attack_ares') + '</button></div>';
         c.innerHTML = html;
-        c.querySelectorAll('.unit-card').forEach(card => {
-          card.addEventListener('click', () => {
-            const id = card.dataset.unit; const u = UNITS[id];
-            if (!canAfford(u.cost)) { addLog('Недостаточно ресурсов', 'bad'); return; }
-            const popUsed = state.units.reduce((s, un) => s + (UNITS[un.id]?.popNeed || 0), 0);
-            if (state.pop < u.popNeed + popUsed) { addLog('Недостаточно населения', 'bad'); return; }
-            spendCost(u.cost);
-            const speedMod = u.type === 'heavy' ? getMod('heavyBuildSpeed') || 1 : getMod('buildSpeed') || 1;
-            setTimeout(() => { state.units.push({ id: id, hp: u.defense * 2, attack: u.attack, defense: u.defense }); addLog('Юнит готов: ' + u.name, 'good'); updateUI(); }, u.buildTime / speedMod);
-            addLog('Начато обучение: ' + u.name, 'good'); renderPanel('units');
+        if (!locked) {
+          c.querySelectorAll('.unit-card').forEach(card => {
+            card.addEventListener('click', () => {
+              const id = card.dataset.unit; const u = UNITS[id];
+              if (!canAffordUnit(u.cost)) { addLog(t('not_enough_res'), 'bad'); sfxError(); return; }
+              const popUsed = state.units.reduce((s, un) => s + (UNITS[un.id]?.popNeed || 0), 0);
+              if (state.pop < u.popNeed + popUsed) { addLog(t('not_enough_pop'), 'bad'); sfxError(); return; }
+              spendUnitCost(u.cost);
+              const speedMod = u.type === 'heavy' ? getMod('heavyBuildSpeed') || 1 : getMod('buildSpeed') || 1;
+              setTimeout(() => { state.units.push({ id: id, hp: u.defense * 2, attack: u.attack, defense: u.defense }); addLog(t('unit_ready') + t(u.nameKey), 'good'); sfxBuild(); updateUI(); }, u.buildTime / speedMod);
+              addLog(t('started_training') + t(u.nameKey), 'good'); sfxClick(); renderPanel('units');
+            });
           });
-        });
-        document.getElementById('btn-attack')?.addEventListener('click', () => attackAI());
+        }
+        document.getElementById('btn-attack')?.addEventListener('click', () => { sfxClick(); attackAI(); });
       } else if (tab === 'politics') {
-        let html = '<div class="panel-title">Политический строй</div>';
-        html += '<div style="margin-bottom:8px;font-size:10px;color:#789;">Полит. очки: <b style="color:#ff44ff">' + Math.floor(state.politicalPoints) + '</b> / ' + state.ppMax + '</div>';
+        let html = '<div class="panel-title">' + t('pol_title') + '</div>';
+        html += '<div style="margin-bottom:8px;font-size:10px;color:#789;">' + t('pp_available') + '<b style="color:#ff44ff">' + Math.floor(state.politicalPoints) + '</b> / ' + state.ppMax + '</div>';
         html += '<div class="pol-grid">';
         Object.keys(REGIMES).forEach(id => {
+          if (id === 'anarchy') return; // anarchy is not selectable
           const r = REGIMES[id]; const isCur = state.regime === id; const canChange = !isCur && state.politicalPoints >= r.ppCost;
           const cls = isCur ? 'current' : canChange ? '' : 'unaffordable';
-          html += '<div class="pol-card ' + cls + '" data-regime="' + id + '"><div class="pol-name">' + r.name + '</div><div class="pol-pros">' + r.pros.replace(/\n/g, '<br>') + '</div><div class="pol-cons">' + r.cons.replace(/\n/g, '<br>') + '</div>' + (isCur ? '' : '<div class="pp-cost">Стоимость: ' + r.ppCost + ' ПО</div>') + '</div>';
+          const pros = r.pros[currentLang]; const cons = r.cons[currentLang];
+          html += '<div class="pol-card ' + cls + '" data-regime="' + id + '" data-active-label="' + t('active') + '"><div class="pol-name">' + r.name[currentLang] + '</div><div class="pol-pros">' + pros.replace(/\n/g, '<br>') + '</div><div class="pol-cons">' + cons.replace(/\n/g, '<br>') + '</div>' + (isCur ? '' : '<div class="pp-cost">' + t('regime_cost') + r.ppCost + t('po') + '</div>') + '</div>';
         });
         html += '</div>';
-        html += '<div style="margin-top:10px;font-size:9px;color:#789;line-height:1.4;">Смена строя вызывает <b style="color:#ff4444">политическую нестабильность</b> на 5 минут: добыча ресурсов −50%.</div>';
+        // Show anarchy info if active
+        if (state.debuffEnd > Date.now() && state.debuffType === 'anarchy') {
+          html += '<div class="pol-card anarchy" style="margin-top:8px;"><div class="pol-name" style="color:#ff4444;">' + REGIMES.anarchy.name[currentLang] + '</div><div class="pol-pros">' + REGIMES.anarchy.pros[currentLang].replace(/\n/g,'<br>') + '</div><div class="pol-cons">' + REGIMES.anarchy.cons[currentLang].replace(/\n/g,'<br>') + '</div></div>';
+        }
+        html += '<div style="margin-top:10px;font-size:9px;color:#789;line-height:1.4;">' + t('reg_change_warning') + '</div>';
         c.innerHTML = html;
-        c.querySelectorAll('.pol-card').forEach(card => {
+        c.querySelectorAll('.pol-card[data-regime]').forEach(card => {
           card.addEventListener('click', () => {
             const id = card.dataset.regime; if (id === state.regime) return;
             const r = REGIMES[id];
-            if (state.politicalPoints < r.ppCost) { addLog('Недостаточно полит. очков', 'bad'); return; }
+            if (state.politicalPoints < r.ppCost) { addLog(t('not_enough_pp'), 'bad'); sfxError(); return; }
             state.politicalPoints -= r.ppCost; state.regime = id;
-            state.debuffEnd = Date.now() + 300000; state.debuffType = 'instability';
-            addLog('Смена строя: ' + r.name + '. Нестабильность 5 минут!', 'warn'); renderPanel('politics');
+            state.debuffEnd = Date.now() + 300000; state.debuffType = 'anarchy';
+            addLog(t('regime_change') + r.name[currentLang] + t('instability5'), 'warn'); sfxRegime(); renderPanel('politics');
           });
         });
       } else if (tab === 'map') {
-        let html = '<div class="panel-title">Карта Луны</div><div style="font-size:10px;color:#789;line-height:1.6;">';
-        html += '<div style="margin-bottom:6px;">Зданий: <b style="color:#00e5ff">' + state.buildings.filter(b => b.built).length + '</b></div>';
-        html += '<div style="margin-bottom:6px;">Юнитов: <b style="color:#ff8844">' + state.units.length + '</b></div>';
-        html += '<div style="margin-bottom:6px;">Время игры: <b style="color:#00e5ff">' + Math.floor(state.gameTime / 60) + ' мин</b></div>';
-        html += '<div style="margin-bottom:6px;">Текущий строй: <b style="color:#ff44ff">' + REGIMES[state.regime].name + '</b></div>';
-        html += '<div style="margin-bottom:10px;">ИИ «Арес»: <b style="color:#ff4444">' + state.ai.buildings + ' зданий, ' + state.ai.units + ' юнитов</b></div>';
+        let html = '<div class="panel-title">' + t('map_title') + '</div><div style="font-size:10px;color:#789;line-height:1.6;">';
+        html += '<div style="margin-bottom:6px;">' + t('buildings_count') + '<b style="color:#00e5ff">' + state.buildings.filter(b => b.built).length + '</b></div>';
+        html += '<div style="margin-bottom:6px;">' + t('units_count') + '<b style="color:#ff8844">' + state.units.length + '</b></div>';
+        html += '<div style="margin-bottom:6px;">' + t('play_time') + '<b style="color:#00e5ff">' + Math.floor(state.gameTime / 60) + t('min') + '</b></div>';
+        html += '<div style="margin-bottom:6px;">' + t('current_regime') + '<b style="color:#ff44ff">' + REGIMES[state.regime].name[currentLang] + '</b></div>';
+        html += '<div style="margin-bottom:10px;">' + t('ai_stats') + '<b style="color:#ff4444">' + state.ai.buildings + ' ' + (currentLang==='en'?'bldgs':'здан') + ', ' + state.ai.units + t('ai_units') + '</b></div>';
         html += '</div>';
-        html += '<button id="btn-save" style="padding:8px 14px;background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.25);color:#00e5ff;border-radius:5px;cursor:pointer;font-family:inherit;font-size:11px;margin-right:6px;">💾 Сохранить</button>';
-        html += '<button id="btn-reset" style="padding:8px 14px;background:rgba(255,60,60,.1);border:1px solid rgba(255,80,80,.25);color:#ff6666;border-radius:5px;cursor:pointer;font-family:inherit;font-size:11px;">🗑 Новая игра</button>';
+        html += '<button id="btn-save" style="padding:8px 14px;background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.25);color:#00e5ff;border-radius:5px;cursor:pointer;font-family:inherit;font-size:11px;margin-right:6px;">' + t('save') + '</button>';
+        html += '<button id="btn-reset" style="padding:8px 14px;background:rgba(255,60,60,.1);border:1px solid rgba(255,80,80,.25);color:#ff6666;border-radius:5px;cursor:pointer;font-family:inherit;font-size:11px;">' + t('reset_btn') + '</button>';
         c.innerHTML = html;
-        document.getElementById('btn-save')?.addEventListener('click', () => { saveGame(); addLog('Игра сохранена', 'good'); });
-        document.getElementById('btn-reset')?.addEventListener('click', () => { if (confirm('Начать новую игру? Весь прогресс будет потерян.')) { resetGame(); renderPanel('map'); } });
+        document.getElementById('btn-save')?.addEventListener('click', () => { sfxClick(); saveGame(); addLog(t('saved'), 'good'); });
+        document.getElementById('btn-reset')?.addEventListener('click', () => { if (confirm(t('reset_confirm'))) { resetGame(); renderPanel('map'); } });
       } else if (tab === 'info') {
-        let html = '<div class="panel-title">Луна 2087: Рассвет</div><div style="font-size:11px;color:#aacce6;line-height:1.6;">';
-        html += '<p style="margin-bottom:8px;">2087 год. Земля погибла — атмосфера горит уже 16 лет. Последние люди выживают в колониях на Луне.</p>';
-        html += '<p style="margin-bottom:8px;"><b style="color:#00e5ff">Ресурсы:</b><br>• <b style="color:#ffaa44">Реголит</b> — строительный материал, добывается в шахтах<br>• <b style="color:#7fff7f">Гелий-3</b> — топливо для реакторов, добывается в шахтах<br>• <b style="color:#44aaff">Энергия</b> — если потребление выше выработки, база отключается<br>• <b style="color:#ff66aa">Население</b> — выращивается в лабораториях, нужно для шахт и юнитов<br>• <b style="color:#ff44ff">Полит. очки</b> — генерируются куполами, нужны для реформ<br>• <b style="color:#ff8844">Логистика</b> — тратится на стройку, восстанавливается со временем</p>';
-        html += '<p style="margin-bottom:8px;"><b style="color:#00e5ff">Строи:</b><br>• <b>Технократия</b> — +30% исследования, шахты без людей<br>• <b>Военная Хунта</b> — +40% скорость войск, −25% ресурсы<br>• <b>Корпоратократия</b> — +50% торговля, +реголит<br>• <b>Социал-Коллективизм</b> — −50% содержание, медленные технологии</p>';
-        html += '<p style="margin-bottom:8px;"><b style="color:#00e5ff">Юниты:</b><br>• <b>Строитель</b> — строит/ремонтирует, беззащитен<br>• <b>Штурмовик</b> — космопехота, захват аванпостов<br>• <b>Дредноут</b> — танк на Гелии-3, огромная мощь</p>';
-        html += '<p style="font-size:9px;color:#456;margin-top:10px;">Оффлайн-режим: ИИ управляет колонией «Арес». Архитектура готова к переходу в онлайн.</p></div>';
+        let html = '<div class="panel-title">' + t('info_title') + '</div><div style="font-size:11px;color:#aacce6;line-height:1.6;">';
+        html += '<p style="margin-bottom:8px;">' + t('info_year') + '</p>';
+        html += '<p style="margin-bottom:8px;"><b style="color:#00e5ff">' + t('info_resources') + ':</b><br>';
+        html += '• <b style="color:#ffaa44">' + t('regolith') + '</b> — ' + (currentLang==='en'?'building material, from mines':'строительный материал, из шахт') + '<br>';
+        html += '• <b style="color:#7fff7f">' + t('helium') + '</b> — ' + (currentLang==='en'?'fuel for reactors, from mines':'топливо для реакторов, из шахт') + '<br>';
+        html += '• <b style="color:#44aaff">' + t('energy') + '</b> — ' + (currentLang==='en'?'if consumption > production, base shuts down':'если потребление > выработки, база отключается') + '<br>';
+        html += '• <b style="color:#ff66aa">' + t('population') + '</b> — ' + (currentLang==='en'?'grown in labs, needed for mines and units':'выращивается в лаб., нужен для шахт и юнитов') + '<br>';
+        html += '• <b style="color:#ff44ff">' + t('polpoints') + '</b> — ' + (currentLang==='en'?'from domes, needed for reforms':'из куполов, нужны для реформ') + '<br>';
+        html += '• <b style="color:#ff8844">' + t('logistics') + '</b> — ' + (currentLang==='en'?'spent on construction, regenerates over time':'тратится на стройку, восстанавливается') + '</p>';
+        html += '<p style="margin-bottom:8px;"><b style="color:#00e5ff">' + t('info_regimes') + ':</b><br>';
+        Object.keys(REGIMES).forEach(id => {
+          if (id === 'anarchy') return;
+          const r = REGIMES[id];
+          html += '• <b>' + r.name[currentLang] + '</b> — ' + r.pros[currentLang].replace(/\n/g,'; ') + '<br>';
+        });
+        html += '• <b style="color:#ff4444">' + REGIMES.anarchy.name[currentLang] + '</b> — ' + (currentLang==='en'?'penalty on regime change':'штраф при смене строя') + '</p>';
+        html += '<p style="margin-bottom:8px;"><b style="color:#00e5ff">' + t('info_units_h') + ':</b><br>';
+        Object.keys(UNITS).forEach(id => { const u = UNITS[id]; html += '• <b>' + u.icon + ' ' + t(u.nameKey) + '</b> — ' + t(u.descKey) + '<br>'; });
+        html += '</p>';
+        html += '<p style="font-size:9px;color:#456;margin-top:10px;">' + t('info_offline') + '</p></div>';
         c.innerHTML = html;
+      } else if (tab === 'settings') {
+        let html = '<div class="panel-title">' + t('settings_title') + '</div>';
+        // Language
+        html += '<div class="set-row"><div><div class="set-label">' + t('language') + '</div></div>';
+        html += '<div class="set-control"><button class="set-lang-btn ' + (currentLang==='ru'?'active':'') + '" data-lang="ru">RU</button><button class="set-lang-btn ' + (currentLang==='en'?'active':'') + '" data-lang="en">EN</button></div></div>';
+        // Master volume
+        html += '<div class="set-row"><div><div class="set-label">' + t('master_vol') + '</div><div class="set-desc">' + t('master_desc') + '</div></div>';
+        html += '<div class="set-control"><input type="range" class="set-slider" id="slider-master" min="0" max="100" value="' + (settings.master*100) + '"></div></div>';
+        // Music
+        html += '<div class="set-row"><div><div class="set-label">' + t('music') + '</div><div class="set-desc">' + t('music_desc') + '</div></div>';
+        html += '<div class="set-control"><div class="set-toggle ' + (settings.music?'on':'') + '" id="toggle-music"></div></div></div>';
+        // SFX
+        html += '<div class="set-row"><div><div class="set-label">' + t('sfx') + '</div><div class="set-desc">' + t('sfx_desc') + '</div></div>';
+        html += '<div class="set-control"><div class="set-toggle ' + (settings.sfx?'on':'') + '" id="toggle-sfx"></div></div></div>';
+        // Mute all
+        html += '<div class="set-row"><div><div class="set-label">' + t('mute_all') + '</div><div class="set-desc">' + t('mute_desc') + '</div></div>';
+        html += '<div class="set-control"><div class="set-toggle ' + (settings.muted?'on':'') + '" id="toggle-mute"></div></div></div>';
+        c.innerHTML = html;
+
+        // Language buttons
+        c.querySelectorAll('.set-lang-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            currentLang = btn.dataset.lang;
+            localStorage.setItem('luna_lang', currentLang);
+            applyI18n();
+            sfxClick();
+            renderPanel('settings');
+            updateUI();
+          });
+        });
+        // Master volume
+        document.getElementById('slider-master').addEventListener('input', e => {
+          settings.master = parseInt(e.target.value) / 100;
+          applyAudioSettings(); saveSettings();
+        });
+        // Music toggle
+        document.getElementById('toggle-music').addEventListener('click', () => {
+          settings.music = !settings.music;
+          applyAudioSettings(); saveSettings();
+          if (settings.music && !settings.muted && audioCtx) startMusic();
+          else if (!settings.music) stopMusic();
+          renderPanel('settings');
+        });
+        // SFX toggle
+        document.getElementById('toggle-sfx').addEventListener('click', () => {
+          settings.sfx = !settings.sfx; applyAudioSettings(); saveSettings(); renderPanel('settings'); sfxClick();
+        });
+        // Mute toggle
+        document.getElementById('toggle-mute').addEventListener('click', () => {
+          settings.muted = !settings.muted;
+          applyAudioSettings(); saveSettings();
+          if (settings.muted) stopMusic();
+          else if (settings.music && audioCtx) startMusic();
+          renderPanel('settings');
+        });
       }
     }
 
     function attackAI() {
-      if (state.units.length < 3) { addLog('Недостаточно юнитов для атаки (нужно 3+)', 'bad'); return; }
-      const myPower = state.units.reduce((s, u) => s + u.attack, 0);
+      if (state.units.length < 3) { addLog(t('not_enough_units'), 'bad'); sfxError(); return; }
+      const atkMod = getMod('attackMod') || 1;
+      const myPower = state.units.reduce((s, u) => s + u.attack * atkMod, 0);
       const aiDef = state.ai.units * 8 + state.ai.buildings * 5;
+      sfxCombat();
       if (myPower > aiDef * 0.8) {
         const lost = Math.floor(state.units.length * 0.3); state.units.splice(0, lost);
-        const gain = Math.floor(state.ai.regolith * 0.3) + Math.floor(state.ai.helium * 0.2);
+        const lootMod = getMod('lootMod') || 1;
+        const gain = Math.floor((state.ai.regolith * 0.3 + state.ai.helium * 0.2) * lootMod);
         state.regolith += gain; state.ai.buildings = Math.max(0, state.ai.buildings - 1); state.ai.units = Math.max(0, state.ai.units - 3);
-        addLog('Победа! Захвачено ресурсов: ' + gain + '. Потеряно юнитов: ' + lost, 'good');
+        addLog(t('victory') + gain + '. ' + (currentLang==='en'?'Units lost: ':'Потеряно юнитов: ') + lost, 'good');
       } else {
         const lost = Math.floor(state.units.length * 0.6); state.units.splice(0, lost);
-        addLog('Поражение! Потеряно юнитов: ' + lost, 'bad');
+        addLog(t('defeat') + lost, 'bad');
       }
       updateUI();
     }
@@ -782,15 +1131,14 @@
       const now = performance.now();
       const dt = Math.min(0.1, (now - lastTime) / 1000);
       lastTime = now;
-      const t = clock.getElapsedTime();
+      const t2 = clock.getElapsedTime();
 
       gameTick(dt);
-
-      earthAtmoMat.uniforms.uTime.value = t;
+      earthAtmoMat.uniforms.uTime.value = t2;
 
       markers.forEach((m, i) => {
-        const pulse = 1 + Math.sin(t * 3 + i * 0.7) * 0.2;
-        if (m.userData.glow) { m.userData.glow.scale.setScalar(pulse); m.userData.glow.material.opacity = 0.15 + Math.sin(t * 3 + i * 0.7) * 0.1; }
+        const pulse = 1 + Math.sin(t2 * 3 + i * 0.7) * 0.2;
+        if (m.userData.glow) { m.userData.glow.scale.setScalar(pulse); m.userData.glow.material.opacity = 0.15 + Math.sin(t2 * 3 + i * 0.7) * 0.1; }
       });
 
       const camDir = camera.position.clone().normalize();
@@ -805,7 +1153,7 @@
       controls.update();
       renderer.render(scene, camera);
 
-      if (Math.floor(t * 2) !== Math.floor((t - dt) * 2)) updateUI();
+      if (Math.floor(t2 * 2) !== Math.floor((t2 - dt) * 2)) updateUI();
     }
 
     addEventListener('resize', () => {
@@ -816,9 +1164,10 @@
     });
     addEventListener('beforeunload', saveGame);
 
+    applyI18n();
     updateUI();
     animate();
-    addLog('Луна 2087: Рассвет запущена', 'good');
+    addLog(t('game_started'), 'good');
   </script>
 </body>
 </html>
