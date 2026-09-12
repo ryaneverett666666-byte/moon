@@ -89,8 +89,8 @@ canvas{display:block;width:100%;height:100%;position:absolute;top:0;left:0;z-ind
 .unit-stats{font-size:11px}.unit-stat .val{font-size:13px}
 .pol-grid{grid-template-columns:1fr}.pol-card{padding:12px}.pol-name{font-size:16px}.pol-pros,.pol-cons{font-size:11px}.pp-cost{font-size:12px}
 .set-label{font-size:14px}.set-desc{font-size:11px}.set-lang-btn{font-size:13px;padding:4px 10px}.set-toggle{width:42px;height:24px}.set-toggle::after{width:18px;height:18px}.set-toggle.on::after{left:20px}
-.zoom-btn{width:34px;height:34px;font-size:16px}#zoom-controls{bottom:58px}
-#earth-panel{max-width:170px;bottom:58px}#earth-panel-title{font-size:10px}#earth-panel-text{font-size:10px}
+.zoom-btn{width:34px;height:34px;font-size:16px}#zoom-controls{bottom:70px}
+#earth-panel{max-width:170px;bottom:70px}#earth-panel-title{font-size:10px}#earth-panel-text{font-size:10px}
 #ai-panel{max-width:170px;top:92px;padding:6px 8px}#ai-panel-title{font-size:10px}#ai-panel-info{font-size:11px}
 #log{max-width:190px;top:100px}.log-msg{font-size:11px;padding:3px 6px}
 #debuff-bar{font-size:12px;padding:4px 12px;top:54px}#save-indicator{font-size:11px;top:54px}
@@ -198,7 +198,7 @@ earthGroup.position.set(-19.745*1.44,-2.805*1.44,-40.645*1.44);
 earthGroup.rotation.set(.2,-.3,0);scene.add(earthGroup);
 const earthColorTex=texLoader.load('textures/earth_color.jpg',()=>onTexDone(),undefined,()=>onTexDone());earthColorTex.colorSpace=THREE.SRGBColorSpace;earthColorTex.anisotropy=isMobile?2:4;
 const earthToSun=sunPos.clone().sub(earthGroup.position).normalize(),earthToMoon=new THREE.Vector3(0,0,0).sub(earthGroup.position).normalize(),moonToEarth=earthGroup.position.clone().normalize();
-const earthMat=new THREE.ShaderMaterial({uniforms:{uLightDir:{value:earthToSun},uMoonDir:{value:earthToMoon},uTexture:{value:earthColorTex}},vertexShader:`varying vec3 vN;varying vec2 vUv;void main(){vN=normalize(mat3(modelMatrix)*normal);vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,fragmentShader:`uniform vec3 uLightDir;uniform vec3 uMoonDir;uniform sampler2D uTexture;varying vec3 vN;varying vec2 vUv;void main(){vec3 tc=texture2D(uTexture,vUv).rgb;float l=max(dot(normalize(vN),uLightDir),0.0);vec3 c=tc*(l*0.97+0.08);c*=0.679;c+=vec3(0.7,0.15,0.03)*l*0.0648;float ma=max(dot(normalize(vN),uMoonDir),0.0);c*=(1.0-smoothstep(0.86,0.98,ma)*l*0.68);gl_FragColor=vec4(c,1.0);}`});
+const earthMat=new THREE.ShaderMaterial({uniforms:{uLightDir:{value:earthToSun},uMoonDir:{value:earthToMoon},uTexture:{value:earthColorTex}},vertexShader:`varying vec3 vN;varying vec2 vUv;void main(){vN=normalize(mat3(modelMatrix)*normal);vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,fragmentShader:`uniform vec3 uLightDir;uniform vec3 uMoonDir;uniform sampler2D uTexture;varying vec3 vN;varying vec2 vUv;void main(){vec3 tc=texture2D(uTexture,vUv).rgb;float l=max(dot(normalize(vN),uLightDir),0.0);vec3 c=tc*(l*0.97+0.08);c*=0.679;c+=vec3(0.7,0.15,0.03)*l*0.0648;float ma=max(dot(normalize(vN),uMoonDir),0.0);float umbra=smoothstep(0.992,0.9995,ma);float penumbra=smoothstep(0.96,0.995,ma)*0.08;c*=(1.0-(umbra*0.35+penumbra)*l);gl_FragColor=vec4(c,1.0);}`});
 earthGroup.add(new THREE.Mesh(new THREE.SphereGeometry(EARTH_R,isMobile?48:96,isMobile?48:96),earthMat));
 const earthAtmoMat=new THREE.ShaderMaterial({uniforms:{uTime:{value:0}},vertexShader:`varying vec3 vN;void main(){vN=normalize(normalMatrix*normal);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,fragmentShader:`varying vec3 vN;void main(){float e=1.0-abs(dot(vN,vec3(0,0,1)));float g=pow(e,0.3)*0.135;gl_FragColor=vec4(vec3(0.25,0.55,1.0)*g,g*0.525);}`,side:THREE.BackSide,transparent:true,blending:THREE.AdditiveBlending,fog:false,depthWrite:false});
 earthGroup.add(new THREE.Mesh(new THREE.SphereGeometry(EARTH_R+.72,24,24),earthAtmoMat));
@@ -223,7 +223,7 @@ renderer.domElement.addEventListener('pointerdown',e=>{pDown={x:e.clientX,y:e.cl
 renderer.domElement.addEventListener('pointerup',e=>{if(!pDown)return;let dx=e.clientX-pDown.x,dy=e.clientY-pDown.y;if(Math.sqrt(dx*dx+dy*dy)<8&&Date.now()-pTime<400){pointer.x=e.clientX/innerWidth*2-1;pointer.y=-(e.clientY/innerHeight)*2+1;raycaster.setFromCamera(pointer,camera);let hits=raycaster.intersectObjects(markers);if(hits.length>0){addLog(t('selected')+hits[0].object.userData.title);sfxClick()}}pDown=null});
 if(!isMobile)renderer.domElement.addEventListener('pointermove',e=>{if(e.buttons>0)return;pointer.x=e.clientX/innerWidth*2-1;pointer.y=-(e.clientY/innerHeight)*2+1;raycaster.setFromCamera(pointer,camera);renderer.domElement.style.cursor=raycaster.intersectObjects(markers).length>0?'pointer':'grab'});
 const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=.07;controls.minDistance=3.5;controls.maxDistance=isMobile?28:14;controls.enablePan=false;controls.rotateSpeed=.55;
-const rotFactor=isMobile?1:.1632;controls.autoRotate=true;controls.autoRotateSpeed=.35*rotFactor;let lastInteract=Date.now();
+const rotFactor=isMobile?1:.12;controls.autoRotate=true;controls.autoRotateSpeed=.35*rotFactor;let lastInteract=Date.now();
 renderer.domElement.addEventListener('pointerdown',()=>{controls.autoRotate=false;lastInteract=Date.now()});
 renderer.domElement.addEventListener('touchstart',()=>{controls.autoRotate=false;lastInteract=Date.now()},{passive:true});
 document.getElementById('btn-zoom-in').addEventListener('click',()=>{sfxClick();let d=camera.position.length();camera.position.multiplyScalar(Math.max(controls.minDistance,d-(isMobile?2.4:1.6))/d);controls.update()});
