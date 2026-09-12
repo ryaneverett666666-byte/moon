@@ -44,7 +44,7 @@ canvas{display:block;width:100%;height:100%;position:absolute;top:0;left:0;z-ind
 .log-msg{font-size:13px;color:#889;background:rgba(5,12,25,.7);padding:4px 8px;border-radius:3px;border-left:2px solid #00e5ff;animation:logfade 8s forwards}
 .log-msg.warn{border-left-color:#ffaa44;color:#aa8}.log-msg.bad{border-left-color:#ff4444;color:#aa6666}.log-msg.good{border-left-color:#7fff7f;color:#88aa88}
 @keyframes logfade{0%{opacity:0;transform:translateX(20px)}5%{opacity:1;transform:translateX(0)}85%{opacity:1}100%{opacity:0}}
-#zoom-controls{position:fixed;right:10px;bottom:64px;z-index:25;display:flex;flex-direction:column;gap:4px}
+#zoom-controls{position:fixed;right:10px;bottom:64px;z-index:25;display:flex;flex-direction:column;align-items:center;gap:4px}.zoom-row{display:flex;gap:4px}
 .zoom-btn{width:40px;height:40px;border:1px solid rgba(0,229,255,.2);background:rgba(5,12,25,.7);color:#00e5ff;border-radius:5px;cursor:pointer;font-size:21px;backdrop-filter:blur(6px);transition:transform .15s,background .2s;font-family:inherit;display:flex;align-items:center;justify-content:center}.zoom-btn:active{transform:scale(.9)}
 #earth-panel{position:fixed;left:10px;bottom:64px;z-index:25;max-width:200px;pointer-events:none}
 #earth-panel-title{font-size:11px;color:#ff5522;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;font-weight:600}
@@ -111,7 +111,7 @@ canvas{display:block;width:100%;height:100%;position:absolute;top:0;left:0;z-ind
 .unit-stats{font-size:11px}.unit-stat .val{font-size:13px}
 .pol-grid{grid-template-columns:1fr}.pol-card{padding:12px}.pol-name{font-size:16px}.pol-pros,.pol-cons{font-size:11px}.pp-cost{font-size:12px}
 .set-label{font-size:14px}.set-desc{font-size:11px}.set-lang-btn{font-size:13px;padding:4px 10px}.set-toggle{width:42px;height:24px}.set-toggle::after{width:18px;height:18px}.set-toggle.on::after{left:20px}
-.zoom-btn{width:34px;height:34px;font-size:16px}#zoom-controls{bottom:82px}
+.zoom-btn{width:34px;height:34px;font-size:16px}.zoom-row{gap:3px}#zoom-controls{bottom:82px}
 #earth-panel{max-width:170px;bottom:82px}#earth-panel-title{font-size:10px}#earth-panel-text{font-size:10px}
 #log{max-width:190px;top:100px}.log-msg{font-size:11px;padding:3px 6px}
 #debuff-bar{font-size:12px;padding:4px 12px;top:54px}#save-indicator{font-size:11px;top:54px}
@@ -159,7 +159,7 @@ canvas{display:block;width:100%;height:100%;position:absolute;top:0;left:0;z-ind
 </div></div>
 <button id="btn-attack-float" title="Атаковать колонию">⚔</button>
 <div id="debuff-bar"></div><div id="save-indicator">Сохранено</div><div id="log"></div>
-<div id="zoom-controls"><button class="zoom-btn" id="btn-zoom-in">+</button><button class="zoom-btn" id="btn-zoom-out">−</button><button class="zoom-btn" id="btn-reset" style="font-size:14px;">↻</button></div>
+<div id="zoom-controls"><button class="zoom-btn" id="btn-zoom-in">+</button><div class="zoom-row"><button class="zoom-btn" id="btn-rot-left" title="Вращать Луну влево">◀</button><button class="zoom-btn" id="btn-zoom-out">−</button><button class="zoom-btn" id="btn-rot-right" title="Вращать Луну вправо">▶</button></div><button class="zoom-btn" id="btn-reset" style="font-size:14px;">↻</button></div>
 <div id="earth-panel"><div id="earth-panel-title" data-i18n="earth_status">Состояние Земли</div><div id="earth-panel-bar"><div id="earth-panel-fill"></div></div><div id="earth-panel-text" data-i18n="earth_desc">Атмосфера разрушена. Поверхность горит 52 года.</div></div>
 <div id="panel"><div id="panel-content"></div></div>
 <div id="tabs">
@@ -221,7 +221,7 @@ setTimeout(()=>{if(!loadingHidden){loadingHidden=true;if(loadingBar)loadingBar.s
 const bgTex=texLoader.load('textures/milky_way.jpg',()=>onTexDone(),undefined,()=>onTexDone());bgTex.colorSpace=THREE.SRGBColorSpace;
 const bgMat=new THREE.ShaderMaterial({uniforms:{uTexture:{value:bgTex},uBrightness:{value:.35}},vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,fragmentShader:`uniform sampler2D uTexture;uniform float uBrightness;varying vec2 vUv;void main(){gl_FragColor=vec4(texture2D(uTexture,vUv).rgb*uBrightness,1.0);}`,side:THREE.BackSide,fog:false,depthWrite:false});
 const bgSphere=new THREE.Mesh(new THREE.SphereGeometry(300,24,24),bgMat);bgSphere.renderOrder=-1;scene.add(bgSphere);
-const sunPos=new THREE.Vector3(84,30.8,56),sunGroup=new THREE.Group();sunGroup.position.copy(sunPos);sunOrbit.add(sunGroup);scene.add(sunOrbit);sunGroup.add(new THREE.Mesh(new THREE.SphereGeometry(1.8,24,24),new THREE.MeshBasicMaterial({color:0xfff5dd,fog:false})));
+const sunPos=new THREE.Vector3(84,30.8,56),sunOrbit=new THREE.Group(),sunGroup=new THREE.Group();sunGroup.position.copy(sunPos);sunOrbit.add(sunGroup);scene.add(sunOrbit);sunGroup.add(new THREE.Mesh(new THREE.SphereGeometry(1.8,24,24),new THREE.MeshBasicMaterial({color:0xfff5dd,fog:false})));
 const EARTH_R=7.92*2.21*1.25,earthGroup=new THREE.Group();
 earthGroup.position.set(-19.745*1.44*1.2,-2.805*1.44*1.2,-40.645*1.44*1.2);
 earthGroup.rotation.set(.2,-.3,0);const earthOrbit=new THREE.Group();sunGroup.add(earthOrbit);earthGroup.position.sub(sunPos);earthOrbit.add(earthGroup);
@@ -259,6 +259,7 @@ let zoomTargetDist=null;
 document.getElementById('btn-zoom-in').addEventListener('click',()=>{sfxClick();let d=camera.position.length();zoomTargetDist=Math.max(controls.minDistance,d-(isMobile?2.4:1.6))});
 document.getElementById('btn-zoom-out').addEventListener('click',()=>{sfxClick();let d=camera.position.length();zoomTargetDist=Math.min(controls.maxDistance,d+(isMobile?2.4:1.6))});
 document.getElementById('btn-reset').addEventListener('click',()=>{sfxClick();let btn=document.getElementById('btn-reset');btn.style.transition='transform .6s ease';btn.style.transform='rotate(360deg)';setTimeout(()=>{btn.style.transition='none';btn.style.transform='rotate(0deg)'},600);controls.autoRotate=true;lastInteract=Date.now()});
+let rotDir=0,rotTimer=null,rotSpeed=0,lastRotT=0;function rotLoop(ts){if(rotTimer===null)return;let dt=Math.min(.05,(ts-lastRotT)/1e3);lastRotT=ts;let target=rotDir*1.2;rotSpeed+=(target-rotSpeed)*Math.min(1,dt*8);moonGroup.rotation.y+=rotSpeed*dt;if(rotDir===0&&Math.abs(rotSpeed)<.001){rotTimer=null;return}rotTimer=requestAnimationFrame(rotLoop)}function startRot(d){rotDir=d;if(rotTimer===null){lastRotT=performance.now();rotTimer=requestAnimationFrame(rotLoop)}controls.autoRotate=false;lastInteract=Date.now()}function stopRot(){rotDir=0}['btn-rot-left','btn-rot-right'].forEach(id=>{let el=document.getElementById(id);el.addEventListener('pointerdown',e=>{e.preventDefault();sfxClick();startRot(id==='btn-rot-left'?-1:1)});el.addEventListener('pointerup',stopRot);el.addEventListener('pointerleave',stopRot);el.addEventListener('pointercancel',stopRot)});
 function canAfford(c){let cm=getMod('buildCost');for(let k in c)if(state[k]===undefined||state[k]<Math.ceil(c[k]*cm))return false;return true}
 function spendCost(c){let cm=getMod('buildCost');for(let k in c)state[k]-=Math.ceil(c[k]*cm)}
 function getUnitCost(c){let cm=getMod('unitCost'),r={};for(let k in c)r[k]=Math.ceil(c[k]*cm);return r}
