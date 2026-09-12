@@ -10,27 +10,27 @@
     body { background:#01020a; font-family:'Segoe UI',Arial,sans-serif; touch-action:none; color:#c8e6ff; position:fixed; inset:0; -webkit-user-select:none; user-select:none; }
     canvas { display:block; width:100%; height:100%; position:absolute; top:0; left:0; z-index:1; }
     #loading { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#01020a; z-index:100; transition:opacity .6s; }
-    .spinner { width:50px; height:50px; border:2px solid rgba(0,229,255,.12); border-top-color:#00e5ff; border-right-color:rgba(0,229,255,.2); border-radius:50%; animation:spin 1s linear infinite; }
+    .spinner { width:54px; height:54px; border:2px solid rgba(0,229,255,.12); border-top-color:#00e5ff; border-right-color:rgba(0,229,255,.2); border-radius:50%; animation:spin 1s linear infinite; }
     @keyframes spin { to { transform:rotate(360deg); } }
-    #loading-text { color:#00e5ff; font-size:13px; letter-spacing:5px; margin-top:22px; text-transform:uppercase; text-shadow:0 0 12px rgba(0,229,255,.5); }
-    #loading-progress { width:180px; height:2px; margin-top:16px; background:rgba(0,229,255,.1); border-radius:1px; overflow:hidden; }
+    #loading-text { color:#00e5ff; font-size:18px; letter-spacing:5px; margin-top:22px; text-transform:uppercase; text-shadow:0 0 12px rgba(0,229,255,.5); }
+    #loading-progress { width:200px; height:3px; margin-top:16px; background:rgba(0,229,255,.1); border-radius:1px; overflow:hidden; }
     #loading-bar { height:100%; width:0%; border-radius:1px; background:linear-gradient(90deg,#00e5ff,#0088ff); box-shadow:0 0 8px rgba(0,229,255,.5); transition:width .3s ease; }
-    #nowebgl { position:fixed; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; background:#01020a; color:#ff5555; font-size:15px; text-align:center; z-index:200; padding:30px; }
-    #topbar { position:fixed; top:0; left:0; right:0; z-index:25; display:flex; justify-content:space-between; align-items:flex-start; padding:0 14px; padding-top:max(6px,env(safe-area-inset-top)); pointer-events:none; flex-wrap:wrap; gap:4px; }
-    #logo { pointer-events:auto; display:flex; align-items:center; gap:8px; flex-shrink:0; }
-    #logo-icon { width:26px; height:26px; border:2px solid #00e5ff; border-radius:50%; position:relative; box-shadow:0 0 10px rgba(0,229,255,.4); flex-shrink:0; }
+    #nowebgl { position:fixed; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; background:#01020a; color:#ff5555; font-size:21px; text-align:center; z-index:200; padding:30px; }
+    #topbar { position:fixed; top:0; left:0; right:0; z-index:25; display:flex; justify-content:space-between; align-items:flex-start; padding:0 16px; padding-top:max(8px,env(safe-area-inset-top)); pointer-events:none; flex-wrap:wrap; gap:6px; }
+    #logo { pointer-events:auto; display:flex; align-items:center; gap:10px; flex-shrink:0; }
+    #logo-icon { width:32px; height:32px; border:2px solid #00e5ff; border-radius:50%; position:relative; box-shadow:0 0 10px rgba(0,229,255,.4); flex-shrink:0; }
     #logo-icon::after { content:''; position:absolute; inset:3px; border-radius:50%; background:radial-gradient(circle at 35% 35%,rgba(0,229,255,.2),#003344); }
-    #logo-text { font-size:11px; letter-spacing:2px; text-transform:uppercase; color:#00e5ff; font-weight:600; white-space:nowrap; }
-    #topbar-right { display:flex; align-items:center; gap:6px; pointer-events:auto; flex-shrink:0; }
-    #btn-settings { width:30px; height:30px; background:rgba(5,12,25,.85); border:1px solid rgba(0,229,255,.2); border-radius:6px; color:#00e5ff; cursor:pointer; font-size:16px; backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; transition:all .2s; font-family:inherit; }
+    #logo-text { font-size:15px; letter-spacing:2px; text-transform:uppercase; color:#00e5ff; font-weight:600; white-space:nowrap; }
+    #topbar-right { display:flex; align-items:center; gap:8px; pointer-events:auto; flex-shrink:0; }
+    #btn-settings { width:36px; height:36px; background:rgba(5,12,25,.85); border:1px solid rgba(0,229,255,.2); border-radius:6px; color:#00e5ff; cursor:pointer; font-size:22px; backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; transition:all .2s; font-family:inherit; }
     #btn-settings:active { transform:scale(.9); }
     #btn-settings.active { background:rgba(0,229,255,.15); border-color:#00e5ff; }
     #res-bar { display:flex; gap:0; background:rgba(5,12,25,.85); border:1px solid rgba(0,229,255,.15); border-radius:6px; overflow:hidden; backdrop-filter:blur(8px); flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; max-width:100%; }
     #res-bar::-webkit-scrollbar { display:none; }
-    .res-cell { padding:5px 8px; display:flex; flex-direction:column; align-items:center; gap:1px; border-right:1px solid rgba(0,229,255,.08); min-width:50px; flex:0 0 auto; }
+    .res-cell { padding:6px 10px; display:flex; flex-direction:column; align-items:center; gap:2px; border-right:1px solid rgba(0,229,255,.08); min-width:66px; flex:0 0 auto; }
     .res-cell:last-child { border-right:none; }
-    .res-label { font-size:7px; color:#aaccff; letter-spacing:1px; text-transform:uppercase; opacity:.9; white-space:nowrap; }
-    .res-value { font-size:12px; color:#00e5ff; font-weight:700; white-space:nowrap; }
+    .res-label { font-size:10px; color:#aaccff; letter-spacing:1px; text-transform:uppercase; opacity:.9; white-space:nowrap; }
+    .res-value { font-size:17px; color:#00e5ff; font-weight:700; white-space:nowrap; }
     .res-cell.regolith .res-value { color:#ffaa44; }
     .res-cell.helium .res-value { color:#7fff7f; }
     .res-cell.energy .res-value { color:#44aaff; }
@@ -39,105 +39,177 @@
     .res-cell.logistics .res-value { color:#ff8844; }
     .res-cell.low .res-value { color:#ff4444!important; animation:pulse-red 1s infinite; }
     @keyframes pulse-red { 0%,100%{opacity:1} 50%{opacity:.5} }
-    #debuff-bar { position:fixed; top:52px; left:50%; transform:translateX(-50%); z-index:24; display:none; background:rgba(255,60,60,.2); border:1px solid rgba(255,80,80,.4); border-radius:6px; padding:4px 12px; font-size:10px; color:#ff8888; backdrop-filter:blur(8px); white-space:nowrap; }
+    #debuff-bar { position:fixed; top:58px; left:50%; transform:translateX(-50%); z-index:24; display:none; background:rgba(255,60,60,.2); border:1px solid rgba(255,80,80,.4); border-radius:6px; padding:5px 14px; font-size:14px; color:#ff8888; backdrop-filter:blur(8px); white-space:nowrap; }
     #debuff-bar.show { display:block; }
-    #ai-panel { position:fixed; left:8px; top:90px; z-index:23; background:rgba(255,60,60,.1); border:1px solid rgba(255,80,80,.2); border-radius:6px; padding:6px 8px; backdrop-filter:blur(8px); max-width:170px; pointer-events:none; }
-    #ai-panel-title { font-size:8px; color:#ff6666; letter-spacing:1px; text-transform:uppercase; margin-bottom:3px; font-weight:600; }
-    #ai-panel-info { font-size:9px; color:#aa8888; line-height:1.3; }
-    #save-indicator { position:fixed; top:52px; right:50px; z-index:24; font-size:9px; color:#456; padding:2px 6px; background:rgba(5,12,25,.7); border-radius:3px; display:none; }
+    #ai-panel { position:fixed; left:10px; top:100px; z-index:23; background:rgba(255,60,60,.1); border:1px solid rgba(255,80,80,.2); border-radius:6px; padding:8px 10px; backdrop-filter:blur(8px); max-width:210px; pointer-events:none; }
+    #ai-panel-title { font-size:11px; color:#ff6666; letter-spacing:1px; text-transform:uppercase; margin-bottom:4px; font-weight:600; }
+    #ai-panel-info { font-size:13px; color:#aa8888; line-height:1.3; }
+    #save-indicator { position:fixed; top:58px; right:60px; z-index:24; font-size:13px; color:#456; padding:3px 8px; background:rgba(5,12,25,.7); border-radius:3px; display:none; }
     #save-indicator.show { display:block; }
-    #log { position:fixed; right:10px; top:110px; z-index:23; display:flex; flex-direction:column; gap:2px; pointer-events:none; max-width:200px; }
-    .log-msg { font-size:9px; color:#889; background:rgba(5,12,25,.7); padding:3px 6px; border-radius:3px; border-left:2px solid #00e5ff; animation:logfade 8s forwards; }
+    #log { position:fixed; right:12px; top:120px; z-index:23; display:flex; flex-direction:column; gap:3px; pointer-events:none; max-width:240px; }
+    .log-msg { font-size:13px; color:#889; background:rgba(5,12,25,.7); padding:4px 8px; border-radius:3px; border-left:2px solid #00e5ff; animation:logfade 8s forwards; }
     .log-msg.warn { border-left-color:#ffaa44; color:#aa8; }
     .log-msg.bad { border-left-color:#ff4444; color:#aa6666; }
     .log-msg.good { border-left-color:#7fff7f; color:#88aa88; }
     @keyframes logfade { 0%{opacity:0;transform:translateX(20px)} 5%{opacity:1;transform:translateX(0)} 85%{opacity:1} 100%{opacity:0} }
-    #zoom-controls { position:fixed; right:8px; bottom:54px; z-index:25; display:flex; flex-direction:column; gap:3px; }
-    .zoom-btn { width:34px; height:34px; border:1px solid rgba(0,229,255,.2); background:rgba(5,12,25,.7); color:#00e5ff; border-radius:5px; cursor:pointer; font-size:15px; backdrop-filter:blur(6px); transition:all .15s; font-family:inherit; display:flex; align-items:center; justify-content:center; }
+    #zoom-controls { position:fixed; right:10px; bottom:64px; z-index:25; display:flex; flex-direction:column; gap:4px; }
+    .zoom-btn { width:40px; height:40px; border:1px solid rgba(0,229,255,.2); background:rgba(5,12,25,.7); color:#00e5ff; border-radius:5px; cursor:pointer; font-size:21px; backdrop-filter:blur(6px); transition:all .15s; font-family:inherit; display:flex; align-items:center; justify-content:center; }
     .zoom-btn:active { transform:scale(.9); }
-    #earth-panel { position:fixed; left:8px; bottom:54px; z-index:25; max-width:160px; pointer-events:none; }
-    #earth-panel-title { font-size:8px; color:#ff5522; letter-spacing:1px; text-transform:uppercase; margin-bottom:3px; font-weight:600; }
-    #earth-panel-bar { width:100%; height:2px; background:rgba(255,80,30,.15); border-radius:1px; overflow:hidden; margin-bottom:4px; }
+    #earth-panel { position:fixed; left:10px; bottom:64px; z-index:25; max-width:200px; pointer-events:none; }
+    #earth-panel-title { font-size:11px; color:#ff5522; letter-spacing:1px; text-transform:uppercase; margin-bottom:4px; font-weight:600; }
+    #earth-panel-bar { width:100%; height:3px; background:rgba(255,80,30,.15); border-radius:1px; overflow:hidden; margin-bottom:5px; }
     #earth-panel-fill { height:100%; width:92%; border-radius:1px; background:linear-gradient(90deg,#ff8844,#ff3322); }
-    #earth-panel-text { font-size:8px; color:#766; line-height:1.3; }
+    #earth-panel-text { font-size:11px; color:#766; line-height:1.3; }
     #tabs { position:fixed; left:0; right:0; bottom:0; z-index:26; display:flex; justify-content:center; gap:0; padding:0; padding-bottom:max(0px,env(safe-area-inset-bottom)); background:rgba(5,12,25,.92); border-top:1px solid rgba(0,229,255,.15); backdrop-filter:blur(8px); }
-    .tab-btn { flex:1; padding:8px 4px; background:transparent; border:none; color:#5a7a9a; font-size:9px; cursor:pointer; font-family:inherit; display:flex; flex-direction:column; align-items:center; gap:2px; transition:all .2s; border-top:2px solid transparent; max-width:80px; }
-    .tab-btn .tab-icon { font-size:18px; line-height:1; }
+    .tab-btn { flex:1; padding:10px 6px; background:transparent; border:none; color:#5a7a9a; font-size:13px; cursor:pointer; font-family:inherit; display:flex; flex-direction:column; align-items:center; gap:3px; transition:all .2s; border-top:2px solid transparent; max-width:110px; }
+    .tab-btn .tab-icon { font-size:25px; line-height:1; }
     .tab-btn:active { transform:scale(.92); }
     .tab-btn.active { color:#fff; border-top-color:#00e5ff; background:rgba(0,229,255,.06); }
-    #panel { position:fixed; left:0; right:0; bottom:42px; z-index:25; max-height:55vh; overflow-y:auto; background:rgba(5,12,25,.95); border-top:1px solid rgba(0,229,255,.12); backdrop-filter:blur(10px); padding:10px; display:none; }
+    #panel { position:fixed; left:0; right:0; bottom:50px; z-index:25; max-height:55vh; overflow-y:auto; background:rgba(5,12,25,.95); border-top:1px solid rgba(0,229,255,.12); backdrop-filter:blur(10px); padding:14px; display:none; }
     #panel.show { display:block; }
-    .panel-title { font-size:13px; color:#00e5ff; font-weight:600; margin-bottom:8px; letter-spacing:1px; text-transform:uppercase; }
-    .build-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:8px; }
-    .build-card { background:rgba(0,229,255,.05); border:1px solid rgba(0,229,255,.15); border-radius:6px; padding:10px; cursor:pointer; transition:all .2s; position:relative; overflow:hidden; }
+    .panel-title { font-size:18px; color:#00e5ff; font-weight:600; margin-bottom:10px; letter-spacing:1px; text-transform:uppercase; }
+    .build-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(175px,1fr)); gap:10px; }
+    .build-card { background:rgba(0,229,255,.05); border:1px solid rgba(0,229,255,.15); border-radius:6px; padding:12px; cursor:pointer; transition:all .2s; position:relative; overflow:hidden; }
     .build-card:active { transform:scale(.96); }
     .build-card.affordable { border-color:rgba(0,229,255,.35); }
     .build-card.affordable:hover { background:rgba(0,229,255,.1); }
     .build-card.unaffordable { opacity:.45; cursor:not-allowed; }
     .build-card.building { border-color:#ffaa44; cursor:wait; }
-    .build-name { font-size:12px; color:#fff; font-weight:600; margin-bottom:3px; }
-    .build-desc { font-size:9px; color:#789; line-height:1.3; margin-bottom:6px; }
-    .build-cost { display:flex; flex-wrap:wrap; gap:4px; font-size:9px; }
+    .build-name { font-size:17px; color:#fff; font-weight:600; margin-bottom:4px; }
+    .build-desc { font-size:13px; color:#789; line-height:1.3; margin-bottom:8px; }
+    .build-cost { display:flex; flex-wrap:wrap; gap:5px; font-size:13px; }
     .build-cost span { white-space:nowrap; }
     .cost-r { color:#ffaa44; } .cost-h { color:#7fff7f; } .cost-e { color:#44aaff; } .cost-p { color:#ff66aa; } .cost-l { color:#ff8844; }
     .build-timer { position:absolute; bottom:0; left:0; right:0; height:3px; background:rgba(255,170,68,.2); overflow:hidden; }
     .build-timer-fill { height:100%; background:linear-gradient(90deg,#ffaa44,#ff8844); transition:width .3s; }
-    .build-zone { font-size:8px; color:#ff44ff; margin-top:3px; font-style:italic; }
-    .unit-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:8px; }
-    .unit-card { background:rgba(255,100,100,.05); border:1px solid rgba(255,100,100,.15); border-radius:6px; padding:10px; cursor:pointer; transition:all .2s; }
+    .build-zone { font-size:11px; color:#ff44ff; margin-top:4px; font-style:italic; }
+    .unit-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(175px,1fr)); gap:10px; }
+    .unit-card { background:rgba(255,100,100,.05); border:1px solid rgba(255,100,100,.15); border-radius:6px; padding:12px; cursor:pointer; transition:all .2s; }
     .unit-card:active { transform:scale(.96); }
     .unit-card.affordable { border-color:rgba(255,100,100,.35); }
     .unit-card.unaffordable { opacity:.45; cursor:not-allowed; }
     .unit-card.locked { opacity:.3; cursor:not-allowed; }
-    .unit-name { font-size:12px; color:#fff; font-weight:600; margin-bottom:3px; }
-    .unit-desc { font-size:9px; color:#789; line-height:1.3; margin-bottom:6px; }
-    .unit-stats { display:flex; gap:8px; font-size:9px; color:#a88; }
+    .unit-name { font-size:17px; color:#fff; font-weight:600; margin-bottom:4px; }
+    .unit-desc { font-size:13px; color:#789; line-height:1.3; margin-bottom:8px; }
+    .unit-stats { display:flex; gap:10px; font-size:13px; color:#a88; }
     .unit-stat { display:flex; flex-direction:column; align-items:center; }
-    .unit-stat .val { color:#ff8844; font-size:11px; font-weight:600; }
-    .pol-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:8px; }
-    .pol-card { background:rgba(0,229,255,.05); border:1px solid rgba(0,229,255,.15); border-radius:6px; padding:12px; cursor:pointer; transition:all .2s; position:relative; }
+    .unit-stat .val { color:#ff8844; font-size:15px; font-weight:600; }
+    .pol-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:10px; }
+    .pol-card { background:rgba(0,229,255,.05); border:1px solid rgba(0,229,255,.15); border-radius:6px; padding:14px; cursor:pointer; transition:all .2s; position:relative; }
     .pol-card:active { transform:scale(.96); }
     .pol-card.current { border-color:#00e5ff; background:rgba(0,229,255,.12); cursor:default; }
-    .pol-card.current::after { content:attr(data-active-label); position:absolute; top:4px; right:6px; font-size:7px; color:#00e5ff; font-weight:700; letter-spacing:1px; }
+    .pol-card.current::after { content:attr(data-active-label); position:absolute; top:5px; right:7px; font-size:10px; color:#00e5ff; font-weight:700; letter-spacing:1px; }
     .pol-card.unaffordable { opacity:.5; }
-    .pol-name { font-size:13px; color:#fff; font-weight:600; margin-bottom:4px; }
-    .pol-pros { font-size:9px; color:#7fff7f; line-height:1.3; margin-bottom:3px; }
-    .pol-cons { font-size:9px; color:#ff6644; line-height:1.3; margin-bottom:6px; }
-    .pol-card .pp-cost { font-size:10px; color:#ff44ff; font-weight:600; }
+    .pol-name { font-size:18px; color:#fff; font-weight:600; margin-bottom:5px; }
+    .pol-pros { font-size:13px; color:#7fff7f; line-height:1.3; margin-bottom:4px; }
+    .pol-cons { font-size:13px; color:#ff6644; line-height:1.3; margin-bottom:8px; }
+    .pol-card .pp-cost { font-size:14px; color:#ff44ff; font-weight:600; }
     .pol-card.anarchy { border-color:#ff4444; background:rgba(255,60,60,.05); }
-    .set-row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(0,229,255,.06); }
+    .set-row { display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(0,229,255,.06); }
     .set-row:last-child { border-bottom:none; }
-    .set-label { font-size:12px; color:#aacce6; }
-    .set-desc { font-size:9px; color:#456; margin-top:2px; }
-    .set-control { display:flex; align-items:center; gap:8px; }
-    .set-toggle { width:40px; height:22px; background:rgba(0,229,255,.1); border:1px solid rgba(0,229,255,.25); border-radius:11px; cursor:pointer; position:relative; transition:all .2s; flex-shrink:0; }
-    .set-toggle::after { content:''; position:absolute; top:2px; left:2px; width:16px; height:16px; border-radius:50%; background:#456; transition:all .2s; }
+    .set-label { font-size:17px; color:#aacce6; }
+    .set-desc { font-size:13px; color:#456; margin-top:3px; }
+    .set-control { display:flex; align-items:center; gap:10px; }
+    .set-toggle { width:46px; height:26px; background:rgba(0,229,255,.1); border:1px solid rgba(0,229,255,.25); border-radius:13px; cursor:pointer; position:relative; transition:all .2s; flex-shrink:0; }
+    .set-toggle::after { content:''; position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%; background:#456; transition:all .2s; }
     .set-toggle.on { background:rgba(0,229,255,.3); border-color:#00e5ff; }
-    .set-toggle.on::after { left:20px; background:#00e5ff; box-shadow:0 0 6px rgba(0,229,255,.5); }
-    .set-slider { -webkit-appearance:none; appearance:none; width:100px; height:4px; background:rgba(0,229,255,.15); border-radius:2px; outline:none; cursor:pointer; }
-    .set-slider::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:14px; height:14px; border-radius:50%; background:#00e5ff; cursor:pointer; box-shadow:0 0 4px rgba(0,229,255,.4); }
-    .set-slider::-moz-range-thumb { width:14px; height:14px; border-radius:50%; background:#00e5ff; cursor:pointer; border:none; }
-    .set-lang-btn { padding:4px 10px; background:rgba(0,229,255,.1); border:1px solid rgba(0,229,255,.25); color:#00e5ff; border-radius:4px; cursor:pointer; font-family:inherit; font-size:11px; transition:all .2s; }
+    .set-toggle.on::after { left:22px; background:#00e5ff; box-shadow:0 0 6px rgba(0,229,255,.5); }
+    .set-slider { -webkit-appearance:none; appearance:none; width:120px; height:5px; background:rgba(0,229,255,.15); border-radius:2px; outline:none; cursor:pointer; }
+    .set-slider::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:16px; height:16px; border-radius:50%; background:#00e5ff; cursor:pointer; box-shadow:0 0 4px rgba(0,229,255,.4); }
+    .set-slider::-moz-range-thumb { width:16px; height:16px; border-radius:50%; background:#00e5ff; cursor:pointer; border:none; }
+    .set-lang-btn { padding:5px 12px; background:rgba(0,229,255,.1); border:1px solid rgba(0,229,255,.25); color:#00e5ff; border-radius:4px; cursor:pointer; font-family:inherit; font-size:15px; transition:all .2s; }
     .set-lang-btn.active { background:rgba(0,229,255,.25); border-color:#00e5ff; color:#fff; }
-    .ai-list { display:flex; flex-direction:column; gap:4px; margin-top:8px; }
-    .ai-row { display:flex; justify-content:space-between; align-items:center; font-size:9px; color:#789; padding:4px 6px; background:rgba(255,60,60,.04); border-radius:4px; border-left:2px solid rgba(255,80,80,.2); }
+    .ai-list { display:flex; flex-direction:column; gap:5px; margin-top:10px; }
+    .ai-row { display:flex; justify-content:space-between; align-items:center; font-size:13px; color:#789; padding:6px 8px; background:rgba(255,60,60,.04); border-radius:4px; border-left:2px solid rgba(255,80,80,.2); }
     .ai-row.near { border-left-color:#ff4444; }
     .ai-row-name { color:#aa8888; }
     .ai-row-stats { color:#666; }
+
+    /* === МОБИЛЬНАЯ ВЕРСИЯ (+20% от оригинала) === */
     @media(max-width:768px) {
-      #logo-text { font-size:9px; letter-spacing:1px; }
-      #logo-icon { width:22px; height:22px; }
-      .res-cell { padding:4px 5px; min-width:42px; }
-      .res-label { font-size:6px; letter-spacing:.5px; }
-      .res-value { font-size:10px; }
-      .tab-btn { font-size:7px; padding:6px 2px; max-width:60px; }
-      .tab-btn .tab-icon { font-size:16px; }
-      #panel { bottom:38px; max-height:50vh; padding:8px; }
-      .build-grid,.unit-grid { grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); }
+      #logo-text { font-size:11px; letter-spacing:1px; }
+      #logo-icon { width:26px; height:26px; }
+      #logo { gap:6px; }
+      #btn-settings { width:34px; height:34px; font-size:19px; }
+      #topbar { padding:0 10px; padding-top:max(6px,env(safe-area-inset-top)); gap:4px; }
+      .res-cell { padding:5px 6px; min-width:50px; }
+      .res-label { font-size:7px; letter-spacing:.5px; }
+      .res-value { font-size:12px; }
+      .tab-btn { font-size:9px; padding:8px 3px; max-width:76px; }
+      .tab-btn .tab-icon { font-size:19px; }
+      #panel { bottom:46px; max-height:50vh; padding:10px; }
+      .panel-title { font-size:16px; margin-bottom:8px; }
+      .build-grid,.unit-grid { grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:8px; }
+      .build-card,.unit-card { padding:10px; }
+      .build-name,.unit-name { font-size:14px; }
+      .build-desc,.unit-desc { font-size:11px; }
+      .build-cost { font-size:11px; }
+      .build-zone { font-size:10px; }
+      .unit-stats { font-size:11px; }
+      .unit-stat .val { font-size:13px; }
       .pol-grid { grid-template-columns:1fr; }
-      .zoom-btn { width:30px; height:30px; font-size:13px; }
-      #ai-panel { max-width:140px; }
-      #log { max-width:160px; top:90px; }
+      .pol-card { padding:12px; }
+      .pol-name { font-size:16px; }
+      .pol-pros,.pol-cons { font-size:11px; }
+      .pp-cost { font-size:12px; }
+      .set-label { font-size:14px; }
+      .set-desc { font-size:11px; }
+      .set-lang-btn { font-size:13px; padding:4px 10px; }
+      .set-toggle { width:42px; height:24px; }
+      .set-toggle::after { width:18px; height:18px; }
+      .set-toggle.on::after { left:20px; }
+      .zoom-btn { width:34px; height:34px; font-size:16px; }
+      #zoom-controls { bottom:58px; }
+      #ai-panel { max-width:170px; top:92px; padding:6px 8px; }
+      #ai-panel-title { font-size:10px; }
+      #ai-panel-info { font-size:11px; }
+      #log { max-width:190px; top:100px; }
+      .log-msg { font-size:11px; padding:3px 6px; }
+      #debuff-bar { font-size:12px; padding:4px 12px; top:54px; }
+      #save-indicator { font-size:11px; top:54px; }
+      #earth-panel { max-width:170px; bottom:58px; }
+      #earth-panel-title { font-size:10px; }
+      #earth-panel-text { font-size:10px; }
+      #loading-text { font-size:16px; }
+      .ai-row { font-size:11px; padding:5px 6px; }
+    }
+
+    /* === ОЧЕНЬ МАЛЕНЬКИЕ ЭКРАНЫ === */
+    @media(max-width:380px) {
+      #logo-text { font-size:9px; letter-spacing:.5px; }
+      #logo-icon { width:22px; height:22px; }
+      #btn-settings { width:30px; height:30px; font-size:17px; }
+      .res-cell { padding:4px 4px; min-width:42px; }
+      .res-label { font-size:6px; }
+      .res-value { font-size:11px; }
+      .tab-btn { font-size:8px; max-width:64px; padding:6px 2px; }
+      .tab-btn .tab-icon { font-size:17px; }
+      .build-grid,.unit-grid { grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); }
+      .build-name,.unit-name { font-size:13px; }
+      .build-desc,.unit-desc { font-size:10px; }
+      .build-cost { font-size:10px; }
+      .pol-name { font-size:15px; }
+      .pol-pros,.pol-cons { font-size:10px; }
+      #panel { padding:8px; bottom:42px; }
+      .panel-title { font-size:15px; }
+    }
+
+    /* === БОЛЬШИЕ ДЕСКТОП-ЭКРАНЫ === */
+    @media(min-width:1400px) {
+      #res-bar { max-width:none; }
+      .res-cell { min-width:76px; padding:7px 14px; }
+      .res-label { font-size:11px; }
+      .res-value { font-size:19px; }
+      .build-grid,.unit-grid { grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; }
+      .pol-grid { grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); }
+      .tab-btn { max-width:130px; }
+      #logo-text { font-size:16px; }
+      #logo-icon { width:34px; height:34px; }
+      .panel-title { font-size:20px; }
+      .build-name,.unit-name { font-size:18px; }
+      .build-desc,.unit-desc { font-size:14px; }
+      .build-cost { font-size:14px; }
+      #panel { padding:18px; max-height:60vh; }
     }
   </style>
 </head>
@@ -162,7 +234,7 @@
   <div id="debuff-bar"></div>
   <div id="save-indicator">Сохранено</div>
   <div id="log"></div>
-  <div id="zoom-controls"><button class="zoom-btn" id="btn-zoom-in">+</button><button class="zoom-btn" id="btn-zoom-out">−</button><button class="zoom-btn" id="btn-reset" style="font-size:12px;">↻</button></div>
+  <div id="zoom-controls"><button class="zoom-btn" id="btn-zoom-in">+</button><button class="zoom-btn" id="btn-zoom-out">−</button><button class="zoom-btn" id="btn-reset" style="font-size:14px;">↻</button></div>
   <div id="earth-panel"><div id="earth-panel-title" data-i18n="earth_status">Состояние Земли</div><div id="earth-panel-bar"><div id="earth-panel-fill"></div></div><div id="earth-panel-text" data-i18n="earth_desc">Атмосфера разрушена. Поверхность горит 16 лет. Связь потеряна в 2073.</div></div>
   <div id="panel"><div id="panel-content"></div></div>
   <div id="tabs">
@@ -205,10 +277,11 @@
         regime_change:'Смена строя: ', instability5:'. Нестабильность 5 минут!',
         regime_cost:'Стоимость: ', po:' ПО', active:'АКТИВЕН',
         reg_change_warning:'Смена строя вызывает <b style="color:#ff4444">анархию</b> на 5 минут: производство −50%, наём войск запрещён.',
+        regime_pros:'Преимущества', regime_cons:'Недостатки',
         pp_available:'Полит. очки: ', buildings_count:'Зданий: ', units_count:'Юнитов: ', play_time:'Время игры: ', current_regime:'Текущий строй: ',
         save:'💾 Сохранить', reset_confirm:'Начать новую игру? Весь прогресс будет потерян.', reset_btn:'🗑 Новая игра',
         info_title:'Луна 2087: Новый рубеж', info_year:'2087 год. Земля погибла — атмосфера горит уже 16 лет. Последние люди выживают в колониях на Луне.',
-        info_resources:'Ресурсы', info_regimes:'Строи', info_units_h:'Юниты', info_territories:'Территории',
+        info_resources:'Ресурсы', info_regimes:'Строи', info_units_h:'Юниты', info_territories:'Территории', info_buildings:'Постройки',
         info_offline:'Оффлайн-режим: 23 ИИ-колонии. Архитектура готова к переходу в онлайн (24 игрока).',
         info_territory_desc:'Луна разделена на 24 равных сектора. Ваша территория выделена голубой границей. ИИ-колонии отмечены красными маркерами.',
         settings_title:'Настройки', language:'Язык', master_vol:'Общая громкость', master_desc:'Общий уровень звука',
@@ -255,10 +328,11 @@
         regime_change:'Regime change: ', instability5:'. Instability for 5 minutes!',
         regime_cost:'Cost: ', po:' PP', active:'ACTIVE',
         reg_change_warning:'Changing regime causes <b style="color:#ff4444">anarchy</b> for 5 minutes: production −50%, unit production locked.',
+        regime_pros:'Advantages', regime_cons:'Disadvantages',
         pp_available:'Political points: ', buildings_count:'Buildings: ', units_count:'Units: ', play_time:'Play time: ', current_regime:'Current regime: ',
         save:'💾 Save', reset_confirm:'Start a new game? All progress will be lost.', reset_btn:'🗑 New Game',
         info_title:'Luna 2087: New Frontier', info_year:'2087. Earth is dead — atmosphere burning for 16 years. Last humans survive in lunar colonies.',
-        info_resources:'Resources', info_regimes:'Regimes', info_units_h:'Units', info_territories:'Territories',
+        info_resources:'Resources', info_regimes:'Regimes', info_units_h:'Units', info_territories:'Territories', info_buildings:'Buildings',
         info_offline:'Offline mode: 23 AI colonies. Architecture ready for online transition (24 players).',
         info_territory_desc:'Moon divided into 24 equal sectors. Your territory outlined in cyan. AI colonies marked red.',
         settings_title:'Settings', language:'Language', master_vol:'Master Volume', master_desc:'Overall sound level',
@@ -316,93 +390,54 @@
     // ============================================================
     // === АРХИТЕКТУРА СИСТЕМЫ ГОСУДАРСТВЕННОГО СТРОЯ ============
     // ============================================================
-    // Таблица модификаторов — глобальные переменные,
-    // применяемые к базовым показателям игрока (Player_Base_Values).
-    // Значения мультипликаторов: 1.0 = базовый уровень (без изменений)
     const REGIMES = {
-      // --- ФАШИЗМ (Радикальный Милитаризм) ---
       fascism: {
         name: { ru:'Фашизм', en:'Fascism' },
         subtitle: { ru:'Радикальный Милитаризм', en:'Radical Militarism' },
         ppCost: 200,
         pros: { ru:'+20% к урону\n−20% к стоимости войск\n+30% к трофеям', en:'+20% damage\n−20% unit cost\n+30% loot' },
         cons: { ru:'−30% к торговле\n−15% к росту населения\n+10% к содержанию армии', en:'−30% trade\n−15% pop growth\n+10% army upkeep' },
-        mods: {
-          attackMod:        1.20,   // Attack_Modifier = +0.20
-          unitCost:         0.80,   // Unit_Cost_Modifier = -0.20
-          lootMod:          1.30,   // Loot_Capacity_Modifier = +0.30
-          tradeIncome:      0.70,   // Trade_Income_Modifier = -0.30
-          popGrowth:        0.85,   // Population_Growth_Modifier = -0.15
-          unitUpkeep:       1.10,   // Unit_Upkeep_Modifier = +0.10
-        },
+        mods: { attackMod:1.20, unitCost:0.80, lootMod:1.30, tradeIncome:0.70, popGrowth:0.85, unitUpkeep:1.10 },
       },
-      // --- КОММУНИЗМ (Плановая Экономика) ---
       communism: {
         name: { ru:'Коммунизм', en:'Communism' },
         subtitle: { ru:'Плановая Экономика', en:'Planned Economy' },
         ppCost: 200,
         pros: { ru:'+20% к скорости строительства\n+15% к добыче ресурсов', en:'+20% build speed\n+15% resource production' },
         cons: { ru:'−25% к налогам\n−10% к шпионажу', en:'−25% tax income\n−10% espionage' },
-        mods: {
-          buildSpeed:       1.20,   // Build_Speed_Modifier = +0.20
-          resourceRate:     1.15,   // Resource_Production_Modifier = +0.15
-          taxIncome:        0.75,   // Tax_Income_Modifier = -0.25
-          spyEff:           0.90,   // Spy_Efficiency_Modifier = -0.10
-        },
+        mods: { buildSpeed:1.20, resourceRate:1.15, taxIncome:0.75, spyEff:0.90 },
       },
-      // --- ДЕМОКРАТИЯ (Свободный Рынок) ---
       democracy: {
         name: { ru:'Демократия', en:'Democracy' },
         subtitle: { ru:'Свободный Рынок', en:'Free Market' },
         ppCost: 200,
         pros: { ru:'+30% к налогам\n+20% к складам торговли', en:'+30% tax income\n+20% trade warehouse' },
         cons: { ru:'−15% к атаке\n+10% к содержанию армии', en:'−15% attack\n+10% army upkeep' },
-        mods: {
-          taxIncome:        1.30,   // Tax_Income_Modifier = +0.30
-          tradeWarehouse:   1.20,   // Trade_Warehouse_Modifier = +0.20
-          attackMod:        0.85,   // Attack_Modifier = -0.15
-          unitUpkeep:       1.10,   // Unit_Upkeep_Modifier = +0.10
-        },
+        mods: { taxIncome:1.30, tradeWarehouse:1.20, attackMod:0.85, unitUpkeep:1.10 },
       },
-      // --- ТЕОКРАТИЯ (Фанатичная Оборона) ---
       theocracy: {
         name: { ru:'Теократия', en:'Theocracy' },
         subtitle: { ru:'Фанатичная Оборона', en:'Fanatical Defense' },
         ppCost: 200,
         pros: { ru:'+20% к защите войск\n+25% к контршпионажу', en:'+20% defense\n+25% counter-espionage' },
         cons: { ru:'−15% к науке\n−10% к тяжёлым ресурсам', en:'−15% research\n−10% heavy resources' },
-        mods: {
-          defenseMod:       1.20,   // Defense_Modifier = +0.20
-          counterSpy:       1.25,   // Counter_Espionage_Modifier = +0.25
-          research:         0.85,   // Research_Speed_Modifier = -0.15
-          heavyRes:         0.90,   // Heavy_Resource_Modifier = -0.10
-        },
+        mods: { defenseMod:1.20, counterSpy:1.25, research:0.85, heavyRes:0.90 },
       },
-      // --- ТЕХНОКРАТИЯ (Научное Превосходство) ---
       technocracy: {
         name: { ru:'Технократия', en:'Technocracy' },
         subtitle: { ru:'Научное Превосходство', en:'Scientific Superiority' },
         ppCost: 200,
         pros: { ru:'+35% к скорости науки\n+15% к защите турелей', en:'+35% research speed\n+15% turret defense' },
         cons: { ru:'+20% к стоимости зданий\n−15% к торговле', en:'+20% building cost\n−15% trade' },
-        mods: {
-          research:         1.35,   // Research_Speed_Modifier = +0.35
-          turretDefense:    1.15,   // Turret_Defense_Modifier = +0.15
-          buildCost:        1.20,   // Civil_Build_Cost_Modifier = +0.20
-          tradeIncome:      0.85,   // Trade_Income_Modifier = -0.15
-        },
+        mods: { research:1.35, turretDefense:1.15, buildCost:1.20, tradeIncome:0.85 },
       },
-      // --- АНАРХИЯ (Штрафной Режим при смене строя) ---
       anarchy: {
         name: { ru:'Анархия', en:'Anarchy' },
         subtitle: { ru:'Штрафной Режим', en:'Penalty Mode' },
         ppCost: 0,
         pros: { ru:'Переходное состояние при смене строя', en:'Transitional state after regime change' },
         cons: { ru:'−50% ко всем ресурсам\nНаём войск запрещён', en:'−50% all production\nUnit production locked' },
-        mods: {
-          globalProduction: 0.50,   // Global_Production_Modifier = -0.50
-          unitLock:         true,   // Unit_Production_Lock = True
-        },
+        mods: { globalProduction:0.50, unitLock:true },
       },
     };
 
@@ -506,9 +541,7 @@
       else state = defaultState();
     } catch (e) { state = defaultState(); }
 
-    // === GETMOD — применяет модификаторы строя к базовым значениям ===
     function getMod(key) {
-      // Анархия — штрафной режим при смене строя
       if (state.debuffEnd > Date.now() && state.debuffType === 'anarchy') {
         if (['globalProduction','regolithRate','heliumRate','popRate','ppRate'].includes(key)) return 0.5;
         if (key === 'unitLock') return true;
@@ -530,10 +563,8 @@
       while (logEl.children.length > 5) logEl.removeChild(logEl.firstChild);
     }
 
-    // === ИГРОВОЙ ТИК — все модификаторы применяются здесь ===
     function gameTick(dt) {
       let regRate=0, helRate=0, energyProd=0, energyCons=0, ppRate=0, popRate=0;
-      // Базовые значения от зданий
       state.buildings.forEach(b => {
         if (!b.built) return;
         const def = BUILDINGS[b.id];
@@ -544,27 +575,14 @@
         if (def.energyUse)    energyCons += def.energyUse;
         if (b.id === 'dome')  energyProd += 2;
       });
-
-      // --- ПРИМЕНЕНИЕ МОДИФИКАТОРОВ СТРОЯ ---
-
-      // Resource_Production_Modifier (коммунизм +15%)
       regRate *= getMod('resourceRate');
-
-      // Heavy_Resource_Modifier (теократия −10%) — применяется к гелию (тяжёлый ресурс)
       helRate *= getMod('heavyRes');
-
-      // Population_Growth_Modifier (фашизм −15%)
       popRate *= getMod('popGrowth');
-
-      // Глобальный штраф анархии
       if (state.debuffEnd > Date.now() && state.debuffType === 'anarchy') {
         regRate *= 0.5; helRate *= 0.5; ppRate *= 0.5; popRate *= 0.5;
       }
-
-      // Unit_Upkeep_Modifier (фашизм +10%, демократия +10%) — увеличивает расход энергии на армию
       const unitUpkeepMod = getMod('unitUpkeep');
       energyCons += state.units.length * 0.5 * unitUpkeepMod;
-
       state.energy = Math.min(state.energyMax, state.energy + energyProd * dt * 0.1);
       state.energy = Math.max(0, state.energy - energyCons * dt * 0.01);
       state.regolith = Math.min(9999, state.regolith + regRate * dt);
@@ -572,8 +590,6 @@
       state.politicalPoints = Math.min(state.ppMax, state.politicalPoints + ppRate * dt);
       state.pop = Math.min(state.popMax, state.pop + popRate * dt);
       state.logistics = Math.min(state.logisticsMax, state.logistics + dt * 0.01);
-
-      // Очередь строительства — Build_Speed_Modifier (коммунизм +20%)
       state.buildQueue.forEach(q => {
         q.remaining -= dt * 1000;
         if (q.remaining <= 0) {
@@ -586,9 +602,7 @@
         }
       });
       state.buildQueue = state.buildQueue.filter(q => q.remaining > 0);
-
       aiTick(dt);
-
       if (state.debuffEnd <= Date.now() && state.debuffType) { state.debuffType = null; addLog(t('instability_end'), 'good'); }
       state.gameTime += dt;
       if (state.gameTime % 30 < dt) saveGame();
@@ -605,7 +619,6 @@
         if (ai.units >= 5 && Math.random() < ai.aggression * 0.000015 * dt) {
           const atkForce = Math.floor(ai.units * 0.6);
           ai.units -= atkForce;
-          // Defense_Modifier (теократия +20%) — применяется к защите игрока
           const defMod = getMod('defenseMod');
           const myDef = (state.units.reduce((s,u)=>s+u.defense,0) + state.buildings.reduce((s,b)=>s+(BUILDINGS[b.id]?.defense||0),0)) * defMod;
           if (atkForce * 8 > myDef) {
@@ -640,7 +653,7 @@
     const texLoader = new THREE.TextureLoader();
     const loadingBar = document.getElementById('loading-bar');
     let texturesLoaded = 0, loadingHidden = false;
-    const totalTextures = 4;
+    const totalTextures = 3;
     function updateProgress() { if (loadingBar) loadingBar.style.width = Math.round((texturesLoaded/totalTextures)*100) + '%'; }
     function onTextureDone() { texturesLoaded++; updateProgress(); tryHideLoading(); }
     function tryHideLoading() { if (loadingHidden) return; if (texturesLoaded >= totalTextures) { loadingHidden = true; if (loadingBar) loadingBar.style.width = '100%'; setTimeout(()=>{ const ld=document.getElementById('loading'); ld.style.opacity='0'; setTimeout(()=>ld.style.display='none',600); }, 200); } }
@@ -783,7 +796,12 @@
     }
 
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true; controls.dampingFactor = 0.07; controls.minDistance = 3.5; controls.maxDistance = isMobile ? 28 : 14; controls.enablePan = false; controls.rotateSpeed = 0.55; controls.autoRotate = true; controls.autoRotateSpeed = 0.35;
+    controls.enableDamping = true; controls.dampingFactor = 0.07; controls.minDistance = 3.5; controls.maxDistance = isMobile ? 28 : 14; controls.enablePan = false; controls.rotateSpeed = 0.55;
+    // === ЗАМЕДЛЕНИЕ ВРАЩЕНИЯ ЛУНЫ НА ДЕСКТОПЕ ===
+    // На десктопе камера ближе — вращение воспринимается быстрее.
+    // Замедляем в 2.5 раза, чтобы было как на мобильной версии.
+    const rotFactor = isMobile ? 1 : 0.4;
+    controls.autoRotate = true; controls.autoRotateSpeed = 0.35 * rotFactor;
     let lastInteract = Date.now();
     renderer.domElement.addEventListener('pointerdown', () => { controls.autoRotate = false; lastInteract = Date.now(); });
     renderer.domElement.addEventListener('touchstart', () => { controls.autoRotate = false; lastInteract = Date.now(); }, { passive: true });
@@ -791,9 +809,6 @@
     document.getElementById('btn-zoom-out').addEventListener('click', () => { sfxClick(); const d = camera.position.length(); camera.position.multiplyScalar(Math.min(controls.maxDistance, d + (isMobile ? 2.4 : 1.6)) / d); controls.update(); });
     document.getElementById('btn-reset').addEventListener('click', () => { sfxClick(); if (isMobile) camera.position.set(MOBILE_CAM.x, MOBILE_CAM.y, MOBILE_CAM.z); else camera.position.set(DESKTOP_CAM.x, DESKTOP_CAM.y, DESKTOP_CAM.z); controls.target.set(0, 0, 0); controls.autoRotate = true; controls.update(); });
 
-    // === ИНТЕРФЕЙС — стоимость с модификаторами строя ===
-
-    // Civil_Build_Cost_Modifier (технократия +20%) — применяется к стоимости зданий
     function canAfford(cost) {
       const cm = getMod('buildCost');
       for (let k in cost) if (state[k] === undefined || state[k] < Math.ceil(cost[k] * cm)) return false;
@@ -803,7 +818,6 @@
       const cm = getMod('buildCost');
       for (let k in cost) state[k] -= Math.ceil(cost[k] * cm);
     }
-    // Unit_Cost_Modifier (фашизм −20%) — применяется к стоимости юнитов
     function getUnitCost(cost) {
       const cm = getMod('unitCost');
       const r = {}; for (let k in cost) r[k] = Math.ceil(cost[k] * cm); return r;
@@ -886,8 +900,8 @@
       } else if (tab === 'units') {
         const locked = isUnitLocked();
         let html = '<div class="panel-title">' + t('unit_title') + '</div>';
-        if (locked) html += '<div style="margin-bottom:8px;font-size:10px;color:#ff4444;">' + t('units_locked') + '</div>';
-        html += '<div style="margin-bottom:8px;font-size:10px;color:#789;">' + t('your_units') + ': ' + state.units.length + '</div>';
+        if (locked) html += '<div style="margin-bottom:8px;font-size:13px;color:#ff4444;">' + t('units_locked') + '</div>';
+        html += '<div style="margin-bottom:8px;font-size:13px;color:#789;">' + t('your_units') + ': ' + state.units.length + '</div>';
         html += '<div class="unit-grid">';
         Object.keys(UNITS).forEach(id => {
           const u = UNITS[id]; const aff = canAffordUnit(u.cost);
@@ -898,7 +912,7 @@
           html += '<div class="unit-card ' + cls + '" data-unit="' + id + '"><div class="unit-name">' + u.icon + ' ' + t(u.nameKey) + '</div><div class="unit-desc">' + t(u.descKey) + '</div><div class="unit-stats"><div class="unit-stat"><span class="val">' + u.attack + '</span>' + t('attack') + '</div><div class="unit-stat"><span class="val">' + u.defense + '</span>' + t('defense') + '</div></div><div class="build-cost">' + costHtml + ' <span class="cost-p">👥' + u.popNeed + '</span></div></div>';
         });
         html += '</div>';
-        html += '<div style="margin-top:10px;font-size:9px;color:#789;line-height:1.4;"><b style="color:#ff6644">' + (currentLang==='en'?'Attack:':'Атака:') + '</b><br><button id="btn-attack" style="margin-top:6px;padding:6px 12px;background:rgba(255,60,60,.15);border:1px solid rgba(255,80,80,.3);color:#ff8866;border-radius:5px;cursor:pointer;font-family:inherit;font-size:11px;">' + t('attack_ai') + '</button></div>';
+        html += '<div style="margin-top:12px;font-size:13px;color:#789;line-height:1.4;"><b style="color:#ff6644">' + (currentLang==='en'?'Attack:':'Атака:') + '</b><br><button id="btn-attack" style="margin-top:8px;padding:8px 16px;background:rgba(255,60,60,.15);border:1px solid rgba(255,80,80,.3);color:#ff8866;border-radius:5px;cursor:pointer;font-family:inherit;font-size:14px;">' + t('attack_ai') + '</button></div>';
         c.innerHTML = html;
         if (!locked) {
           c.querySelectorAll('.unit-card').forEach(card => {
@@ -917,19 +931,19 @@
         document.getElementById('btn-attack')?.addEventListener('click', () => { sfxClick(); attackNearestAI(); });
       } else if (tab === 'politics') {
         let html = '<div class="panel-title">' + t('pol_title') + '</div>';
-        html += '<div style="margin-bottom:8px;font-size:10px;color:#789;">' + t('pp_available') + '<b style="color:#ff44ff">' + Math.floor(state.politicalPoints) + '</b> / ' + state.ppMax + '</div>';
+        html += '<div style="margin-bottom:10px;font-size:13px;color:#789;">' + t('pp_available') + '<b style="color:#ff44ff">' + Math.floor(state.politicalPoints) + '</b> / ' + state.ppMax + '</div>';
         html += '<div class="pol-grid">';
         Object.keys(REGIMES).forEach(id => {
           if (id === 'anarchy') return;
           const r = REGIMES[id]; const isCur = state.regime === id; const canChange = !isCur && state.politicalPoints >= r.ppCost;
           const cls = isCur ? 'current' : canChange ? '' : 'unaffordable';
-          html += '<div class="pol-card ' + cls + '" data-regime="' + id + '" data-active-label="' + t('active') + '"><div class="pol-name">' + r.name[currentLang] + '</div><div style="font-size:8px;color:#888;margin-bottom:4px;">' + r.subtitle[currentLang] + '</div><div class="pol-pros">' + r.pros[currentLang].replace(/\n/g,'<br>') + '</div><div class="pol-cons">' + r.cons[currentLang].replace(/\n/g,'<br>') + '</div>' + (isCur ? '' : '<div class="pp-cost">' + t('regime_cost') + r.ppCost + t('po') + '</div>') + '</div>';
+          html += '<div class="pol-card ' + cls + '" data-regime="' + id + '" data-active-label="' + t('active') + '"><div class="pol-name">' + r.name[currentLang] + '</div><div style="font-size:11px;color:#888;margin-bottom:5px;">' + r.subtitle[currentLang] + '</div><div class="pol-pros">' + r.pros[currentLang].replace(/\n/g,'<br>') + '</div><div class="pol-cons">' + r.cons[currentLang].replace(/\n/g,'<br>') + '</div>' + (isCur ? '' : '<div class="pp-cost">' + t('regime_cost') + r.ppCost + t('po') + '</div>') + '</div>';
         });
         html += '</div>';
         if (state.debuffEnd > Date.now() && state.debuffType === 'anarchy') {
-          html += '<div class="pol-card anarchy" style="margin-top:8px;"><div class="pol-name" style="color:#ff4444;">' + REGIMES.anarchy.name[currentLang] + '</div><div style="font-size:8px;color:#888;margin-bottom:4px;">' + REGIMES.anarchy.subtitle[currentLang] + '</div><div class="pol-pros">' + REGIMES.anarchy.pros[currentLang].replace(/\n/g,'<br>') + '</div><div class="pol-cons">' + REGIMES.anarchy.cons[currentLang].replace(/\n/g,'<br>') + '</div></div>';
+          html += '<div class="pol-card anarchy" style="margin-top:10px;"><div class="pol-name" style="color:#ff4444;">' + REGIMES.anarchy.name[currentLang] + '</div><div style="font-size:11px;color:#888;margin-bottom:5px;">' + REGIMES.anarchy.subtitle[currentLang] + '</div><div class="pol-pros">' + REGIMES.anarchy.pros[currentLang].replace(/\n/g,'<br>') + '</div><div class="pol-cons">' + REGIMES.anarchy.cons[currentLang].replace(/\n/g,'<br>') + '</div></div>';
         }
-        html += '<div style="margin-top:10px;font-size:9px;color:#789;line-height:1.4;">' + t('reg_change_warning') + '</div>';
+        html += '<div style="margin-top:12px;font-size:13px;color:#789;line-height:1.4;">' + t('reg_change_warning') + '</div>';
         c.innerHTML = html;
         c.querySelectorAll('.pol-card[data-regime]').forEach(card => {
           card.addEventListener('click', () => {
@@ -942,15 +956,15 @@
           });
         });
       } else if (tab === 'map') {
-        let html = '<div class="panel-title">' + t('map_title') + '</div><div style="font-size:10px;color:#789;line-height:1.6;">';
-        html += '<div style="margin-bottom:6px;">' + t('buildings_count') + '<b style="color:#00e5ff">' + state.buildings.filter(b=>b.built).length + '</b></div>';
-        html += '<div style="margin-bottom:6px;">' + t('units_count') + '<b style="color:#ff8844">' + state.units.length + '</b></div>';
-        html += '<div style="margin-bottom:6px;">' + t('play_time') + '<b style="color:#00e5ff">' + Math.floor(state.gameTime/60) + t('min') + '</b></div>';
-        html += '<div style="margin-bottom:6px;">' + t('current_regime') + '<b style="color:#ff44ff">' + REGIMES[state.regime].name[currentLang] + '</b></div>';
-        html += '<div style="margin-bottom:10px;">' + t('total_players') + '</div>';
+        let html = '<div class="panel-title">' + t('map_title') + '</div><div style="font-size:13px;color:#789;line-height:1.6;">';
+        html += '<div style="margin-bottom:8px;">' + t('buildings_count') + '<b style="color:#00e5ff">' + state.buildings.filter(b=>b.built).length + '</b></div>';
+        html += '<div style="margin-bottom:8px;">' + t('units_count') + '<b style="color:#ff8844">' + state.units.length + '</b></div>';
+        html += '<div style="margin-bottom:8px;">' + t('play_time') + '<b style="color:#00e5ff">' + Math.floor(state.gameTime/60) + t('min') + '</b></div>';
+        html += '<div style="margin-bottom:8px;">' + t('current_regime') + '<b style="color:#ff44ff">' + REGIMES[state.regime].name[currentLang] + '</b></div>';
+        html += '<div style="margin-bottom:12px;">' + t('total_players') + '</div>';
         html += '</div>';
         const nearest = getNearestAI().slice(0, 8);
-        html += '<div style="font-size:10px;color:#ff6644;font-weight:600;margin-bottom:4px;">' + t('nearest_ai') + '</div>';
+        html += '<div style="font-size:13px;color:#ff6644;font-weight:600;margin-bottom:6px;">' + t('nearest_ai') + '</div>';
         html += '<div class="ai-list">';
         if (nearest.length === 0) { html += '<div class="ai-row">' + t('no_ai_near') + '</div>'; }
         else {
@@ -960,26 +974,34 @@
           });
         }
         html += '</div>';
-        html += '<div style="margin-top:10px;"><button id="btn-save" style="padding:8px 14px;background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.25);color:#00e5ff;border-radius:5px;cursor:pointer;font-family:inherit;font-size:11px;margin-right:6px;">' + t('save') + '</button>';
-        html += '<button id="btn-reset" style="padding:8px 14px;background:rgba(255,60,60,.1);border:1px solid rgba(255,80,80,.25);color:#ff6666;border-radius:5px;cursor:pointer;font-family:inherit;font-size:11px;">' + t('reset_btn') + '</button></div>';
+        html += '<div style="margin-top:12px;"><button id="btn-save" style="padding:10px 16px;background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.25);color:#00e5ff;border-radius:5px;cursor:pointer;font-family:inherit;font-size:14px;margin-right:8px;">' + t('save') + '</button>';
+        html += '<button id="btn-new-game" style="padding:10px 16px;background:rgba(255,60,60,.1);border:1px solid rgba(255,80,80,.25);color:#ff6666;border-radius:5px;cursor:pointer;font-family:inherit;font-size:14px;">' + t('reset_btn') + '</button></div>';
         c.innerHTML = html;
         document.getElementById('btn-save')?.addEventListener('click', () => { sfxClick(); saveGame(); addLog(t('saved'), 'good'); });
-        document.getElementById('btn-reset')?.addEventListener('click', () => { if (confirm(t('reset_confirm'))) { resetGame(); renderPanel('map'); } });
+        document.getElementById('btn-new-game')?.addEventListener('click', () => { if (confirm(t('reset_confirm'))) { resetGame(); renderPanel('map'); } });
       } else if (tab === 'info') {
-        let html = '<div class="panel-title">' + t('info_title') + '</div><div style="font-size:11px;color:#aacce6;line-height:1.6;">';
-        html += '<p style="margin-bottom:8px;">' + t('info_year') + '</p>';
-        html += '<p style="margin-bottom:8px;"><b style="color:#00e5ff">' + t('info_territories') + ':</b> ' + t('info_territory_desc') + '</p>';
-        html += '<p style="margin-bottom:8px;"><b style="color:#00e5ff">' + t('info_regimes') + ':</b><br>';
+        let html = '<div class="panel-title">' + t('info_title') + '</div><div style="font-size:14px;color:#aacce6;line-height:1.6;">';
+        html += '<p style="margin-bottom:10px;">' + t('info_year') + '</p>';
+        html += '<p style="margin-bottom:10px;"><b style="color:#00e5ff">' + t('info_territories') + ':</b> ' + t('info_territory_desc') + '</p>';
+        html += '<p style="margin-bottom:10px;"><b style="color:#00e5ff">' + t('info_buildings') + ':</b><br>';
+        Object.keys(BUILDINGS).forEach(id => {
+          const b = BUILDINGS[id];
+          html += '• <b>' + b.icon + ' ' + t(b.nameKey) + '</b> <i style="color:#666;font-size:12px">(' + (b.category==='center' ? t('zone_center') : t('zone_outer')) + ')</i> — ' + t(b.descKey) + ' <span style="color:#a88;font-size:12px">(' + (b.cost.regolith||0) + ' ' + t('regolith_short') + ', ' + (b.cost.helium||0) + ' ' + t('helium_short') + ', ' + (b.cost.energy||0) + ' ' + t('energy_short') + ')</span><br>';
+        });
+        html += '</p>';
+        html += '<p style="margin-bottom:10px;"><b style="color:#00e5ff">' + t('info_regimes') + ':</b><br>';
         Object.keys(REGIMES).forEach(id => {
           if (id === 'anarchy') return;
           const r = REGIMES[id];
-          html += '• <b>' + r.name[currentLang] + '</b> <i style="color:#666;font-size:9px">(' + r.subtitle[currentLang] + ')</i> — ' + r.pros[currentLang].replace(/\n/g,'; ') + '<br>';
+          html += '• <b>' + r.name[currentLang] + '</b> <i style="color:#666;font-size:12px">(' + r.subtitle[currentLang] + ')</i> — <span style="color:#7fff7f">' + t('regime_pros') + ': ' + r.pros[currentLang].replace(/\n/g,'; ') + '</span>; <span style="color:#ff6644">' + t('regime_cons') + ': ' + r.cons[currentLang].replace(/\n/g,'; ') + '</span> <span style="color:#ff44ff;font-size:12px">(' + r.ppCost + ' ' + t('po') + ')</span><br>';
         });
-        html += '• <b style="color:#ff4444">' + REGIMES.anarchy.name[currentLang] + '</b> <i style="color:#666;font-size:9px">(' + REGIMES.anarchy.subtitle[currentLang] + ')</i></p>';
-        html += '<p style="margin-bottom:8px;"><b style="color:#00e5ff">' + t('info_units_h') + ':</b><br>';
+        const an = REGIMES.anarchy;
+        html += '• <b style="color:#ff4444">' + an.name[currentLang] + '</b> <i style="color:#666;font-size:12px">(' + an.subtitle[currentLang] + ')</i> — <span style="color:#7fff7f">' + t('regime_pros') + ': ' + an.pros[currentLang].replace(/\n/g,'; ') + '</span>; <span style="color:#ff6644">' + t('regime_cons') + ': ' + an.cons[currentLang].replace(/\n/g,'; ') + '</span><br>';
+        html += '</p>';
+        html += '<p style="margin-bottom:10px;"><b style="color:#00e5ff">' + t('info_units_h') + ':</b><br>';
         Object.keys(UNITS).forEach(id => { const u = UNITS[id]; html += '• <b>' + u.icon + ' ' + t(u.nameKey) + '</b> — ' + t(u.descKey) + '<br>'; });
         html += '</p>';
-        html += '<p style="font-size:9px;color:#456;margin-top:10px;">' + t('info_offline') + '</p></div>';
+        html += '<p style="font-size:12px;color:#456;margin-top:12px;">' + t('info_offline') + '</p></div>';
         c.innerHTML = html;
       } else if (tab === 'settings') {
         let html = '<div class="panel-title">' + t('settings_title') + '</div>';
@@ -997,20 +1019,17 @@
       }
     }
 
-    // === АТАКА — Attack_Modifier и Defense_Modifier и Loot_Capacity_Modifier ===
     function attackNearestAI() {
       if (state.units.length < 3) { addLog(t('not_enough_units'), 'bad'); sfxError(); return; }
       const nearest = getNearestAI()[0];
       if (!nearest) { addLog(t('no_ai_near'), 'bad'); return; }
       const ai = nearest.ai;
-      // Attack_Modifier (фашизм +20%, демократия −15%)
       const atkMod = getMod('attackMod');
       const myPower = state.units.reduce((s, u) => s + u.attack * atkMod, 0);
       const aiDef = ai.units * 8 + ai.buildings * 5;
       sfxCombat();
       if (myPower > aiDef * 0.8) {
         const lost = Math.floor(state.units.length * 0.3); state.units.splice(0, lost);
-        // Loot_Capacity_Modifier (фашизм +30%)
         const lootMod = getMod('lootMod');
         const gain = Math.floor((ai.regolith * 0.3 + ai.helium * 0.2) * lootMod);
         state.regolith += gain; ai.buildings = Math.max(0, ai.buildings - 1); ai.units = Math.max(0, ai.units - 3);
@@ -1039,7 +1058,8 @@
       const camDir = camera.position.clone().normalize();
       bgSphere.rotation.y = -camDir.x * 0.04; bgSphere.rotation.x = camDir.y * 0.03; bgSphere.rotation.z = camDir.x * 0.015;
       if (Date.now() - lastInteract > 30000) controls.autoRotate = true;
-      if (controls.autoRotate) { moonGroup.rotation.y += moonRotSpeed; earthGroup.rotation.y += earthRotSpeed; }
+      // === ВРАЩЕНИЕ С УЧЁТОМ ЗАМЕДЛЕНИЯ НА ДЕСКТОПЕ ===
+      if (controls.autoRotate) { moonGroup.rotation.y += moonRotSpeed * rotFactor; earthGroup.rotation.y += earthRotSpeed * rotFactor; }
       updateLOD();
       controls.update();
       renderer.render(scene, camera);
