@@ -1,1079 +1,257 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Луна 2087: Новый рубеж</title>
-  <style>
-    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-    html,body { width:100%; height:100%; overflow:hidden!important; overscroll-behavior:none!important; }
-    body { background:#01020a; font-family:'Segoe UI',Arial,sans-serif; touch-action:none; color:#c8e6ff; position:fixed; inset:0; -webkit-user-select:none; user-select:none; }
-    canvas { display:block; width:100%; height:100%; position:absolute; top:0; left:0; z-index:1; }
-    #loading { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#01020a; z-index:100; transition:opacity .6s; }
-    .spinner { width:54px; height:54px; border:2px solid rgba(0,229,255,.12); border-top-color:#00e5ff; border-right-color:rgba(0,229,255,.2); border-radius:50%; animation:spin 1s linear infinite; }
-    @keyframes spin { to { transform:rotate(360deg); } }
-    #loading-text { color:#00e5ff; font-size:18px; letter-spacing:5px; margin-top:22px; text-transform:uppercase; text-shadow:0 0 12px rgba(0,229,255,.5); }
-    #loading-progress { width:200px; height:3px; margin-top:16px; background:rgba(0,229,255,.1); border-radius:1px; overflow:hidden; }
-    #loading-bar { height:100%; width:0%; border-radius:1px; background:linear-gradient(90deg,#00e5ff,#0088ff); box-shadow:0 0 8px rgba(0,229,255,.5); transition:width .3s ease; }
-    #nowebgl { position:fixed; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; background:#01020a; color:#ff5555; font-size:21px; text-align:center; z-index:200; padding:30px; }
-    #topbar { position:fixed; top:0; left:0; right:0; z-index:25; display:flex; justify-content:space-between; align-items:flex-start; padding:0 16px; padding-top:max(8px,env(safe-area-inset-top)); pointer-events:none; flex-wrap:wrap; gap:6px; }
-    #logo { pointer-events:auto; display:flex; align-items:center; gap:10px; flex-shrink:0; }
-    #logo-icon { width:32px; height:32px; border:2px solid #00e5ff; border-radius:50%; position:relative; box-shadow:0 0 10px rgba(0,229,255,.4); flex-shrink:0; }
-    #logo-icon::after { content:''; position:absolute; inset:3px; border-radius:50%; background:radial-gradient(circle at 35% 35%,rgba(0,229,255,.2),#003344); }
-    #logo-text { font-size:15px; letter-spacing:2px; text-transform:uppercase; color:#00e5ff; font-weight:600; white-space:nowrap; }
-    #topbar-right { display:flex; align-items:center; gap:8px; pointer-events:auto; flex-shrink:0; }
-    #btn-settings { width:36px; height:36px; background:rgba(5,12,25,.85); border:1px solid rgba(0,229,255,.2); border-radius:6px; color:#00e5ff; cursor:pointer; font-size:22px; backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; transition:all .2s; font-family:inherit; }
-    #btn-settings:active { transform:scale(.9); }
-    #btn-settings.active { background:rgba(0,229,255,.15); border-color:#00e5ff; }
-    #res-bar { display:flex; gap:0; background:rgba(5,12,25,.85); border:1px solid rgba(0,229,255,.15); border-radius:6px; overflow:hidden; backdrop-filter:blur(8px); flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; max-width:100%; }
-    #res-bar::-webkit-scrollbar { display:none; }
-    .res-cell { padding:6px 10px; display:flex; flex-direction:column; align-items:center; gap:2px; border-right:1px solid rgba(0,229,255,.08); min-width:66px; flex:0 0 auto; }
-    .res-cell:last-child { border-right:none; }
-    .res-label { font-size:10px; color:#aaccff; letter-spacing:1px; text-transform:uppercase; opacity:.9; white-space:nowrap; }
-    .res-value { font-size:17px; color:#00e5ff; font-weight:700; white-space:nowrap; }
-    .res-cell.regolith .res-value { color:#ffaa44; }
-    .res-cell.helium .res-value { color:#7fff7f; }
-    .res-cell.energy .res-value { color:#44aaff; }
-    .res-cell.pop .res-value { color:#ff66aa; }
-    .res-cell.pp .res-value { color:#ff44ff; }
-    .res-cell.logistics .res-value { color:#ff8844; }
-    .res-cell.low .res-value { color:#ff4444!important; animation:pulse-red 1s infinite; }
-    @keyframes pulse-red { 0%,100%{opacity:1} 50%{opacity:.5} }
-    #debuff-bar { position:fixed; top:58px; left:50%; transform:translateX(-50%); z-index:24; display:none; background:rgba(255,60,60,.2); border:1px solid rgba(255,80,80,.4); border-radius:6px; padding:5px 14px; font-size:14px; color:#ff8888; backdrop-filter:blur(8px); white-space:nowrap; }
-    #debuff-bar.show { display:block; }
-    #ai-panel { position:fixed; left:10px; top:100px; z-index:23; background:rgba(255,60,60,.1); border:1px solid rgba(255,80,80,.2); border-radius:6px; padding:8px 10px; backdrop-filter:blur(8px); max-width:210px; pointer-events:none; }
-    #ai-panel-title { font-size:11px; color:#ff6666; letter-spacing:1px; text-transform:uppercase; margin-bottom:4px; font-weight:600; }
-    #ai-panel-info { font-size:13px; color:#aa8888; line-height:1.3; }
-    #save-indicator { position:fixed; top:58px; right:60px; z-index:24; font-size:13px; color:#456; padding:3px 8px; background:rgba(5,12,25,.7); border-radius:3px; display:none; }
-    #save-indicator.show { display:block; }
-    #log { position:fixed; right:12px; top:120px; z-index:23; display:flex; flex-direction:column; gap:3px; pointer-events:none; max-width:240px; }
-    .log-msg { font-size:13px; color:#889; background:rgba(5,12,25,.7); padding:4px 8px; border-radius:3px; border-left:2px solid #00e5ff; animation:logfade 8s forwards; }
-    .log-msg.warn { border-left-color:#ffaa44; color:#aa8; }
-    .log-msg.bad { border-left-color:#ff4444; color:#aa6666; }
-    .log-msg.good { border-left-color:#7fff7f; color:#88aa88; }
-    @keyframes logfade { 0%{opacity:0;transform:translateX(20px)} 5%{opacity:1;transform:translateX(0)} 85%{opacity:1} 100%{opacity:0} }
-    #zoom-controls { position:fixed; right:10px; bottom:64px; z-index:25; display:flex; flex-direction:column; gap:4px; }
-    .zoom-btn { width:40px; height:40px; border:1px solid rgba(0,229,255,.2); background:rgba(5,12,25,.7); color:#00e5ff; border-radius:5px; cursor:pointer; font-size:21px; backdrop-filter:blur(6px); transition:all .15s; font-family:inherit; display:flex; align-items:center; justify-content:center; }
-    .zoom-btn:active { transform:scale(.9); }
-    #earth-panel { position:fixed; left:10px; bottom:64px; z-index:25; max-width:200px; pointer-events:none; }
-    #earth-panel-title { font-size:11px; color:#ff5522; letter-spacing:1px; text-transform:uppercase; margin-bottom:4px; font-weight:600; }
-    #earth-panel-bar { width:100%; height:3px; background:rgba(255,80,30,.15); border-radius:1px; overflow:hidden; margin-bottom:5px; }
-    #earth-panel-fill { height:100%; width:92%; border-radius:1px; background:linear-gradient(90deg,#ff8844,#ff3322); }
-    #earth-panel-text { font-size:11px; color:#766; line-height:1.3; }
-    #tabs { position:fixed; left:0; right:0; bottom:0; z-index:26; display:flex; justify-content:center; gap:0; padding:0; padding-bottom:max(0px,env(safe-area-inset-bottom)); background:rgba(5,12,25,.92); border-top:1px solid rgba(0,229,255,.15); backdrop-filter:blur(8px); }
-    .tab-btn { flex:1; padding:10px 6px; background:transparent; border:none; color:#5a7a9a; font-size:13px; cursor:pointer; font-family:inherit; display:flex; flex-direction:column; align-items:center; gap:3px; transition:all .2s; border-top:2px solid transparent; max-width:110px; }
-    .tab-btn .tab-icon { font-size:25px; line-height:1; }
-    .tab-btn:active { transform:scale(.92); }
-    .tab-btn.active { color:#fff; border-top-color:#00e5ff; background:rgba(0,229,255,.06); }
-    #panel { position:fixed; left:0; right:0; bottom:50px; z-index:25; max-height:55vh; overflow-y:auto; background:rgba(5,12,25,.95); border-top:1px solid rgba(0,229,255,.12); backdrop-filter:blur(10px); padding:14px; display:none; }
-    #panel.show { display:block; }
-    .panel-title { font-size:18px; color:#00e5ff; font-weight:600; margin-bottom:10px; letter-spacing:1px; text-transform:uppercase; }
-    .build-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(175px,1fr)); gap:10px; }
-    .build-card { background:rgba(0,229,255,.05); border:1px solid rgba(0,229,255,.15); border-radius:6px; padding:12px; cursor:pointer; transition:all .2s; position:relative; overflow:hidden; }
-    .build-card:active { transform:scale(.96); }
-    .build-card.affordable { border-color:rgba(0,229,255,.35); }
-    .build-card.affordable:hover { background:rgba(0,229,255,.1); }
-    .build-card.unaffordable { opacity:.45; cursor:not-allowed; }
-    .build-card.building { border-color:#ffaa44; cursor:wait; }
-    .build-name { font-size:17px; color:#fff; font-weight:600; margin-bottom:4px; }
-    .build-desc { font-size:13px; color:#789; line-height:1.3; margin-bottom:8px; }
-    .build-cost { display:flex; flex-wrap:wrap; gap:5px; font-size:13px; }
-    .build-cost span { white-space:nowrap; }
-    .cost-r { color:#ffaa44; } .cost-h { color:#7fff7f; } .cost-e { color:#44aaff; } .cost-p { color:#ff66aa; } .cost-l { color:#ff8844; }
-    .build-timer { position:absolute; bottom:0; left:0; right:0; height:3px; background:rgba(255,170,68,.2); overflow:hidden; }
-    .build-timer-fill { height:100%; background:linear-gradient(90deg,#ffaa44,#ff8844); transition:width .3s; }
-    .build-zone { font-size:11px; color:#ff44ff; margin-top:4px; font-style:italic; }
-    .unit-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(175px,1fr)); gap:10px; }
-    .unit-card { background:rgba(255,100,100,.05); border:1px solid rgba(255,100,100,.15); border-radius:6px; padding:12px; cursor:pointer; transition:all .2s; }
-    .unit-card:active { transform:scale(.96); }
-    .unit-card.affordable { border-color:rgba(255,100,100,.35); }
-    .unit-card.unaffordable { opacity:.45; cursor:not-allowed; }
-    .unit-card.locked { opacity:.3; cursor:not-allowed; }
-    .unit-name { font-size:17px; color:#fff; font-weight:600; margin-bottom:4px; }
-    .unit-desc { font-size:13px; color:#789; line-height:1.3; margin-bottom:8px; }
-    .unit-stats { display:flex; gap:10px; font-size:13px; color:#a88; }
-    .unit-stat { display:flex; flex-direction:column; align-items:center; }
-    .unit-stat .val { color:#ff8844; font-size:15px; font-weight:600; }
-    .pol-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:10px; }
-    .pol-card { background:rgba(0,229,255,.05); border:1px solid rgba(0,229,255,.15); border-radius:6px; padding:14px; cursor:pointer; transition:all .2s; position:relative; }
-    .pol-card:active { transform:scale(.96); }
-    .pol-card.current { border-color:#00e5ff; background:rgba(0,229,255,.12); cursor:default; }
-    .pol-card.current::after { content:attr(data-active-label); position:absolute; top:5px; right:7px; font-size:10px; color:#00e5ff; font-weight:700; letter-spacing:1px; }
-    .pol-card.unaffordable { opacity:.5; }
-    .pol-name { font-size:18px; color:#fff; font-weight:600; margin-bottom:5px; }
-    .pol-pros { font-size:13px; color:#7fff7f; line-height:1.3; margin-bottom:4px; }
-    .pol-cons { font-size:13px; color:#ff6644; line-height:1.3; margin-bottom:8px; }
-    .pol-card .pp-cost { font-size:14px; color:#ff44ff; font-weight:600; }
-    .pol-card.anarchy { border-color:#ff4444; background:rgba(255,60,60,.05); }
-    .set-row { display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(0,229,255,.06); }
-    .set-row:last-child { border-bottom:none; }
-    .set-label { font-size:17px; color:#aacce6; }
-    .set-desc { font-size:13px; color:#456; margin-top:3px; }
-    .set-control { display:flex; align-items:center; gap:10px; }
-    .set-toggle { width:46px; height:26px; background:rgba(0,229,255,.1); border:1px solid rgba(0,229,255,.25); border-radius:13px; cursor:pointer; position:relative; transition:all .2s; flex-shrink:0; }
-    .set-toggle::after { content:''; position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%; background:#456; transition:all .2s; }
-    .set-toggle.on { background:rgba(0,229,255,.3); border-color:#00e5ff; }
-    .set-toggle.on::after { left:22px; background:#00e5ff; box-shadow:0 0 6px rgba(0,229,255,.5); }
-    .set-slider { -webkit-appearance:none; appearance:none; width:120px; height:5px; background:rgba(0,229,255,.15); border-radius:2px; outline:none; cursor:pointer; }
-    .set-slider::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:16px; height:16px; border-radius:50%; background:#00e5ff; cursor:pointer; box-shadow:0 0 4px rgba(0,229,255,.4); }
-    .set-slider::-moz-range-thumb { width:16px; height:16px; border-radius:50%; background:#00e5ff; cursor:pointer; border:none; }
-    .set-lang-btn { padding:5px 12px; background:rgba(0,229,255,.1); border:1px solid rgba(0,229,255,.25); color:#00e5ff; border-radius:4px; cursor:pointer; font-family:inherit; font-size:15px; transition:all .2s; }
-    .set-lang-btn.active { background:rgba(0,229,255,.25); border-color:#00e5ff; color:#fff; }
-    .ai-list { display:flex; flex-direction:column; gap:5px; margin-top:10px; }
-    .ai-row { display:flex; justify-content:space-between; align-items:center; font-size:13px; color:#789; padding:6px 8px; background:rgba(255,60,60,.04); border-radius:4px; border-left:2px solid rgba(255,80,80,.2); }
-    .ai-row.near { border-left-color:#ff4444; }
-    .ai-row-name { color:#aa8888; }
-    .ai-row-stats { color:#666; }
-
-    /* === МОБИЛЬНАЯ ВЕРСИЯ (+20% от оригинала) === */
-    @media(max-width:768px) {
-      #logo-text { font-size:11px; letter-spacing:1px; }
-      #logo-icon { width:26px; height:26px; }
-      #logo { gap:6px; }
-      #btn-settings { width:34px; height:34px; font-size:19px; }
-      #topbar { padding:0 10px; padding-top:max(6px,env(safe-area-inset-top)); gap:4px; }
-      .res-cell { padding:5px 6px; min-width:50px; }
-      .res-label { font-size:7px; letter-spacing:.5px; }
-      .res-value { font-size:12px; }
-      .tab-btn { font-size:9px; padding:8px 3px; max-width:76px; }
-      .tab-btn .tab-icon { font-size:19px; }
-      #panel { bottom:46px; max-height:50vh; padding:10px; }
-      .panel-title { font-size:16px; margin-bottom:8px; }
-      .build-grid,.unit-grid { grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:8px; }
-      .build-card,.unit-card { padding:10px; }
-      .build-name,.unit-name { font-size:14px; }
-      .build-desc,.unit-desc { font-size:11px; }
-      .build-cost { font-size:11px; }
-      .build-zone { font-size:10px; }
-      .unit-stats { font-size:11px; }
-      .unit-stat .val { font-size:13px; }
-      .pol-grid { grid-template-columns:1fr; }
-      .pol-card { padding:12px; }
-      .pol-name { font-size:16px; }
-      .pol-pros,.pol-cons { font-size:11px; }
-      .pp-cost { font-size:12px; }
-      .set-label { font-size:14px; }
-      .set-desc { font-size:11px; }
-      .set-lang-btn { font-size:13px; padding:4px 10px; }
-      .set-toggle { width:42px; height:24px; }
-      .set-toggle::after { width:18px; height:18px; }
-      .set-toggle.on::after { left:20px; }
-      .zoom-btn { width:34px; height:34px; font-size:16px; }
-      #zoom-controls { bottom:58px; }
-      #ai-panel { max-width:170px; top:92px; padding:6px 8px; }
-      #ai-panel-title { font-size:10px; }
-      #ai-panel-info { font-size:11px; }
-      #log { max-width:190px; top:100px; }
-      .log-msg { font-size:11px; padding:3px 6px; }
-      #debuff-bar { font-size:12px; padding:4px 12px; top:54px; }
-      #save-indicator { font-size:11px; top:54px; }
-      #earth-panel { max-width:170px; bottom:58px; }
-      #earth-panel-title { font-size:10px; }
-      #earth-panel-text { font-size:10px; }
-      #loading-text { font-size:16px; }
-      .ai-row { font-size:11px; padding:5px 6px; }
-    }
-
-    /* === ОЧЕНЬ МАЛЕНЬКИЕ ЭКРАНЫ === */
-    @media(max-width:380px) {
-      #logo-text { font-size:9px; letter-spacing:.5px; }
-      #logo-icon { width:22px; height:22px; }
-      #btn-settings { width:30px; height:30px; font-size:17px; }
-      .res-cell { padding:4px 4px; min-width:42px; }
-      .res-label { font-size:6px; }
-      .res-value { font-size:11px; }
-      .tab-btn { font-size:8px; max-width:64px; padding:6px 2px; }
-      .tab-btn .tab-icon { font-size:17px; }
-      .build-grid,.unit-grid { grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); }
-      .build-name,.unit-name { font-size:13px; }
-      .build-desc,.unit-desc { font-size:10px; }
-      .build-cost { font-size:10px; }
-      .pol-name { font-size:15px; }
-      .pol-pros,.pol-cons { font-size:10px; }
-      #panel { padding:8px; bottom:42px; }
-      .panel-title { font-size:15px; }
-    }
-
-    /* === БОЛЬШИЕ ДЕСКТОП-ЭКРАНЫ === */
-    @media(min-width:1400px) {
-      #res-bar { max-width:none; }
-      .res-cell { min-width:76px; padding:7px 14px; }
-      .res-label { font-size:11px; }
-      .res-value { font-size:19px; }
-      .build-grid,.unit-grid { grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; }
-      .pol-grid { grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); }
-      .tab-btn { max-width:130px; }
-      #logo-text { font-size:16px; }
-      #logo-icon { width:34px; height:34px; }
-      .panel-title { font-size:20px; }
-      .build-name,.unit-name { font-size:18px; }
-      .build-desc,.unit-desc { font-size:14px; }
-      .build-cost { font-size:14px; }
-      #panel { padding:18px; max-height:60vh; }
-    }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover"/>
+<title>Луна 2087: Новый рубеж</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden!important;overscroll-behavior:none!important}
+body{background:#01020a;font-family:'Segoe UI',Arial,sans-serif;touch-action:none;color:#c8e6ff;position:fixed;inset:0;-webkit-user-select:none;user-select:none}
+canvas{display:block;width:100%;height:100%;position:absolute;top:0;left:0;z-index:1}
+#loading{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#01020a;z-index:100;transition:opacity .6s}
+.spinner{width:54px;height:54px;border:2px solid rgba(0,229,255,.12);border-top-color:#00e5ff;border-right-color:rgba(0,229,255,.2);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loading-text{color:#00e5ff;font-size:18px;letter-spacing:5px;margin-top:22px;text-transform:uppercase;text-shadow:0 0 12px rgba(0,229,255,.5)}
+#loading-progress{width:200px;height:3px;margin-top:16px;background:rgba(0,229,255,.1);border-radius:1px;overflow:hidden}
+#loading-bar{height:100%;width:0%;border-radius:1px;background:linear-gradient(90deg,#00e5ff,#0088ff);box-shadow:0 0 8px rgba(0,229,255,.5);transition:width .3s ease}
+#nowebgl{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:#01020a;color:#ff5555;font-size:21px;text-align:center;z-index:200;padding:30px}
+#topbar{position:fixed;top:0;left:0;right:0;z-index:25;display:flex;justify-content:space-between;align-items:flex-start;padding:0 16px;padding-top:max(8px,env(safe-area-inset-top));pointer-events:none;flex-wrap:wrap;gap:6px}
+#logo{pointer-events:auto;display:flex;align-items:center;gap:10px;flex-shrink:0}
+#logo-icon{width:32px;height:32px;border:2px solid #00e5ff;border-radius:50%;position:relative;box-shadow:0 0 10px rgba(0,229,255,.4);flex-shrink:0}
+#logo-icon::after{content:'';position:absolute;inset:3px;border-radius:50%;background:radial-gradient(circle at 35% 35%,rgba(0,229,255,.2),#003344)}
+#logo-text{font-size:15px;letter-spacing:2px;text-transform:uppercase;color:#00e5ff;font-weight:600;white-space:nowrap}
+#topbar-right{display:flex;align-items:center;gap:8px;pointer-events:auto;flex-shrink:0}
+#btn-settings{width:36px;height:36px;background:rgba(5,12,25,.85);border:1px solid rgba(0,229,255,.2);border-radius:6px;color:#00e5ff;cursor:pointer;font-size:22px;backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;transition:all .2s;font-family:inherit}
+#btn-settings:active{transform:scale(.9)}#btn-settings.active{background:rgba(0,229,255,.15);border-color:#00e5ff}
+#res-bar{display:flex;gap:0;background:rgba(5,12,25,.85);border:1px solid rgba(0,229,255,.15);border-radius:6px;overflow:hidden;backdrop-filter:blur(8px);flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;max-width:100%}
+#res-bar::-webkit-scrollbar{display:none}
+.res-cell{padding:5px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;border-right:1px solid rgba(0,229,255,.08);min-width:53px;flex:0 0 auto}.res-cell:last-child{border-right:none}
+.res-label{font-size:8px;color:#aaccff;letter-spacing:1px;text-transform:uppercase;opacity:.9;white-space:nowrap}
+.res-value{font-size:14px;color:#00e5ff;font-weight:700;white-space:nowrap}
+.res-cell.regolith .res-value{color:#ffaa44}.res-cell.helium .res-value{color:#7fff7f}.res-cell.energy .res-value{color:#44aaff}.res-cell.pop .res-value{color:#ff66aa}.res-cell.pp .res-value{color:#ff44ff}.res-cell.logistics .res-value{color:#ff8844}
+.res-cell.low .res-value{color:#ff4444!important;animation:pulse-red 1s infinite}
+@keyframes pulse-red{0%,100%{opacity:1}50%{opacity:.5}}
+#debuff-bar{position:fixed;top:58px;left:50%;transform:translateX(-50%);z-index:24;display:none;background:rgba(255,60,60,.2);border:1px solid rgba(255,80,80,.4);border-radius:6px;padding:5px 14px;font-size:14px;color:#ff8888;backdrop-filter:blur(8px);white-space:nowrap}#debuff-bar.show{display:block}
+#ai-panel{position:fixed;left:10px;top:100px;z-index:23;background:rgba(255,60,60,.1);border:1px solid rgba(255,80,80,.2);border-radius:6px;padding:8px 10px;backdrop-filter:blur(8px);max-width:210px;pointer-events:none}
+#ai-panel-title{font-size:11px;color:#ff6666;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;font-weight:600}#ai-panel-info{font-size:13px;color:#aa8888;line-height:1.3}
+#save-indicator{position:fixed;top:58px;right:60px;z-index:24;font-size:13px;color:#456;padding:3px 8px;background:rgba(5,12,25,.7);border-radius:3px;display:none}#save-indicator.show{display:block}
+#log{position:fixed;right:12px;top:120px;z-index:23;display:flex;flex-direction:column;gap:3px;pointer-events:none;max-width:240px}
+.log-msg{font-size:13px;color:#889;background:rgba(5,12,25,.7);padding:4px 8px;border-radius:3px;border-left:2px solid #00e5ff;animation:logfade 8s forwards}
+.log-msg.warn{border-left-color:#ffaa44;color:#aa8}.log-msg.bad{border-left-color:#ff4444;color:#aa6666}.log-msg.good{border-left-color:#7fff7f;color:#88aa88}
+@keyframes logfade{0%{opacity:0;transform:translateX(20px)}5%{opacity:1;transform:translateX(0)}85%{opacity:1}100%{opacity:0}}
+#zoom-controls{position:fixed;right:10px;bottom:64px;z-index:25;display:flex;flex-direction:column;gap:4px}
+.zoom-btn{width:40px;height:40px;border:1px solid rgba(0,229,255,.2);background:rgba(5,12,25,.7);color:#00e5ff;border-radius:5px;cursor:pointer;font-size:21px;backdrop-filter:blur(6px);transition:transform .15s,background .2s;font-family:inherit;display:flex;align-items:center;justify-content:center}.zoom-btn:active{transform:scale(.9)}
+#earth-panel{position:fixed;left:10px;bottom:64px;z-index:25;max-width:200px;pointer-events:none}
+#earth-panel-title{font-size:11px;color:#ff5522;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;font-weight:600}
+#earth-panel-bar{width:100%;height:3px;background:rgba(255,80,30,.15);border-radius:1px;overflow:hidden;margin-bottom:5px}
+#earth-panel-fill{height:100%;width:92%;border-radius:1px;background:linear-gradient(90deg,#ff8844,#ff3322)}
+#earth-panel-text{font-size:11px;color:#766;line-height:1.3}
+#tabs{position:fixed;left:50%;transform:translateX(-50%);bottom:0;z-index:26;display:flex;gap:8px;padding:10px;padding-bottom:max(10px,env(safe-area-inset-bottom));background:transparent}
+.tab-btn{padding:12px 18px;background:rgba(5,12,25,.92);border:1px solid rgba(0,229,255,.15);border-radius:10px;border-top:2px solid transparent;color:#5a7a9a;font-size:13px;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:5px;transition:all .2s;backdrop-filter:blur(8px);min-width:64px;flex:0 0 auto}
+.tab-btn .tab-icon{font-size:25px;line-height:1}.tab-btn:active{transform:scale(.92)}
+.tab-btn.active{color:#fff;border-top-color:#00e5ff;background:rgba(0,229,255,.1);border-color:rgba(0,229,255,.3)}
+#panel{position:fixed;left:0;right:0;bottom:76px;z-index:25;max-height:55vh;overflow-y:auto;background:rgba(5,12,25,.95);border-top:1px solid rgba(0,229,255,.12);border-radius:0;backdrop-filter:blur(10px);padding:14px;display:none}#panel.show{display:block}
+.panel-title{font-size:18px;color:#00e5ff;font-weight:600;margin-bottom:10px;letter-spacing:1px;text-transform:uppercase}
+.build-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:10px}
+.build-card{background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.15);border-radius:6px;padding:12px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}.build-card:active{transform:scale(.96)}
+.build-card.affordable{border-color:rgba(0,229,255,.35)}.build-card.affordable:hover{background:rgba(0,229,255,.1)}.build-card.unaffordable{opacity:.45;cursor:not-allowed}.build-card.building{border-color:#ffaa44;cursor:wait}
+.build-name{font-size:17px;color:#fff;font-weight:600;margin-bottom:4px}.build-desc{font-size:13px;color:#789;line-height:1.3;margin-bottom:8px}
+.build-cost{display:flex;flex-wrap:wrap;gap:5px;font-size:13px}.build-cost span{white-space:nowrap}
+.cost-r{color:#ffaa44}.cost-h{color:#7fff7f}.cost-e{color:#44aaff}.cost-p{color:#ff66aa}.cost-l{color:#ff8844}
+.build-timer{position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,170,68,.2);overflow:hidden}.build-timer-fill{height:100%;background:linear-gradient(90deg,#ffaa44,#ff8844);transition:width .3s}
+.build-zone{font-size:11px;color:#ff44ff;margin-top:4px;font-style:italic}
+.unit-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:10px}
+.unit-card{background:rgba(255,100,100,.05);border:1px solid rgba(255,100,100,.15);border-radius:6px;padding:12px;cursor:pointer;transition:all .2s}.unit-card:active{transform:scale(.96)}
+.unit-card.affordable{border-color:rgba(255,100,100,.35)}.unit-card.unaffordable{opacity:.45;cursor:not-allowed}.unit-card.locked{opacity:.3;cursor:not-allowed}
+.unit-name{font-size:17px;color:#fff;font-weight:600;margin-bottom:4px}.unit-desc{font-size:13px;color:#789;line-height:1.3;margin-bottom:8px}
+.unit-stats{display:flex;gap:10px;font-size:13px;color:#a88}.unit-stat{display:flex;flex-direction:column;align-items:center}.unit-stat .val{color:#ff8844;font-size:15px;font-weight:600}
+.pol-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.pol-card{background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.15);border-radius:6px;padding:14px;cursor:pointer;transition:all .2s;position:relative}.pol-card:active{transform:scale(.96)}
+.pol-card.current{border-color:#00e5ff;background:rgba(0,229,255,.12);cursor:default}.pol-card.current::after{content:attr(data-active-label);position:absolute;top:5px;right:7px;font-size:10px;color:#00e5ff;font-weight:700;letter-spacing:1px}.pol-card.unaffordable{opacity:.5}
+.pol-name{font-size:18px;color:#fff;font-weight:600;margin-bottom:5px}.pol-pros{font-size:13px;color:#7fff7f;line-height:1.3;margin-bottom:4px}.pol-cons{font-size:13px;color:#ff6644;line-height:1.3;margin-bottom:8px}.pol-card .pp-cost{font-size:14px;color:#ff44ff;font-weight:600}.pol-card.anarchy{border-color:#ff4444;background:rgba(255,60,60,.05)}
+.set-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(0,229,255,.06)}.set-row:last-child{border-bottom:none}
+.set-label{font-size:17px;color:#aacce6}.set-desc{font-size:13px;color:#456;margin-top:3px}.set-control{display:flex;align-items:center;gap:10px}
+.set-toggle{width:46px;height:26px;background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.25);border-radius:13px;cursor:pointer;position:relative;transition:all .2s;flex-shrink:0}.set-toggle::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#456;transition:all .2s}.set-toggle.on{background:rgba(0,229,255,.3);border-color:#00e5ff}.set-toggle.on::after{left:22px;background:#00e5ff;box-shadow:0 0 6px rgba(0,229,255,.5)}
+.set-slider{-webkit-appearance:none;appearance:none;width:120px;height:5px;background:rgba(0,229,255,.15);border-radius:2px;outline:none;cursor:pointer}.set-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;background:#00e5ff;cursor:pointer;box-shadow:0 0 4px rgba(0,229,255,.4)}.set-slider::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#00e5ff;cursor:pointer;border:none}
+.set-lang-btn{padding:5px 12px;background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.25);color:#00e5ff;border-radius:4px;cursor:pointer;font-family:inherit;font-size:15px;transition:all .2s}.set-lang-btn.active{background:rgba(0,229,255,.25);border-color:#00e5ff;color:#fff}
+.ai-list{display:flex;flex-direction:column;gap:5px;margin-top:10px}.ai-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#789;padding:6px 8px;background:rgba(255,60,60,.04);border-radius:4px;border-left:2px solid rgba(255,80,80,.2)}.ai-row.near{border-left-color:#ff4444}.ai-row-name{color:#aa8888}.ai-row-stats{color:#666}
+@media(max-width:768px){
+#logo-text{font-size:11px;letter-spacing:1px}#logo-icon{width:26px;height:26px}#logo{gap:6px}
+#btn-settings{width:34px;height:34px;font-size:19px}
+#topbar{padding:0 10px;padding-top:max(6px,env(safe-area-inset-top));gap:4px}
+.res-cell{padding:5px 6px;min-width:50px}.res-label{font-size:7px;letter-spacing:.5px}.res-value{font-size:12px}
+.tab-btn{font-size:9px;padding:9px 13px;min-width:50px;gap:4px;border-radius:8px}.tab-btn .tab-icon{font-size:19px}
+#tabs{gap:6px;padding:8px;padding-bottom:max(8px,env(safe-area-inset-bottom))}
+#panel{bottom:68px;max-height:50vh;padding:10px}.panel-title{font-size:16px;margin-bottom:8px}
+.build-grid,.unit-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.build-card,.unit-card{padding:10px}.build-name,.unit-name{font-size:14px}.build-desc,.unit-desc{font-size:11px}.build-cost{font-size:11px}.build-zone{font-size:10px}
+.unit-stats{font-size:11px}.unit-stat .val{font-size:13px}
+.pol-grid{grid-template-columns:1fr}.pol-card{padding:12px}.pol-name{font-size:16px}.pol-pros,.pol-cons{font-size:11px}.pp-cost{font-size:12px}
+.set-label{font-size:14px}.set-desc{font-size:11px}.set-lang-btn{font-size:13px;padding:4px 10px}.set-toggle{width:42px;height:24px}.set-toggle::after{width:18px;height:18px}.set-toggle.on::after{left:20px}
+.zoom-btn{width:34px;height:34px;font-size:16px}#zoom-controls{bottom:58px}
+#earth-panel{max-width:170px;bottom:58px}#earth-panel-title{font-size:10px}#earth-panel-text{font-size:10px}
+#ai-panel{max-width:170px;top:92px;padding:6px 8px}#ai-panel-title{font-size:10px}#ai-panel-info{font-size:11px}
+#log{max-width:190px;top:100px}.log-msg{font-size:11px;padding:3px 6px}
+#debuff-bar{font-size:12px;padding:4px 12px;top:54px}#save-indicator{font-size:11px;top:54px}
+#loading-text{font-size:16px}.ai-row{font-size:11px;padding:5px 6px}}
+@media(max-width:380px){
+#logo-text{font-size:9px;letter-spacing:.5px}#logo-icon{width:22px;height:22px}
+#btn-settings{width:30px;height:30px;font-size:17px}
+.res-cell{padding:4px 4px;min-width:42px}.res-label{font-size:6px}.res-value{font-size:11px}
+.tab-btn{font-size:8px;padding:7px 10px;min-width:42px;gap:3px;border-radius:6px}.tab-btn .tab-icon{font-size:17px}
+#tabs{gap:5px;padding:6px}
+.build-grid,.unit-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
+.build-name,.unit-name{font-size:13px}.build-desc,.unit-desc{font-size:10px}.build-cost{font-size:10px}
+.pol-name{font-size:15px}.pol-pros,.pol-cons{font-size:10px}
+#panel{padding:8px;bottom:60px}.panel-title{font-size:15px}}
+@media(min-width:1400px){
+#res-bar{max-width:none}.res-cell{min-width:61px;padding:6px 11px}.res-label{font-size:9px}.res-value{font-size:15px}
+.build-grid,.unit-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.pol-grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
+.tab-btn{padding:14px 22px;min-width:76px}#logo-text{font-size:16px}#logo-icon{width:34px;height:34px}
+.panel-title{font-size:20px}.build-name,.unit-name{font-size:18px}.build-desc,.unit-desc{font-size:14px}.build-cost{font-size:14px}
+#panel{padding:18px;max-height:60vh}}
+</style>
 </head>
 <body>
-  <div id="loading"><div class="spinner"></div><div id="loading-text">Луна 2087: Новый рубеж</div><div id="loading-progress"><div id="loading-bar"></div></div></div>
-  <div id="nowebgl"><h2>WebGL не поддерживается</h2><p style="margin-top:10px;color:#8ac;">Попробуйте другой браузер</p></div>
-  <div id="topbar">
-    <div id="logo"><div id="logo-icon"></div><div id="logo-text">Луна 2087: Новый рубеж</div></div>
-    <div id="topbar-right">
-      <div id="res-bar">
-        <div class="res-cell regolith"><span class="res-label" data-i18n="regolith">Реголит</span><span class="res-value" id="r-regolith">0</span></div>
-        <div class="res-cell helium"><span class="res-label" data-i18n="helium">Гелий-3</span><span class="res-value" id="r-helium">0</span></div>
-        <div class="res-cell energy"><span class="res-label" data-i18n="energy">Энергия</span><span class="res-value" id="r-energy">0/0</span></div>
-        <div class="res-cell pop"><span class="res-label" data-i18n="population">Население</span><span class="res-value" id="r-pop">0/0</span></div>
-        <div class="res-cell pp"><span class="res-label" data-i18n="polpoints">Полит.оч.</span><span class="res-value" id="r-pp">0</span></div>
-        <div class="res-cell logistics"><span class="res-label" data-i18n="logistics">Логист.</span><span class="res-value" id="r-logistics">0/0</span></div>
-      </div>
-      <button id="btn-settings">⚙</button>
-    </div>
-  </div>
-  <div id="ai-panel"><div id="ai-panel-title" data-i18n="ai_colony">Колонии ИИ</div><div id="ai-panel-info">23 ИИ-противника</div></div>
-  <div id="debuff-bar"></div>
-  <div id="save-indicator">Сохранено</div>
-  <div id="log"></div>
-  <div id="zoom-controls"><button class="zoom-btn" id="btn-zoom-in">+</button><button class="zoom-btn" id="btn-zoom-out">−</button><button class="zoom-btn" id="btn-reset" style="font-size:14px;">↻</button></div>
-  <div id="earth-panel"><div id="earth-panel-title" data-i18n="earth_status">Состояние Земли</div><div id="earth-panel-bar"><div id="earth-panel-fill"></div></div><div id="earth-panel-text" data-i18n="earth_desc">Атмосфера разрушена. Поверхность горит 16 лет. Связь потеряна в 2073.</div></div>
-  <div id="panel"><div id="panel-content"></div></div>
-  <div id="tabs">
-    <button class="tab-btn" data-tab="build"><span class="tab-icon">🏗</span><span data-i18n="tab_build">Стройка</span></button>
-    <button class="tab-btn" data-tab="units"><span class="tab-icon">🪖</span><span data-i18n="tab_units">Войска</span></button>
-    <button class="tab-btn" data-tab="politics"><span class="tab-icon">🏛</span><span data-i18n="tab_politics">Политика</span></button>
-    <button class="tab-btn" data-tab="map"><span class="tab-icon">🗺</span><span data-i18n="tab_map">Карта</span></button>
-    <button class="tab-btn" data-tab="info"><span class="tab-icon">ℹ</span><span data-i18n="tab_info">Инфо</span></button>
-  </div>
-  <script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }</script>
-  <script type="module">
-    import * as THREE from 'three';
-    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-
-    const tc = document.createElement('canvas');
-    if (!tc.getContext('webgl2') && !tc.getContext('webgl')) { document.getElementById('loading').style.display='none'; document.getElementById('nowebgl').style.display='flex'; throw new Error('No WebGL'); }
-
-    let ysdk = null;
-    const sdkScript = document.createElement('script');
-    sdkScript.src = 'https://yandex.ru/games/sdk/v1';
-    sdkScript.onload = () => { if (typeof YaGames !== 'undefined') YaGames.init().then(s => { ysdk = s; s.features.LoadingAPI?.ready(); }).catch(e => {}); };
-    sdkScript.onerror = () => {};
-    document.head.appendChild(sdkScript);
-
-    // === ЛОКАЛИЗАЦИЯ ===
-    const I18N = {
-      ru: {
-        regolith:'Реголит', helium:'Гелий-3', energy:'Энергия', population:'Население', polpoints:'Полит.оч.', logistics:'Логист.',
-        ai_colony:'Колонии ИИ', ai_info:'23 ИИ-противника', earth_status:'Состояние Земли', earth_desc:'Атмосфера разрушена. Поверхность горит 16 лет. Связь потеряна в 2073.',
-        tab_build:'Стройка', tab_units:'Войска', tab_politics:'Политика', tab_map:'Карта', tab_info:'Инфо',
-        saved:'Сохранено', new_game:'Новая игра', game_started:'Луна 2087: Новый рубеж запущена',
-        build_title:'Строительство', unit_title:'Военная система', pol_title:'Политический строй', map_title:'Карта Луны',
-        your_units:'Ваши юниты', attack_ai:'⚔ Атаковать ближайшую ИИ-колонию', not_enough_res:'Недостаточно ресурсов', not_enough_pop:'Недостаточно населения',
-        not_enough_log:'Недостаточно очков логистики', not_enough_pp:'Недостаточно полит. очков', already_building:'Уже строится',
-        started_build:'Начато строительство: ', built_done:'Построено: ', started_training:'Начато обучение: ', unit_ready:'Юнит готов: ',
-        units_locked:'⚠ Анархия: наём войск запрещён', not_enough_units:'Недостаточно юнитов для атаки (нужно 3+)',
-        victory:'Победа! Захвачено ресурсов: ', defeat:'Поражение! Потеряно юнитов: ',
-        instability:'⚠ Политическая нестабильность: −50% добычи (', min:' мин)',
-        instability_end:'Политическая нестабильность завершена',
-        regime_change:'Смена строя: ', instability5:'. Нестабильность 5 минут!',
-        regime_cost:'Стоимость: ', po:' ПО', active:'АКТИВЕН',
-        reg_change_warning:'Смена строя вызывает <b style="color:#ff4444">анархию</b> на 5 минут: производство −50%, наём войск запрещён.',
-        regime_pros:'Преимущества', regime_cons:'Недостатки',
-        pp_available:'Полит. очки: ', buildings_count:'Зданий: ', units_count:'Юнитов: ', play_time:'Время игры: ', current_regime:'Текущий строй: ',
-        save:'💾 Сохранить', reset_confirm:'Начать новую игру? Весь прогресс будет потерян.', reset_btn:'🗑 Новая игра',
-        info_title:'Луна 2087: Новый рубеж', info_year:'2087 год. Земля погибла — атмосфера горит уже 16 лет. Последние люди выживают в колониях на Луне.',
-        info_resources:'Ресурсы', info_regimes:'Строи', info_units_h:'Юниты', info_territories:'Территории', info_buildings:'Постройки',
-        info_offline:'Оффлайн-режим: 23 ИИ-колонии. Архитектура готова к переходу в онлайн (24 игрока).',
-        info_territory_desc:'Луна разделена на 24 равных сектора. Ваша территория выделена голубой границей. ИИ-колонии отмечены красными маркерами.',
-        settings_title:'Настройки', language:'Язык', master_vol:'Общая громкость', master_desc:'Общий уровень звука',
-        music:'Фоновая музыка', music_desc:'Амбиент-музыка космоса', sfx:'Звуковые эффекты', sfx_desc:'Клики, постройка, бой',
-        mute_all:'Отключить весь звук', mute_desc:'Полная тишина',
-        selected:'Выбран: ', ared_built:'ИИ-колония построила: ', ared_forces:'ИИ-колония готовит войска',
-        ared_attack:'⚠ Атака ИИ-колонии! Потери: ', ared_attack_lost:'Потеряно юнитов: ', ared_repelled:'Атака ИИ отбита!',
-        ared_unit:' юнитов', ared_bldg:'новое здание',
-        regolith_short:'Рег', helium_short:'Гел', energy_short:'Эн', pop_short:'Нас', time_short:'с', attack:'Атака', defense:'Защита',
-        zone_center:'📍 Зона: у базы', zone_outer:'📍 Зона: 50% до границы',
-        nearest_ai:'Ближайшие ИИ-колонии', total_players:'Всего игроков: 24 (вы + 23 ИИ)',
-        no_ai_near:'Нет активных ИИ-колоний рядом',
-        b_dome:'Жилой Купол', b_dome_d:'Жильё для 100 человек. Генерирует Полит. очки. У базы.',
-        b_mine:'Шахта', b_mine_d:'Добыча реголита и гелия-3. Строится в середине территории.',
-        b_beacon:'Маяк Связи', b_beacon_d:'Расширяет радиус контроля. У базы.',
-        b_outpost:'Аванпост', b_outpost_d:'Укреплённая точка. Защита шахт. В середине территории.',
-        b_lab:'Лаборатория', b_lab_d:'Искусственное выращивание населения. +10 населения/мин. У базы.',
-        b_turret:'Турель', b_turret_d:'Автоматическая защита. Ставится рядом с шахтами.',
-        u_builder:'Строитель', u_builder_d:'Возводит здания, ремонтирует технику. Беззащитен в бою.',
-        u_assault:'Штурмовик', u_assault_d:'Космопехота. Захват аванпостов и шлюзов.',
-        u_dreadnought:'Дредноут', u_dreadnought_d:'Тяжёлый лунный танк на Гелии-3. Огромный радиус. Жрёт энергию.',
-        reg_fascism:'Фашизм', reg_communism:'Коммунизм', reg_democracy:'Демократия', reg_theocracy:'Теократия', reg_technocracy:'Технократия', reg_anarchy:'Анархия',
-        fascism_sub:'Радикальный Милитаризм', communism_sub:'Плановая Экономика', democracy_sub:'Свободный Рынок', theocracy_sub:'Фанатичная Оборона', technocracy_sub:'Научное Превосходство', anarchy_sub:'Штрафной Режим',
-        fascism_p:'+20% к урону\n−20% к стоимости войск\n+30% к трофеям', fascism_c:'−30% к торговле\n−15% к росту населения\n+10% к содержанию армии',
-        communism_p:'+20% к скорости строительства\n+15% к добыче ресурсов', communism_c:'−25% к налогам\n−10% к шпионажу',
-        democracy_p:'+30% к налогам\n+20% к складам торговли', democracy_c:'−15% к атаке\n+10% к содержанию армии',
-        theocracy_p:'+20% к защите войск\n+25% к контршпионажу', theocracy_c:'−15% к науке\n−10% к тяжёлым ресурсам',
-        technocracy_p:'+35% к скорости науки\n+15% к защите турелей', technocracy_c:'+20% к стоимости зданий\n−15% к торговле',
-        anarchy_p:'Переходное состояние при смене строя', anarchy_c:'−50% ко всем ресурсам\nНаём войск запрещён',
-      },
-      en: {
-        regolith:'Regolith', helium:'Helium-3', energy:'Energy', population:'Population', polpoints:'Pol.Points', logistics:'Logist.',
-        ai_colony:'AI Colonies', ai_info:'23 AI opponents', earth_status:'Earth Status', earth_desc:'Atmosphere destroyed. Surface burning for 16 years. Contact lost in 2073.',
-        tab_build:'Build', tab_units:'Units', tab_politics:'Politics', tab_map:'Map', tab_info:'Info',
-        saved:'Saved', new_game:'New Game', game_started:'Luna 2087: New Frontier started',
-        build_title:'Construction', unit_title:'Military', pol_title:'Political Regime', map_title:'Lunar Map',
-        your_units:'Your units', attack_ai:'⚔ Attack nearest AI colony', not_enough_res:'Not enough resources', not_enough_pop:'Not enough population',
-        not_enough_log:'Not enough logistics points', not_enough_pp:'Not enough political points', already_building:'Already building',
-        started_build:'Construction started: ', built_done:'Built: ', started_training:'Training started: ', unit_ready:'Unit ready: ',
-        units_locked:'⚠ Anarchy: unit production locked', not_enough_units:'Not enough units to attack (need 3+)',
-        victory:'Victory! Resources gained: ', defeat:'Defeat! Units lost: ',
-        instability:'⚠ Political instability: −50% production (', min:' min)',
-        instability_end:'Political instability ended',
-        regime_change:'Regime change: ', instability5:'. Instability for 5 minutes!',
-        regime_cost:'Cost: ', po:' PP', active:'ACTIVE',
-        reg_change_warning:'Changing regime causes <b style="color:#ff4444">anarchy</b> for 5 minutes: production −50%, unit production locked.',
-        regime_pros:'Advantages', regime_cons:'Disadvantages',
-        pp_available:'Political points: ', buildings_count:'Buildings: ', units_count:'Units: ', play_time:'Play time: ', current_regime:'Current regime: ',
-        save:'💾 Save', reset_confirm:'Start a new game? All progress will be lost.', reset_btn:'🗑 New Game',
-        info_title:'Luna 2087: New Frontier', info_year:'2087. Earth is dead — atmosphere burning for 16 years. Last humans survive in lunar colonies.',
-        info_resources:'Resources', info_regimes:'Regimes', info_units_h:'Units', info_territories:'Territories', info_buildings:'Buildings',
-        info_offline:'Offline mode: 23 AI colonies. Architecture ready for online transition (24 players).',
-        info_territory_desc:'Moon divided into 24 equal sectors. Your territory outlined in cyan. AI colonies marked red.',
-        settings_title:'Settings', language:'Language', master_vol:'Master Volume', master_desc:'Overall sound level',
-        music:'Background Music', music_desc:'Space ambient music', sfx:'Sound Effects', sfx_desc:'Clicks, building, combat',
-        mute_all:'Mute All', mute_desc:'Complete silence',
-        selected:'Selected: ', ared_built:'AI colony built: ', ared_forces:'AI colony is training forces',
-        ared_attack:'⚠ AI colony attack! Losses: ', ared_attack_lost:'Units lost: ', ared_repelled:'AI attack repelled!',
-        ared_unit:' units', ared_bldg:'new building',
-        regolith_short:'Reg', helium_short:'Hel', energy_short:'En', pop_short:'Pop', time_short:'s', attack:'Attack', defense:'Defense',
-        zone_center:'📍 Zone: near base', zone_outer:'📍 Zone: 50% to border',
-        nearest_ai:'Nearest AI colonies', total_players:'Total players: 24 (you + 23 AI)',
-        no_ai_near:'No active AI colonies nearby',
-        b_dome:'Dome', b_dome_d:'Housing for 100 people. Generates Political points. Near base.',
-        b_mine:'Mine', b_mine_d:'Extracts regolith and helium-3. Built mid-territory.',
-        b_beacon:'Beacon', b_beacon_d:'Expands control radius. Near base.',
-        b_outpost:'Outpost', b_outpost_d:'Fortified point. Defends mines. Mid-territory.',
-        b_lab:'Laboratory', b_lab_d:'Artificial population growth. +10 pop/min. Near base.',
-        b_turret:'Turret', b_turret_d:'Automated defense. Built near mines.',
-        u_builder:'Builder', u_builder_d:'Constructs buildings, repairs units. Defenseless in combat.',
-        u_assault:'Assault', u_assault_d:'Space marines. Captures outposts and gates.',
-        u_dreadnought:'Dreadnought', u_dreadnought_d:'Heavy lunar tank on Helium-3. Huge range. Consumes energy.',
-        reg_fascism:'Fascism', reg_communism:'Communism', reg_democracy:'Democracy', reg_theocracy:'Theocracy', reg_technocracy:'Technocracy', reg_anarchy:'Anarchy',
-        fascism_sub:'Radical Militarism', communism_sub:'Planned Economy', democracy_sub:'Free Market', theocracy_sub:'Fanatical Defense', technocracy_sub:'Scientific Superiority', anarchy_sub:'Penalty Mode',
-        fascism_p:'+20% damage\n−20% unit cost\n+30% loot', fascism_c:'−30% trade\n−15% pop growth\n+10% army upkeep',
-        communism_p:'+20% build speed\n+15% resource production', communism_c:'−25% tax income\n−10% espionage',
-        democracy_p:'+30% tax income\n+20% trade warehouse', democracy_c:'−15% attack\n+10% army upkeep',
-        theocracy_p:'+20% defense\n+25% counter-espionage', theocracy_c:'−15% research\n−10% heavy resources',
-        technocracy_p:'+35% research speed\n+15% turret defense', technocracy_c:'+20% building cost\n−15% trade',
-        anarchy_p:'Transitional state after regime change', anarchy_c:'−50% all production\nUnit production locked',
-      }
-    };
-    let currentLang = localStorage.getItem('luna_lang') || 'ru';
-    function t(key) { return I18N[currentLang][key] || I18N.ru[key] || key; }
-    function applyI18n() {
-      document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.getAttribute('data-i18n')); });
-      document.getElementById('logo-text').textContent = currentLang === 'en' ? 'Luna 2087: New Frontier' : 'Луна 2087: Новый рубеж';
-    }
-
-    // === ЗВУК ===
-    let audioCtx=null, masterGain=null, musicGain=null, sfxGain=null, musicNodes=[];
-    let settings = JSON.parse(localStorage.getItem('luna_settings') || '{"master":0.5,"music":true,"sfx":true,"muted":false}');
-    function initAudio() { if(audioCtx) return; try { audioCtx=new(window.AudioContext||window.webkitAudioContext)(); masterGain=audioCtx.createGain(); musicGain=audioCtx.createGain(); sfxGain=audioCtx.createGain(); masterGain.connect(audioCtx.destination); musicGain.connect(masterGain); sfxGain.connect(masterGain); applyAudioSettings(); } catch(e){} }
-    function applyAudioSettings() { if(!audioCtx) return; const v=settings.muted?0:settings.master; masterGain.gain.setTargetAtTime(v,audioCtx.currentTime,.05); musicGain.gain.setTargetAtTime(settings.music&&!settings.muted?1:0,audioCtx.currentTime,.05); sfxGain.gain.setTargetAtTime(settings.sfx&&!settings.muted?1:0,audioCtx.currentTime,.05); }
-    function saveSettings() { localStorage.setItem('luna_settings', JSON.stringify(settings)); }
-    function playSfx(freq,dur,type) { if(!audioCtx||!settings.sfx||settings.muted) return; type=type||'sine'; const o=audioCtx.createOscillator(),g=audioCtx.createGain(); o.type=type; o.frequency.value=freq; g.gain.setValueAtTime(.0001,audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(.3,audioCtx.currentTime+.01); g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+dur); o.connect(g); g.connect(sfxGain); o.start(); o.stop(audioCtx.currentTime+dur); }
-    function sfxClick() { playSfx(800,.05,'square'); }
-    function sfxBuild() { playSfx(400,.15,'sawtooth'); setTimeout(()=>playSfx(600,.1,'sawtooth'),100); }
-    function sfxError() { playSfx(200,.1,'square'); }
-    function sfxCombat() { playSfx(150,.2,'sawtooth'); setTimeout(()=>playSfx(80,.3,'sawtooth'),150); }
-    function sfxRegime() { playSfx(300,.1,'triangle'); setTimeout(()=>playSfx(500,.1,'triangle'),80); setTimeout(()=>playSfx(700,.15,'triangle'),160); }
-    function startMusic() { if(!audioCtx||musicNodes.length>0) return; const bf=55; [1,1.5,2,2.5,3,4].forEach((mult,i)=>{ const o=audioCtx.createOscillator(),g=audioCtx.createGain(),lfo=audioCtx.createOscillator(),lg=audioCtx.createGain(); o.type=i<2?'sine':'triangle'; o.frequency.value=bf*mult; lfo.frequency.value=.05+i*.02; lg.gain.value=.003; g.gain.value=.015/(i+1); lfo.connect(lg); lg.connect(g.gain); o.connect(g); g.connect(musicGain); o.start(); lfo.start(); musicNodes.push(o,lfo,g); }); }
-    function stopMusic() { musicNodes.forEach(n=>{try{if(n.stop)n.stop();}catch(e){} try{n.disconnect();}catch(e){}}); musicNodes=[]; }
-    document.addEventListener('pointerdown',()=>{ initAudio(); if(settings.music&&!settings.muted) startMusic(); },{once:true});
-
-    // ============================================================
-    // === АРХИТЕКТУРА СИСТЕМЫ ГОСУДАРСТВЕННОГО СТРОЯ ============
-    // ============================================================
-    const REGIMES = {
-      fascism: {
-        name: { ru:'Фашизм', en:'Fascism' },
-        subtitle: { ru:'Радикальный Милитаризм', en:'Radical Militarism' },
-        ppCost: 200,
-        pros: { ru:'+20% к урону\n−20% к стоимости войск\n+30% к трофеям', en:'+20% damage\n−20% unit cost\n+30% loot' },
-        cons: { ru:'−30% к торговле\n−15% к росту населения\n+10% к содержанию армии', en:'−30% trade\n−15% pop growth\n+10% army upkeep' },
-        mods: { attackMod:1.20, unitCost:0.80, lootMod:1.30, tradeIncome:0.70, popGrowth:0.85, unitUpkeep:1.10 },
-      },
-      communism: {
-        name: { ru:'Коммунизм', en:'Communism' },
-        subtitle: { ru:'Плановая Экономика', en:'Planned Economy' },
-        ppCost: 200,
-        pros: { ru:'+20% к скорости строительства\n+15% к добыче ресурсов', en:'+20% build speed\n+15% resource production' },
-        cons: { ru:'−25% к налогам\n−10% к шпионажу', en:'−25% tax income\n−10% espionage' },
-        mods: { buildSpeed:1.20, resourceRate:1.15, taxIncome:0.75, spyEff:0.90 },
-      },
-      democracy: {
-        name: { ru:'Демократия', en:'Democracy' },
-        subtitle: { ru:'Свободный Рынок', en:'Free Market' },
-        ppCost: 200,
-        pros: { ru:'+30% к налогам\n+20% к складам торговли', en:'+30% tax income\n+20% trade warehouse' },
-        cons: { ru:'−15% к атаке\n+10% к содержанию армии', en:'−15% attack\n+10% army upkeep' },
-        mods: { taxIncome:1.30, tradeWarehouse:1.20, attackMod:0.85, unitUpkeep:1.10 },
-      },
-      theocracy: {
-        name: { ru:'Теократия', en:'Theocracy' },
-        subtitle: { ru:'Фанатичная Оборона', en:'Fanatical Defense' },
-        ppCost: 200,
-        pros: { ru:'+20% к защите войск\n+25% к контршпионажу', en:'+20% defense\n+25% counter-espionage' },
-        cons: { ru:'−15% к науке\n−10% к тяжёлым ресурсам', en:'−15% research\n−10% heavy resources' },
-        mods: { defenseMod:1.20, counterSpy:1.25, research:0.85, heavyRes:0.90 },
-      },
-      technocracy: {
-        name: { ru:'Технократия', en:'Technocracy' },
-        subtitle: { ru:'Научное Превосходство', en:'Scientific Superiority' },
-        ppCost: 200,
-        pros: { ru:'+35% к скорости науки\n+15% к защите турелей', en:'+35% research speed\n+15% turret defense' },
-        cons: { ru:'+20% к стоимости зданий\n−15% к торговле', en:'+20% building cost\n−15% trade' },
-        mods: { research:1.35, turretDefense:1.15, buildCost:1.20, tradeIncome:0.85 },
-      },
-      anarchy: {
-        name: { ru:'Анархия', en:'Anarchy' },
-        subtitle: { ru:'Штрафной Режим', en:'Penalty Mode' },
-        ppCost: 0,
-        pros: { ru:'Переходное состояние при смене строя', en:'Transitional state after regime change' },
-        cons: { ru:'−50% ко всем ресурсам\nНаём войск запрещён', en:'−50% all production\nUnit production locked' },
-        mods: { globalProduction:0.50, unitLock:true },
-      },
-    };
-
-    const BUILDINGS = {
-      dome:    { nameKey:'b_dome',    descKey:'b_dome_d',    cost:{regolith:50,helium:10,energy:5},   buildTime:30000, popCap:100, ppRate:0.05, energyUse:5, icon:'⌂', category:'center' },
-      mine:    { nameKey:'b_mine',    descKey:'b_mine_d',    cost:{regolith:30,helium:5,energy:3},    buildTime:20000, regolithRate:0.5, heliumRate:0.15, energyUse:3, popNeed:5, icon:'⛏', category:'outer' },
-      beacon:  { nameKey:'b_beacon',  descKey:'b_beacon_d',  cost:{regolith:40,helium:5,energy:2},    buildTime:15000, controlRadius:1, energyUse:2, icon:'📡', category:'center' },
-      outpost: { nameKey:'b_outpost', descKey:'b_outpost_d', cost:{regolith:60,helium:15,energy:4},  buildTime:40000, energyUse:4, defense:10, icon:'🛡', category:'outer' },
-      lab:     { nameKey:'b_lab',     descKey:'b_lab_d',     cost:{regolith:45,helium:20,energy:6},  buildTime:35000, popRate:0.17, energyUse:6, popNeed:10, icon:'🔬', category:'center' },
-      turret:  { nameKey:'b_turret',  descKey:'b_turret_d',  cost:{regolith:35,helium:10,energy:3},   buildTime:25000, energyUse:3, defense:15, icon:'🔫', category:'outer' },
-    };
-    const UNITS = {
-      builder:     { nameKey:'u_builder',     descKey:'u_builder_d',     cost:{regolith:20,energy:2},         buildTime:15000, popNeed:1, attack:1,  defense:2,  speed:1,   type:'infantry', icon:'🔧' },
-      assault:     { nameKey:'u_assault',     descKey:'u_assault_d',     cost:{regolith:30,helium:5,energy:3}, buildTime:20000, popNeed:1, attack:8,  defense:5,  speed:1.5, type:'infantry', icon:'🔫' },
-      dreadnought: { nameKey:'u_dreadnought', descKey:'u_dreadnought_d', cost:{regolith:80,helium:30,energy:8},buildTime:45000, popNeed:3, attack:25, defense:20, speed:0.5, type:'heavy', energyUpkeep:2, icon:'🚜' },
-    };
-
-    // === ТЕРРИТОРИИ ===
-    const PLAYER_COUNT = 24;
-    function generateTerritories(count) {
-      const territories = [];
-      const ga = Math.PI * (3 - Math.sqrt(5));
-      for (let i = 0; i < count; i++) {
-        const y = 1 - (i / (count - 1)) * 2;
-        const r = Math.sqrt(1 - y * y);
-        const theta = ga * i;
-        const x = Math.cos(theta) * r;
-        const z = Math.sin(theta) * r;
-        const lat = Math.asin(y) * 180 / Math.PI;
-        const lon = Math.atan2(z, x) * 180 / Math.PI;
-        territories.push({ id: i, lat, lon, radius: 0 });
-      }
-      territories.forEach(t1 => {
-        let minD = Infinity;
-        territories.forEach(t2 => {
-          if (t1.id === t2.id) return;
-          const p1=t1.lat*Math.PI/180, p2=t2.lat*Math.PI/180;
-          const dLat=(t2.lat-t1.lat)*Math.PI/180, dLon=(t2.lon-t1.lon)*Math.PI/180;
-          const a=Math.sin(dLat/2)**2+Math.cos(p1)*Math.cos(p2)*Math.sin(dLon/2)**2;
-          const d=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-          if(d<minD) minD=d;
-        });
-        t1.radius = minD / 2;
-      });
-      return territories;
-    }
-    const territories = generateTerritories(PLAYER_COUNT);
-    function angularDistance(t1, t2) {
-      const p1=t1.lat*Math.PI/180, p2=t2.lat*Math.PI/180;
-      const dLat=(t2.lat-t1.lat)*Math.PI/180, dLon=(t2.lon-t1.lon)*Math.PI/180;
-      const a=Math.sin(dLat/2)**2+Math.cos(p1)*Math.cos(p2)*Math.sin(dLon/2)**2;
-      return 2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-    }
-    function autoPlaceBuilding(buildingId, territoryIdx) {
-      const def = BUILDINGS[buildingId];
-      const territory = territories[territoryIdx];
-      const angle = Math.random() * Math.PI * 2;
-      const distFrac = def.category === 'center' ? (0.05 + Math.random()*0.20) : (0.40 + Math.random()*0.20);
-      const dist = distFrac * territory.radius;
-      const cLat = territory.lat * Math.PI / 180;
-      const cLon = territory.lon * Math.PI / 180;
-      const newLat = cLat + dist * Math.cos(angle);
-      const newLon = cLon + dist * Math.sin(angle) / Math.max(Math.cos(cLat), 0.01);
-      return { lat: newLat*180/Math.PI, lon: newLon*180/Math.PI };
-    }
-
-    // === СОСТОЯНИЕ ===
-    const SAVE_KEY = 'luna2087_frontier_v3_save';
-    function defaultState() {
-      return {
-        regolith:100, helium:30, energy:200, energyMax:200, pop:50, popMax:100,
-        politicalPoints:0, ppMax:1000, logistics:5, logisticsMax:5,
-        regime:'technocracy', debuffEnd:0, debuffType:null,
-        playerTerritoryIdx:0,
-        buildings:[{ id:'dome', lat:territories[0].lat, lon:territories[0].lon, built:true, progress:1 }],
-        units:[], buildQueue:[],
-        aiPlayers: initAIPlayers(),
-        gameTime:0,
-      };
-    }
-    function initAIPlayers() {
-      const players = [];
-      const regimeKeys = Object.keys(REGIMES).filter(k => k !== 'anarchy');
-      for (let i = 1; i < PLAYER_COUNT; i++) {
-        players.push({
-          id:i, territoryIdx:i,
-          regolith:30+Math.random()*30, helium:10+Math.random()*15,
-          pop:20+Math.random()*20, popMax:60,
-          buildings:1, units:0,
-          aggression:0.15+Math.random()*0.25,
-          regime: regimeKeys[Math.floor(Math.random()*regimeKeys.length)],
-          active:true,
-        });
-      }
-      return players;
-    }
-    let state = null;
-    try {
-      const saved = localStorage.getItem(SAVE_KEY);
-      if (saved) { state = JSON.parse(saved); const d = defaultState(); for (let k in d) if (state[k] === undefined) state[k] = d[k]; if (!state.aiPlayers || state.aiPlayers.length < 23) state.aiPlayers = initAIPlayers(); }
-      else state = defaultState();
-    } catch (e) { state = defaultState(); }
-
-    function getMod(key) {
-      if (state.debuffEnd > Date.now() && state.debuffType === 'anarchy') {
-        if (['globalProduction','regolithRate','heliumRate','popRate','ppRate'].includes(key)) return 0.5;
-        if (key === 'unitLock') return true;
-      }
-      const mods = REGIMES[state.regime].mods || {};
-      return mods[key] !== undefined ? mods[key] : 1;
-    }
-    function isUnitLocked() { return state.debuffEnd > Date.now() && state.debuffType === 'anarchy'; }
-
-    function saveGame() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); const si=document.getElementById('save-indicator'); si.textContent=t('saved'); si.classList.add('show'); setTimeout(()=>si.classList.remove('show'),1000); } catch(e){} }
-    function resetGame() { localStorage.removeItem(SAVE_KEY); state = defaultState(); rebuildMarkers(); addLog(t('new_game'),'good'); updateUI(); }
-    function addLog(msg, type) {
-      const logEl = document.getElementById('log');
-      const div = document.createElement('div');
-      div.className = 'log-msg' + (type ? ' ' + type : '');
-      div.textContent = msg;
-      logEl.appendChild(div);
-      setTimeout(() => div.remove(), 8000);
-      while (logEl.children.length > 5) logEl.removeChild(logEl.firstChild);
-    }
-
-    function gameTick(dt) {
-      let regRate=0, helRate=0, energyProd=0, energyCons=0, ppRate=0, popRate=0;
-      state.buildings.forEach(b => {
-        if (!b.built) return;
-        const def = BUILDINGS[b.id];
-        if (def.regolithRate) regRate += def.regolithRate;
-        if (def.heliumRate)   helRate += def.heliumRate;
-        if (def.ppRate)       ppRate += def.ppRate;
-        if (def.popRate)      popRate += def.popRate;
-        if (def.energyUse)    energyCons += def.energyUse;
-        if (b.id === 'dome')  energyProd += 2;
-      });
-      regRate *= getMod('resourceRate');
-      helRate *= getMod('heavyRes');
-      popRate *= getMod('popGrowth');
-      if (state.debuffEnd > Date.now() && state.debuffType === 'anarchy') {
-        regRate *= 0.5; helRate *= 0.5; ppRate *= 0.5; popRate *= 0.5;
-      }
-      const unitUpkeepMod = getMod('unitUpkeep');
-      energyCons += state.units.length * 0.5 * unitUpkeepMod;
-      state.energy = Math.min(state.energyMax, state.energy + energyProd * dt * 0.1);
-      state.energy = Math.max(0, state.energy - energyCons * dt * 0.01);
-      state.regolith = Math.min(9999, state.regolith + regRate * dt);
-      state.helium = Math.min(9999, state.helium + helRate * dt);
-      state.politicalPoints = Math.min(state.ppMax, state.politicalPoints + ppRate * dt);
-      state.pop = Math.min(state.popMax, state.pop + popRate * dt);
-      state.logistics = Math.min(state.logisticsMax, state.logistics + dt * 0.01);
-      state.buildQueue.forEach(q => {
-        q.remaining -= dt * 1000;
-        if (q.remaining <= 0) {
-          q.built = true;
-          const pos = autoPlaceBuilding(q.id, state.playerTerritoryIdx);
-          state.buildings.push({ id: q.id, lat: pos.lat, lon: pos.lon, built: true, progress: 1 });
-          addLog(t('built_done') + t(BUILDINGS[q.id].nameKey), 'good');
-          sfxBuild();
-          rebuildMarkers();
-        }
-      });
-      state.buildQueue = state.buildQueue.filter(q => q.remaining > 0);
-      aiTick(dt);
-      if (state.debuffEnd <= Date.now() && state.debuffType) { state.debuffType = null; addLog(t('instability_end'), 'good'); }
-      state.gameTime += dt;
-      if (state.gameTime % 30 < dt) saveGame();
-    }
-
-    function aiTick(dt) {
-      state.aiPlayers.forEach(ai => {
-        if (!ai.active) return;
-        ai.regolith += (0.15 + ai.buildings * 0.08) * dt;
-        ai.helium += (0.04 + ai.buildings * 0.015) * dt;
-        ai.pop = Math.min(ai.popMax, ai.pop + 0.025 * dt);
-        if (Math.random() < 0.00008 * dt && ai.buildings < 15) { ai.buildings++; ai.regolith -= 30; if (Math.random() < 0.2) addLog(t('ared_built') + t('ared_bldg'), 'warn'); }
-        if (Math.random() < 0.00006 * dt && ai.units < 20) { ai.units++; if (Math.random() < 0.15) addLog(t('ared_forces'), 'warn'); }
-        if (ai.units >= 5 && Math.random() < ai.aggression * 0.000015 * dt) {
-          const atkForce = Math.floor(ai.units * 0.6);
-          ai.units -= atkForce;
-          const defMod = getMod('defenseMod');
-          const myDef = (state.units.reduce((s,u)=>s+u.defense,0) + state.buildings.reduce((s,b)=>s+(BUILDINGS[b.id]?.defense||0),0)) * defMod;
-          if (atkForce * 8 > myDef) {
-            addLog(t('ared_attack') + Math.floor(atkForce*0.3) + t('ared_unit'), 'bad'); sfxCombat();
-            if (state.units.length > 0) { const lost = Math.min(state.units.length, Math.floor(atkForce*0.1)); state.units.splice(0, lost); addLog(t('ared_attack_lost') + lost, 'bad'); }
-            state.regolith = Math.max(0, state.regolith - 20);
-          } else { addLog(t('ared_repelled'), 'good'); }
-        }
-        if (ai.units >= 8 && Math.random() < 0.00001 * dt) {
-          const target = state.aiPlayers.find(a => a.id !== ai.id && a.active && a.units < ai.units * 0.5);
-          if (target) { const lost = Math.floor(ai.units * 0.2); ai.units -= lost; target.units = Math.max(0, target.units - lost); }
-        }
-      });
-    }
-
-    // === 3D СЦЕНА ===
-    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    const MOBILE_CAM = { x:0, y:2.2, z:10.5 };
-    const DESKTOP_CAM = { x:0, y:1.2, z:7 };
-    const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x01020a, 0.0025);
-    const camera = new THREE.PerspectiveCamera(42, innerWidth/innerHeight, 0.1, 600);
-    if (isMobile) { camera.position.set(MOBILE_CAM.x, MOBILE_CAM.y, MOBILE_CAM.z); camera.fov = 36; } else { camera.position.set(DESKTOP_CAM.x, DESKTOP_CAM.y, DESKTOP_CAM.z); camera.fov = 42; }
-    camera.updateProjectionMatrix();
-    const renderer = new THREE.WebGLRenderer({ antialias:true, powerPreference:'high-performance' });
-    renderer.setSize(innerWidth, innerHeight);
-    renderer.setPixelRatio(Math.min(devicePixelRatio, isMobile ? 1.5 : 2));
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.domElement.style.position = 'absolute'; renderer.domElement.style.top = '0'; renderer.domElement.style.left = '0'; renderer.domElement.style.width = '100%'; renderer.domElement.style.height = '100%';
-    document.body.appendChild(renderer.domElement);
-
-    const texLoader = new THREE.TextureLoader();
-    const loadingBar = document.getElementById('loading-bar');
-    let texturesLoaded = 0, loadingHidden = false;
-    const totalTextures = 3;
-    function updateProgress() { if (loadingBar) loadingBar.style.width = Math.round((texturesLoaded/totalTextures)*100) + '%'; }
-    function onTextureDone() { texturesLoaded++; updateProgress(); tryHideLoading(); }
-    function tryHideLoading() { if (loadingHidden) return; if (texturesLoaded >= totalTextures) { loadingHidden = true; if (loadingBar) loadingBar.style.width = '100%'; setTimeout(()=>{ const ld=document.getElementById('loading'); ld.style.opacity='0'; setTimeout(()=>ld.style.display='none',600); }, 200); } }
-    setTimeout(() => { if (!loadingHidden) { loadingHidden = true; if (loadingBar) loadingBar.style.width = '100%'; const ld=document.getElementById('loading'); ld.style.opacity='0'; setTimeout(()=>ld.style.display='none',600); } }, 12000);
-
-    const bgTex = texLoader.load('textures/milky_way.jpg', ()=>onTextureDone(), undefined, ()=>onTextureDone());
-    bgTex.colorSpace = THREE.SRGBColorSpace;
-    const bgMat = new THREE.ShaderMaterial({ uniforms:{uTexture:{value:bgTex},uBrightness:{value:0.35}}, vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`, fragmentShader:`uniform sampler2D uTexture;uniform float uBrightness;varying vec2 vUv;void main(){gl_FragColor=vec4(texture2D(uTexture,vUv).rgb*uBrightness,1.0);}`, side:THREE.BackSide, fog:false, depthWrite:false });
-    const bgSphere = new THREE.Mesh(new THREE.SphereGeometry(300, 24, 24), bgMat);
-    bgSphere.renderOrder = -1; scene.add(bgSphere);
-
-    const sunPos = new THREE.Vector3(84, 30.8, 56);
-    const sunGroup = new THREE.Group(); sunGroup.position.copy(sunPos); scene.add(sunGroup);
-    sunGroup.add(new THREE.Mesh(new THREE.SphereGeometry(1.8, 24, 24), new THREE.MeshBasicMaterial({ color:0xfff5dd, fog:false })));
-
-    const EARTH_R = 7.92 * 2.21;
-    const earthGroup = new THREE.Group(); earthGroup.position.set(-19.745, -2.805, -40.645); earthGroup.rotation.set(0.2, -0.3, 0); scene.add(earthGroup);
-    const earthColorTex = texLoader.load('textures/earth_color.jpg', ()=>onTextureDone(), undefined, ()=>onTextureDone());
-    earthColorTex.colorSpace = THREE.SRGBColorSpace; earthColorTex.anisotropy = isMobile ? 2 : 4;
-    const earthToSun = sunPos.clone().sub(earthGroup.position).normalize();
-    const earthToMoon = new THREE.Vector3(0,0,0).sub(earthGroup.position).normalize();
-    const moonToEarth = earthGroup.position.clone().normalize();
-    const earthMat = new THREE.ShaderMaterial({ uniforms:{uLightDir:{value:earthToSun},uMoonDir:{value:earthToMoon},uTexture:{value:earthColorTex}}, vertexShader:`varying vec3 vN;varying vec2 vUv;void main(){vN=normalize(mat3(modelMatrix)*normal);vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`, fragmentShader:`uniform vec3 uLightDir;uniform vec3 uMoonDir;uniform sampler2D uTexture;varying vec3 vN;varying vec2 vUv;void main(){vec3 tc=texture2D(uTexture,vUv).rgb;float l=max(dot(normalize(vN),uLightDir),0.0);vec3 c=tc*(l*0.97+0.08);c*=0.679;c+=vec3(0.7,0.15,0.03)*l*0.0648;float ma=max(dot(normalize(vN),uMoonDir),0.0);c*=(1.0-smoothstep(0.88,0.99,ma)*l*0.55);gl_FragColor=vec4(c,1.0);}` });
-    const earthSegs = isMobile ? 48 : 96;
-    earthGroup.add(new THREE.Mesh(new THREE.SphereGeometry(EARTH_R, earthSegs, earthSegs), earthMat));
-    const earthAtmoMat = new THREE.ShaderMaterial({ uniforms:{uTime:{value:0}}, vertexShader:`varying vec3 vN;void main(){vN=normalize(normalMatrix*normal);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`, fragmentShader:`varying vec3 vN;void main(){float e=1.0-abs(dot(vN,vec3(0,0,1)));float g=pow(e,0.3)*0.135;gl_FragColor=vec4(vec3(0.25,0.55,1.0)*g,g*0.525);}`, side:THREE.BackSide, transparent:true, blending:THREE.AdditiveBlending, fog:false, depthWrite:false });
-    earthGroup.add(new THREE.Mesh(new THREE.SphereGeometry(EARTH_R+0.72, 24, 24), earthAtmoMat));
-    const smokeGeo = new THREE.BufferGeometry();
-    const sP = new Float32Array(500 * 3);
-    for (let i = 0; i < 500; i++) { const r=EARTH_R+0.18+Math.random()*0.84, ta=Math.random()*Math.PI*2, pa=Math.acos(2*Math.random()-1); sP[i*3]=r*Math.sin(pa)*Math.cos(ta); sP[i*3+1]=r*Math.sin(pa)*Math.sin(ta); sP[i*3+2]=r*Math.cos(pa); }
-    smokeGeo.setAttribute('position', new THREE.BufferAttribute(sP, 3));
-    earthGroup.add(new THREE.Points(smokeGeo, new THREE.PointsMaterial({ color:0x553311, size:0.20, transparent:true, opacity:0.35, blending:THREE.AdditiveBlending, fog:false })));
-    const debrisGeo = new THREE.BufferGeometry();
-    const dP = new Float32Array(100 * 3);
-    for (let i = 0; i < 100; i++) { const r=EARTH_R+1.2+Math.random()*2.4, ta=Math.random()*Math.PI*2, pa=Math.acos(2*Math.random()-1); dP[i*3]=r*Math.sin(pa)*Math.cos(ta); dP[i*3+1]=r*Math.sin(pa)*Math.sin(ta); dP[i*3+2]=r*Math.cos(pa); }
-    debrisGeo.setAttribute('position', new THREE.BufferAttribute(dP, 3));
-    earthGroup.add(new THREE.Points(debrisGeo, new THREE.PointsMaterial({ color:0x886655, size:0.06, transparent:true, opacity:0.55, fog:false })));
-
-    scene.add(new THREE.AmbientLight(0x223344, 0.5));
-    const sunLight = new THREE.DirectionalLight(0xddeeff, 1.3); sunLight.position.copy(sunPos); scene.add(sunLight);
-    const eShine = new THREE.DirectionalLight(0xff4422, 0.15); eShine.position.copy(moonToEarth); scene.add(eShine);
-    scene.add(new THREE.AmbientLight(0x332222, 0.25));
-
-    function makeStars(n, minR, maxR, color, size, opacity) {
-      const geo = new THREE.BufferGeometry(); const pos = new Float32Array(n * 3);
-      for (let i = 0; i < n; i++) { const r = minR + Math.random()*(maxR-minR), ta = Math.random()*Math.PI*2, pa = Math.acos(2*Math.random()-1); pos[i*3]=r*Math.sin(pa)*Math.cos(ta); pos[i*3+1]=r*Math.sin(pa)*Math.sin(ta); pos[i*3+2]=r*Math.cos(pa); }
-      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-      return new THREE.Points(geo, new THREE.PointsMaterial({ color, size, transparent:true, opacity, fog:false }));
-    }
-    scene.add(makeStars(isMobile ? 900 : 1800, 100, 200, 0x8899cc, 0.14, 0.5));
-    scene.add(makeStars(isMobile ? 150 : 300, 80, 120, 0xff6633, 0.1, 0.25));
-
-    const MOON_R = 2.2;
-    const moonGroup = new THREE.Group(); scene.add(moonGroup);
-    const moonMat = new THREE.MeshStandardMaterial({ color:0x888888, roughness:1.0, metalness:0.0 });
-    const LOD_LEVELS = isMobile ? [{dist:20,segs:32},{dist:10,segs:64},{dist:4,segs:96},{dist:0,segs:128}] : [{dist:8,segs:48},{dist:3,segs:96},{dist:0,segs:128}];
-    const lodGeometries = LOD_LEVELS.map(lvl => new THREE.SphereGeometry(MOON_R, lvl.segs, lvl.segs));
-    const moonMesh = new THREE.Mesh(lodGeometries[lodGeometries.length-1], moonMat);
-    moonGroup.add(moonMesh);
-    let currentLOD = lodGeometries.length - 1;
-    function updateLOD() { const dist = camera.position.length() - MOON_R; for (let i = 0; i < LOD_LEVELS.length; i++) { if (dist >= LOD_LEVELS[i].dist) { if (currentLOD !== i) { moonMesh.geometry = lodGeometries[i]; currentLOD = i; } return; } } }
-    const moonTex = texLoader.load('textures/moon_color.jpg', () => { moonMat.map = moonTex; moonMat.color.set(0xffffff); moonMat.needsUpdate = true; onTextureDone(); }, undefined, () => onTextureDone());
-    moonTex.colorSpace = THREE.SRGBColorSpace; moonTex.anisotropy = isMobile ? 2 : 8; moonTex.generateMipmaps = true; moonTex.minFilter = THREE.LinearMipmapLinearFilter;
-
-    function latLonToVec3(lat, lon, radius) { const phi = (90 - lat) * Math.PI / 180, theta = (lon + 180) * Math.PI / 180; return new THREE.Vector3(-radius * Math.sin(phi) * Math.cos(theta), radius * Math.cos(phi), radius * Math.sin(phi) * Math.sin(theta)); }
-
-    const territoryLines = [];
-    function createTerritoryBoundary(territory, color, opacity) {
-      const centerVec = latLonToVec3(territory.lat, territory.lon, MOON_R).normalize();
-      const up = new THREE.Vector3(0, 1, 0);
-      if (Math.abs(centerVec.dot(up)) > 0.99) up.set(1, 0, 0);
-      const right = new THREE.Vector3().crossVectors(centerVec, up).normalize();
-      const forward = new THREE.Vector3().crossVectors(right, centerVec).normalize();
-      const points = [];
-      const segments = 64;
-      for (let i = 0; i <= segments; i++) {
-        const angle = (i / segments) * Math.PI * 2;
-        const offset = right.clone().multiplyScalar(Math.cos(angle) * territory.radius).add(forward.clone().multiplyScalar(Math.sin(angle) * territory.radius));
-        points.push(centerVec.clone().add(offset).normalize().multiplyScalar(MOON_R * 1.01));
-      }
-      const geo = new THREE.BufferGeometry().setFromPoints(points);
-      const line = new THREE.Line(geo, new THREE.LineBasicMaterial({ color, transparent: true, opacity }));
-      moonGroup.add(line);
-      territoryLines.push(line);
-      return line;
-    }
-    createTerritoryBoundary(territories[0], 0x00e5ff, 0.5);
-    for (let i = 1; i < PLAYER_COUNT; i++) { createTerritoryBoundary(territories[i], 0xff6633, 0.08); }
-
-    const markers = [];
-    const BUILDING_COLORS = { dome:0x00ff88, mine:0xffaa44, beacon:0xff44ff, outpost:0x66aaff, lab:0x7fff7f, turret:0x44ffff };
-    function rebuildMarkers() {
-      markers.forEach(m => { moonGroup.remove(m); if (m.userData.glow) moonGroup.remove(m.userData.glow); });
-      markers.length = 0;
-      state.buildings.forEach(b => {
-        if (!b.built) return;
-        const pos = latLonToVec3(b.lat, b.lon, MOON_R * 1.02);
-        const col = BUILDING_COLORS[b.id] || 0x00e5ff;
-        const isBase = b.id === 'dome';
-        const m = new THREE.Mesh(new THREE.SphereGeometry(isBase ? 0.08 : 0.05, 12, 12), new THREE.MeshBasicMaterial({ color: col }));
-        m.position.copy(pos); m.userData = { title: t(BUILDINGS[b.id].nameKey), cat: b.id };
-        const glow = new THREE.Mesh(new THREE.SphereGeometry(isBase ? 0.15 : 0.11, 12, 12), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.25, blending: THREE.AdditiveBlending, depthWrite: false }));
-        glow.position.copy(pos); m.userData.glow = glow;
-        moonGroup.add(m); moonGroup.add(glow); markers.push(m);
-      });
-      state.aiPlayers.forEach(ai => {
-        if (!ai.active) return;
-        const territory = territories[ai.territoryIdx];
-        const pos = latLonToVec3(territory.lat, territory.lon, MOON_R * 1.02);
-        const m = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 8), new THREE.MeshBasicMaterial({ color: 0xff4444 }));
-        m.position.copy(pos); m.userData = { title: 'AI-' + ai.id, cat: 'enemy' };
-        const glow = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), new THREE.MeshBasicMaterial({ color: 0xff4444, transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending, depthWrite: false }));
-        glow.position.copy(pos); m.userData.glow = glow;
-        moonGroup.add(m); moonGroup.add(glow); markers.push(m);
-      });
-    }
-
-    const raycaster = new THREE.Raycaster();
-    const pointer = new THREE.Vector2();
-    let pDown = null, pTime = 0;
-    renderer.domElement.addEventListener('pointerdown', e => { pDown = { x: e.clientX, y: e.clientY }; pTime = Date.now(); });
-    renderer.domElement.addEventListener('pointerup', e => {
-      if (!pDown) return;
-      const dx = e.clientX - pDown.x, dy = e.clientY - pDown.y;
-      if (Math.sqrt(dx*dx + dy*dy) < 8 && Date.now() - pTime < 400) {
-        pointer.x = e.clientX / innerWidth * 2 - 1; pointer.y = -(e.clientY / innerHeight) * 2 + 1;
-        raycaster.setFromCamera(pointer, camera);
-        const hits = raycaster.intersectObjects(markers);
-        if (hits.length > 0) { addLog(t('selected') + hits[0].object.userData.title); sfxClick(); }
-      }
-      pDown = null;
-    });
-    if (!isMobile) {
-      renderer.domElement.addEventListener('pointermove', e => {
-        if (e.buttons > 0) return;
-        pointer.x = e.clientX / innerWidth * 2 - 1; pointer.y = -(e.clientY / innerHeight) * 2 + 1;
-        raycaster.setFromCamera(pointer, camera);
-        renderer.domElement.style.cursor = raycaster.intersectObjects(markers).length > 0 ? 'pointer' : 'grab';
-      });
-    }
-
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true; controls.dampingFactor = 0.07; controls.minDistance = 3.5; controls.maxDistance = isMobile ? 28 : 14; controls.enablePan = false; controls.rotateSpeed = 0.55;
-    // === ЗАМЕДЛЕНИЕ ВРАЩЕНИЯ ЛУНЫ НА ДЕСКТОПЕ ===
-    // На десктопе камера ближе — вращение воспринимается быстрее.
-    // Замедляем в 2.5 раза, чтобы было как на мобильной версии.
-    const rotFactor = isMobile ? 1 : 0.4;
-    controls.autoRotate = true; controls.autoRotateSpeed = 0.35 * rotFactor;
-    let lastInteract = Date.now();
-    renderer.domElement.addEventListener('pointerdown', () => { controls.autoRotate = false; lastInteract = Date.now(); });
-    renderer.domElement.addEventListener('touchstart', () => { controls.autoRotate = false; lastInteract = Date.now(); }, { passive: true });
-    document.getElementById('btn-zoom-in').addEventListener('click', () => { sfxClick(); const d = camera.position.length(); camera.position.multiplyScalar(Math.max(controls.minDistance, d - (isMobile ? 2.4 : 1.6)) / d); controls.update(); });
-    document.getElementById('btn-zoom-out').addEventListener('click', () => { sfxClick(); const d = camera.position.length(); camera.position.multiplyScalar(Math.min(controls.maxDistance, d + (isMobile ? 2.4 : 1.6)) / d); controls.update(); });
-    document.getElementById('btn-reset').addEventListener('click', () => { sfxClick(); if (isMobile) camera.position.set(MOBILE_CAM.x, MOBILE_CAM.y, MOBILE_CAM.z); else camera.position.set(DESKTOP_CAM.x, DESKTOP_CAM.y, DESKTOP_CAM.z); controls.target.set(0, 0, 0); controls.autoRotate = true; controls.update(); });
-
-    function canAfford(cost) {
-      const cm = getMod('buildCost');
-      for (let k in cost) if (state[k] === undefined || state[k] < Math.ceil(cost[k] * cm)) return false;
-      return true;
-    }
-    function spendCost(cost) {
-      const cm = getMod('buildCost');
-      for (let k in cost) state[k] -= Math.ceil(cost[k] * cm);
-    }
-    function getUnitCost(cost) {
-      const cm = getMod('unitCost');
-      const r = {}; for (let k in cost) r[k] = Math.ceil(cost[k] * cm); return r;
-    }
-    function canAffordUnit(cost) {
-      const c = getUnitCost(cost);
-      for (let k in c) if (state[k] === undefined || state[k] < c[k]) return false; return true;
-    }
-    function spendUnitCost(cost) {
-      const c = getUnitCost(cost); for (let k in c) state[k] -= c[k];
-    }
-    function fmtNum(n) { if (n >= 1000) return (n / 1000).toFixed(1) + 'к'; return Math.floor(n).toString(); }
-    function getNearestAI() {
-      const myT = territories[0];
-      return state.aiPlayers.filter(a => a.active).map(a => ({ ai: a, dist: angularDistance(myT, territories[a.territoryIdx]) })).sort((a, b) => a.dist - b.dist);
-    }
-
-    function updateUI() {
-      document.getElementById('r-regolith').textContent = fmtNum(state.regolith);
-      document.getElementById('r-helium').textContent = fmtNum(state.helium);
-      let eProd = 0, eUse = 0;
-      state.buildings.forEach(b => { if (!b.built) return; const d = BUILDINGS[b.id]; if (d.energyUse) eUse += d.energyUse; if (b.id === 'dome') eProd += 2; });
-      eUse += state.units.length * 0.5 * getMod('unitUpkeep');
-      document.getElementById('r-energy').textContent = Math.floor(state.energy) + '/' + state.energyMax;
-      document.getElementById('r-energy').parentElement.classList.toggle('low', state.energy < eUse);
-      document.getElementById('r-pop').textContent = Math.floor(state.pop) + '/' + state.popMax;
-      document.getElementById('r-pp').textContent = Math.floor(state.politicalPoints);
-      document.getElementById('r-logistics').textContent = Math.floor(state.logistics) + '/' + state.logisticsMax;
-      const db = document.getElementById('debuff-bar');
-      if (state.debuffEnd > Date.now()) { db.textContent = t('instability') + Math.ceil((state.debuffEnd - Date.now()) / 60000) + t('min'); db.classList.add('show'); } else db.classList.remove('show');
-      const nearest = getNearestAI().slice(0, 3);
-      const info = nearest.map(n => 'AI-' + n.ai.id + ': ' + n.ai.buildings + (currentLang==='en'?'b':'з') + '/' + n.ai.units + (currentLang==='en'?'u':'в')).join(' | ');
-      document.getElementById('ai-panel-info').textContent = info || (currentLang==='en'?'No threats':'Нет угроз');
-    }
-
-    let activeTab = null;
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        sfxClick();
-        const tab = btn.dataset.tab;
-        if (activeTab === tab) { document.getElementById('panel').classList.remove('show'); btn.classList.remove('active'); activeTab = null; return; }
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active'); activeTab = tab; document.getElementById('panel').classList.add('show'); renderPanel(tab);
-      });
-    });
-    const settingsBtn = document.getElementById('btn-settings');
-    settingsBtn.addEventListener('click', () => {
-      sfxClick();
-      if (activeTab === 'settings') { document.getElementById('panel').classList.remove('show'); settingsBtn.classList.remove('active'); activeTab = null; return; }
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      settingsBtn.classList.add('active'); activeTab = 'settings'; document.getElementById('panel').classList.add('show'); renderPanel('settings');
-    });
-
-    function renderPanel(tab) {
-      const c = document.getElementById('panel-content');
-      if (tab === 'build') {
-        let html = '<div class="panel-title">' + t('build_title') + '</div><div class="build-grid">';
-        Object.keys(BUILDINGS).forEach(id => {
-          const b = BUILDINGS[id]; const aff = canAfford(b.cost); const inQueue = state.buildQueue.some(q => q.id === id);
-          const zoneLabel = b.category === 'center' ? t('zone_center') : t('zone_outer');
-          let costHtml = ''; const ck = { regolith:'r', helium:'h', energy:'e' };
-          const cm = getMod('buildCost');
-          for (let k in b.cost) { costHtml += '<span class="cost-' + ck[k] + '">' + Math.ceil(b.cost[k] * cm) + ' ' + t(k + '_short') + '</span>'; }
-          html += '<div class="build-card ' + (aff?'affordable':'unaffordable') + (inQueue?' building':'') + '" data-build="' + id + '"><div class="build-name">' + b.icon + ' ' + t(b.nameKey) + '</div><div class="build-desc">' + t(b.descKey) + '</div><div class="build-cost">' + costHtml + ' <span class="cost-l">⏱' + Math.ceil(b.buildTime/1000) + t('time_short') + '</span></div><div class="build-zone">' + zoneLabel + '</div>' + (inQueue?'<div class="build-timer"><div class="build-timer-fill" style="width:50%"></div></div>':'') + '</div>';
-        });
-        html += '</div>';
-        c.innerHTML = html;
-        c.querySelectorAll('.build-card').forEach(card => {
-          card.addEventListener('click', () => {
-            const id = card.dataset.build; const b = BUILDINGS[id];
-            if (!canAfford(b.cost)) { addLog(t('not_enough_res'), 'bad'); sfxError(); return; }
-            if (state.buildQueue.some(q => q.id === id)) { addLog(t('already_building'), 'warn'); return; }
-            if (state.logistics < 1) { addLog(t('not_enough_log'), 'bad'); sfxError(); return; }
-            spendCost(b.cost); state.logistics--;
-            const speedMod = getMod('buildSpeed');
-            state.buildQueue.push({ id, remaining: b.buildTime / speedMod, built: false });
-            addLog(t('started_build') + t(b.nameKey), 'good'); sfxBuild(); renderPanel('build');
-          });
-        });
-      } else if (tab === 'units') {
-        const locked = isUnitLocked();
-        let html = '<div class="panel-title">' + t('unit_title') + '</div>';
-        if (locked) html += '<div style="margin-bottom:8px;font-size:13px;color:#ff4444;">' + t('units_locked') + '</div>';
-        html += '<div style="margin-bottom:8px;font-size:13px;color:#789;">' + t('your_units') + ': ' + state.units.length + '</div>';
-        html += '<div class="unit-grid">';
-        Object.keys(UNITS).forEach(id => {
-          const u = UNITS[id]; const aff = canAffordUnit(u.cost);
-          const cls = locked ? 'locked' : (aff ? 'affordable' : 'unaffordable');
-          let costHtml = ''; const ck = { regolith:'r', helium:'h', energy:'e' };
-          const uc = getUnitCost(u.cost);
-          for (let k in uc) costHtml += '<span class="cost-' + ck[k] + '">' + uc[k] + ' ' + t(k + '_short') + '</span>';
-          html += '<div class="unit-card ' + cls + '" data-unit="' + id + '"><div class="unit-name">' + u.icon + ' ' + t(u.nameKey) + '</div><div class="unit-desc">' + t(u.descKey) + '</div><div class="unit-stats"><div class="unit-stat"><span class="val">' + u.attack + '</span>' + t('attack') + '</div><div class="unit-stat"><span class="val">' + u.defense + '</span>' + t('defense') + '</div></div><div class="build-cost">' + costHtml + ' <span class="cost-p">👥' + u.popNeed + '</span></div></div>';
-        });
-        html += '</div>';
-        html += '<div style="margin-top:12px;font-size:13px;color:#789;line-height:1.4;"><b style="color:#ff6644">' + (currentLang==='en'?'Attack:':'Атака:') + '</b><br><button id="btn-attack" style="margin-top:8px;padding:8px 16px;background:rgba(255,60,60,.15);border:1px solid rgba(255,80,80,.3);color:#ff8866;border-radius:5px;cursor:pointer;font-family:inherit;font-size:14px;">' + t('attack_ai') + '</button></div>';
-        c.innerHTML = html;
-        if (!locked) {
-          c.querySelectorAll('.unit-card').forEach(card => {
-            card.addEventListener('click', () => {
-              const id = card.dataset.unit; const u = UNITS[id];
-              if (!canAffordUnit(u.cost)) { addLog(t('not_enough_res'), 'bad'); sfxError(); return; }
-              const popUsed = state.units.reduce((s, un) => s + (UNITS[un.id]?.popNeed || 0), 0);
-              if (state.pop < u.popNeed + popUsed) { addLog(t('not_enough_pop'), 'bad'); sfxError(); return; }
-              spendUnitCost(u.cost);
-              const speedMod = getMod('buildSpeed');
-              setTimeout(() => { state.units.push({ id, hp: u.defense * 2, attack: u.attack, defense: u.defense }); addLog(t('unit_ready') + t(u.nameKey), 'good'); sfxBuild(); updateUI(); }, u.buildTime / speedMod);
-              addLog(t('started_training') + t(u.nameKey), 'good'); sfxClick(); renderPanel('units');
-            });
-          });
-        }
-        document.getElementById('btn-attack')?.addEventListener('click', () => { sfxClick(); attackNearestAI(); });
-      } else if (tab === 'politics') {
-        let html = '<div class="panel-title">' + t('pol_title') + '</div>';
-        html += '<div style="margin-bottom:10px;font-size:13px;color:#789;">' + t('pp_available') + '<b style="color:#ff44ff">' + Math.floor(state.politicalPoints) + '</b> / ' + state.ppMax + '</div>';
-        html += '<div class="pol-grid">';
-        Object.keys(REGIMES).forEach(id => {
-          if (id === 'anarchy') return;
-          const r = REGIMES[id]; const isCur = state.regime === id; const canChange = !isCur && state.politicalPoints >= r.ppCost;
-          const cls = isCur ? 'current' : canChange ? '' : 'unaffordable';
-          html += '<div class="pol-card ' + cls + '" data-regime="' + id + '" data-active-label="' + t('active') + '"><div class="pol-name">' + r.name[currentLang] + '</div><div style="font-size:11px;color:#888;margin-bottom:5px;">' + r.subtitle[currentLang] + '</div><div class="pol-pros">' + r.pros[currentLang].replace(/\n/g,'<br>') + '</div><div class="pol-cons">' + r.cons[currentLang].replace(/\n/g,'<br>') + '</div>' + (isCur ? '' : '<div class="pp-cost">' + t('regime_cost') + r.ppCost + t('po') + '</div>') + '</div>';
-        });
-        html += '</div>';
-        if (state.debuffEnd > Date.now() && state.debuffType === 'anarchy') {
-          html += '<div class="pol-card anarchy" style="margin-top:10px;"><div class="pol-name" style="color:#ff4444;">' + REGIMES.anarchy.name[currentLang] + '</div><div style="font-size:11px;color:#888;margin-bottom:5px;">' + REGIMES.anarchy.subtitle[currentLang] + '</div><div class="pol-pros">' + REGIMES.anarchy.pros[currentLang].replace(/\n/g,'<br>') + '</div><div class="pol-cons">' + REGIMES.anarchy.cons[currentLang].replace(/\n/g,'<br>') + '</div></div>';
-        }
-        html += '<div style="margin-top:12px;font-size:13px;color:#789;line-height:1.4;">' + t('reg_change_warning') + '</div>';
-        c.innerHTML = html;
-        c.querySelectorAll('.pol-card[data-regime]').forEach(card => {
-          card.addEventListener('click', () => {
-            const id = card.dataset.regime; if (id === state.regime) return;
-            const r = REGIMES[id];
-            if (state.politicalPoints < r.ppCost) { addLog(t('not_enough_pp'), 'bad'); sfxError(); return; }
-            state.politicalPoints -= r.ppCost; state.regime = id;
-            state.debuffEnd = Date.now() + 300000; state.debuffType = 'anarchy';
-            addLog(t('regime_change') + r.name[currentLang] + t('instability5'), 'warn'); sfxRegime(); renderPanel('politics');
-          });
-        });
-      } else if (tab === 'map') {
-        let html = '<div class="panel-title">' + t('map_title') + '</div><div style="font-size:13px;color:#789;line-height:1.6;">';
-        html += '<div style="margin-bottom:8px;">' + t('buildings_count') + '<b style="color:#00e5ff">' + state.buildings.filter(b=>b.built).length + '</b></div>';
-        html += '<div style="margin-bottom:8px;">' + t('units_count') + '<b style="color:#ff8844">' + state.units.length + '</b></div>';
-        html += '<div style="margin-bottom:8px;">' + t('play_time') + '<b style="color:#00e5ff">' + Math.floor(state.gameTime/60) + t('min') + '</b></div>';
-        html += '<div style="margin-bottom:8px;">' + t('current_regime') + '<b style="color:#ff44ff">' + REGIMES[state.regime].name[currentLang] + '</b></div>';
-        html += '<div style="margin-bottom:12px;">' + t('total_players') + '</div>';
-        html += '</div>';
-        const nearest = getNearestAI().slice(0, 8);
-        html += '<div style="font-size:13px;color:#ff6644;font-weight:600;margin-bottom:6px;">' + t('nearest_ai') + '</div>';
-        html += '<div class="ai-list">';
-        if (nearest.length === 0) { html += '<div class="ai-row">' + t('no_ai_near') + '</div>'; }
-        else {
-          nearest.forEach(n => {
-            const distDeg = (n.dist * 180 / Math.PI).toFixed(1);
-            html += '<div class="ai-row' + (n.dist < territories[0].radius * 1.5 ? ' near' : '') + '"><span class="ai-row-name">AI-' + n.ai.id + ' (' + REGIMES[n.ai.regime].name[currentLang] + ')</span><span class="ai-row-stats">' + n.ai.buildings + (currentLang==='en'?'b':'з') + ' / ' + n.ai.units + (currentLang==='en'?'u':'в') + ' / ' + distDeg + '°</span></div>';
-          });
-        }
-        html += '</div>';
-        html += '<div style="margin-top:12px;"><button id="btn-save" style="padding:10px 16px;background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.25);color:#00e5ff;border-radius:5px;cursor:pointer;font-family:inherit;font-size:14px;margin-right:8px;">' + t('save') + '</button>';
-        html += '<button id="btn-new-game" style="padding:10px 16px;background:rgba(255,60,60,.1);border:1px solid rgba(255,80,80,.25);color:#ff6666;border-radius:5px;cursor:pointer;font-family:inherit;font-size:14px;">' + t('reset_btn') + '</button></div>';
-        c.innerHTML = html;
-        document.getElementById('btn-save')?.addEventListener('click', () => { sfxClick(); saveGame(); addLog(t('saved'), 'good'); });
-        document.getElementById('btn-new-game')?.addEventListener('click', () => { if (confirm(t('reset_confirm'))) { resetGame(); renderPanel('map'); } });
-      } else if (tab === 'info') {
-        let html = '<div class="panel-title">' + t('info_title') + '</div><div style="font-size:14px;color:#aacce6;line-height:1.6;">';
-        html += '<p style="margin-bottom:10px;">' + t('info_year') + '</p>';
-        html += '<p style="margin-bottom:10px;"><b style="color:#00e5ff">' + t('info_territories') + ':</b> ' + t('info_territory_desc') + '</p>';
-        html += '<p style="margin-bottom:10px;"><b style="color:#00e5ff">' + t('info_buildings') + ':</b><br>';
-        Object.keys(BUILDINGS).forEach(id => {
-          const b = BUILDINGS[id];
-          html += '• <b>' + b.icon + ' ' + t(b.nameKey) + '</b> <i style="color:#666;font-size:12px">(' + (b.category==='center' ? t('zone_center') : t('zone_outer')) + ')</i> — ' + t(b.descKey) + ' <span style="color:#a88;font-size:12px">(' + (b.cost.regolith||0) + ' ' + t('regolith_short') + ', ' + (b.cost.helium||0) + ' ' + t('helium_short') + ', ' + (b.cost.energy||0) + ' ' + t('energy_short') + ')</span><br>';
-        });
-        html += '</p>';
-        html += '<p style="margin-bottom:10px;"><b style="color:#00e5ff">' + t('info_regimes') + ':</b><br>';
-        Object.keys(REGIMES).forEach(id => {
-          if (id === 'anarchy') return;
-          const r = REGIMES[id];
-          html += '• <b>' + r.name[currentLang] + '</b> <i style="color:#666;font-size:12px">(' + r.subtitle[currentLang] + ')</i> — <span style="color:#7fff7f">' + t('regime_pros') + ': ' + r.pros[currentLang].replace(/\n/g,'; ') + '</span>; <span style="color:#ff6644">' + t('regime_cons') + ': ' + r.cons[currentLang].replace(/\n/g,'; ') + '</span> <span style="color:#ff44ff;font-size:12px">(' + r.ppCost + ' ' + t('po') + ')</span><br>';
-        });
-        const an = REGIMES.anarchy;
-        html += '• <b style="color:#ff4444">' + an.name[currentLang] + '</b> <i style="color:#666;font-size:12px">(' + an.subtitle[currentLang] + ')</i> — <span style="color:#7fff7f">' + t('regime_pros') + ': ' + an.pros[currentLang].replace(/\n/g,'; ') + '</span>; <span style="color:#ff6644">' + t('regime_cons') + ': ' + an.cons[currentLang].replace(/\n/g,'; ') + '</span><br>';
-        html += '</p>';
-        html += '<p style="margin-bottom:10px;"><b style="color:#00e5ff">' + t('info_units_h') + ':</b><br>';
-        Object.keys(UNITS).forEach(id => { const u = UNITS[id]; html += '• <b>' + u.icon + ' ' + t(u.nameKey) + '</b> — ' + t(u.descKey) + '<br>'; });
-        html += '</p>';
-        html += '<p style="font-size:12px;color:#456;margin-top:12px;">' + t('info_offline') + '</p></div>';
-        c.innerHTML = html;
-      } else if (tab === 'settings') {
-        let html = '<div class="panel-title">' + t('settings_title') + '</div>';
-        html += '<div class="set-row"><div><div class="set-label">' + t('language') + '</div></div><div class="set-control"><button class="set-lang-btn ' + (currentLang==='ru'?'active':'') + '" data-lang="ru">RU</button><button class="set-lang-btn ' + (currentLang==='en'?'active':'') + '" data-lang="en">EN</button></div></div>';
-        html += '<div class="set-row"><div><div class="set-label">' + t('master_vol') + '</div><div class="set-desc">' + t('master_desc') + '</div></div><div class="set-control"><input type="range" class="set-slider" id="slider-master" min="0" max="100" value="' + (settings.master*100) + '"></div></div>';
-        html += '<div class="set-row"><div><div class="set-label">' + t('music') + '</div><div class="set-desc">' + t('music_desc') + '</div></div><div class="set-control"><div class="set-toggle ' + (settings.music?'on':'') + '" id="toggle-music"></div></div></div>';
-        html += '<div class="set-row"><div><div class="set-label">' + t('sfx') + '</div><div class="set-desc">' + t('sfx_desc') + '</div></div><div class="set-control"><div class="set-toggle ' + (settings.sfx?'on':'') + '" id="toggle-sfx"></div></div></div>';
-        html += '<div class="set-row"><div><div class="set-label">' + t('mute_all') + '</div><div class="set-desc">' + t('mute_desc') + '</div></div><div class="set-control"><div class="set-toggle ' + (settings.muted?'on':'') + '" id="toggle-mute"></div></div></div>';
-        c.innerHTML = html;
-        c.querySelectorAll('.set-lang-btn').forEach(btn => { btn.addEventListener('click', () => { currentLang = btn.dataset.lang; localStorage.setItem('luna_lang', currentLang); applyI18n(); sfxClick(); renderPanel('settings'); updateUI(); rebuildMarkers(); }); });
-        document.getElementById('slider-master').addEventListener('input', e => { settings.master = parseInt(e.target.value) / 100; applyAudioSettings(); saveSettings(); });
-        document.getElementById('toggle-music').addEventListener('click', () => { settings.music = !settings.music; applyAudioSettings(); saveSettings(); if (settings.music && !settings.muted && audioCtx) startMusic(); else if (!settings.music) stopMusic(); renderPanel('settings'); });
-        document.getElementById('toggle-sfx').addEventListener('click', () => { settings.sfx = !settings.sfx; applyAudioSettings(); saveSettings(); renderPanel('settings'); sfxClick(); });
-        document.getElementById('toggle-mute').addEventListener('click', () => { settings.muted = !settings.muted; applyAudioSettings(); saveSettings(); if (settings.muted) stopMusic(); else if (settings.music && audioCtx) startMusic(); renderPanel('settings'); });
-      }
-    }
-
-    function attackNearestAI() {
-      if (state.units.length < 3) { addLog(t('not_enough_units'), 'bad'); sfxError(); return; }
-      const nearest = getNearestAI()[0];
-      if (!nearest) { addLog(t('no_ai_near'), 'bad'); return; }
-      const ai = nearest.ai;
-      const atkMod = getMod('attackMod');
-      const myPower = state.units.reduce((s, u) => s + u.attack * atkMod, 0);
-      const aiDef = ai.units * 8 + ai.buildings * 5;
-      sfxCombat();
-      if (myPower > aiDef * 0.8) {
-        const lost = Math.floor(state.units.length * 0.3); state.units.splice(0, lost);
-        const lootMod = getMod('lootMod');
-        const gain = Math.floor((ai.regolith * 0.3 + ai.helium * 0.2) * lootMod);
-        state.regolith += gain; ai.buildings = Math.max(0, ai.buildings - 1); ai.units = Math.max(0, ai.units - 3);
-        addLog(t('victory') + gain + '. ' + (currentLang==='en'?'Units lost: ':'Потеряно: ') + lost, 'good');
-        rebuildMarkers();
-      } else {
-        const lost = Math.floor(state.units.length * 0.6); state.units.splice(0, lost);
-        addLog(t('defeat') + lost, 'bad');
-      }
-      updateUI();
-    }
-
-    // === ГЛАВНЫЙ ЦИКЛ ===
-    let lastTime = performance.now();
-    const clock = new THREE.Clock();
-    const earthRotSpeed = 0.000476, moonRotSpeed = earthRotSpeed * 0.95;
-    function animate() {
-      requestAnimationFrame(animate);
-      const now = performance.now();
-      const dt = Math.min(0.1, (now - lastTime) / 1000);
-      lastTime = now;
-      const t2 = clock.getElapsedTime();
-      gameTick(dt);
-      earthAtmoMat.uniforms.uTime.value = t2;
-      markers.forEach((m, i) => { const pulse = 1 + Math.sin(t2 * 3 + i * 0.7) * 0.2; if (m.userData.glow) { m.userData.glow.scale.setScalar(pulse); m.userData.glow.material.opacity = 0.15 + Math.sin(t2 * 3 + i * 0.7) * 0.1; } });
-      const camDir = camera.position.clone().normalize();
-      bgSphere.rotation.y = -camDir.x * 0.04; bgSphere.rotation.x = camDir.y * 0.03; bgSphere.rotation.z = camDir.x * 0.015;
-      if (Date.now() - lastInteract > 30000) controls.autoRotate = true;
-      // === ВРАЩЕНИЕ С УЧЁТОМ ЗАМЕДЛЕНИЯ НА ДЕСКТОПЕ ===
-      if (controls.autoRotate) { moonGroup.rotation.y += moonRotSpeed * rotFactor; earthGroup.rotation.y += earthRotSpeed * rotFactor; }
-      updateLOD();
-      controls.update();
-      renderer.render(scene, camera);
-      if (Math.floor(t2 * 2) !== Math.floor((t2 - dt) * 2)) updateUI();
-    }
-
-    addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); renderer.setPixelRatio(Math.min(devicePixelRatio, isMobile ? 1.5 : 2)); });
-    addEventListener('beforeunload', saveGame);
-
-    applyI18n();
-    rebuildMarkers();
-    updateUI();
-    animate();
-    addLog(t('game_started'), 'good');
-  </script>
+<div id="loading"><div class="spinner"></div><div id="loading-text">Луна 2087: Новый рубеж</div><div id="loading-progress"><div id="loading-bar"></div></div></div>
+<div id="nowebgl"><h2>WebGL не поддерживается</h2><p style="margin-top:10px;color:#8ac;">Попробуйте другой браузер</p></div>
+<div id="topbar">
+<div id="logo"><div id="logo-icon"></div><div id="logo-text">Луна 2087: Новый рубеж</div></div>
+<div id="topbar-right">
+<div id="res-bar">
+<div class="res-cell regolith"><span class="res-label" data-i18n="regolith">Реголит</span><span class="res-value" id="r-regolith">0</span></div>
+<div class="res-cell helium"><span class="res-label" data-i18n="helium">Гелий-3</span><span class="res-value" id="r-helium">0</span></div>
+<div class="res-cell energy"><span class="res-label" data-i18n="energy">Энергия</span><span class="res-value" id="r-energy">0/0</span></div>
+<div class="res-cell pop"><span class="res-label" data-i18n="population">Население</span><span class="res-value" id="r-pop">0/0</span></div>
+<div class="res-cell pp"><span class="res-label" data-i18n="polpoints">Полит.оч.</span><span class="res-value" id="r-pp">0</span></div>
+<div class="res-cell logistics"><span class="res-label" data-i18n="logistics">Логист.</span><span class="res-value" id="r-logistics">0/0</span></div>
+</div>
+<button id="btn-settings">⚙</button>
+</div></div>
+<div id="ai-panel"><div id="ai-panel-title" data-i18n="ai_colony">Колонии ИИ</div><div id="ai-panel-info">23 ИИ-противника</div></div>
+<div id="debuff-bar"></div><div id="save-indicator">Сохранено</div><div id="log"></div>
+<div id="zoom-controls"><button class="zoom-btn" id="btn-zoom-in">+</button><button class="zoom-btn" id="btn-zoom-out">−</button><button class="zoom-btn" id="btn-reset" style="font-size:14px;">↻</button></div>
+<div id="earth-panel"><div id="earth-panel-title" data-i18n="earth_status">Состояние Земли</div><div id="earth-panel-bar"><div id="earth-panel-fill"></div></div><div id="earth-panel-text" data-i18n="earth_desc">Атмосфера разрушена. Поверхность горит 52 года.</div></div>
+<div id="panel"><div id="panel-content"></div></div>
+<div id="tabs">
+<button class="tab-btn" data-tab="build"><span class="tab-icon">🏗</span><span data-i18n="tab_build">Стройка</span></button>
+<button class="tab-btn" data-tab="units"><span class="tab-icon">🪖</span><span data-i18n="tab_units">Войска</span></button>
+<button class="tab-btn" data-tab="politics"><span class="tab-icon">🏛</span><span data-i18n="tab_politics">Политика</span></button>
+<button class="tab-btn" data-tab="map"><span class="tab-icon">🗺</span><span data-i18n="tab_map">Карта</span></button>
+<button class="tab-btn" data-tab="info"><span class="tab-icon">ℹ</span><span data-i18n="tab_info">Инфо</span></button>
+</div>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
+<script type="module">
+import*as THREE from'three';import{OrbitControls}from'three/addons/controls/OrbitControls.js';
+const tc=document.createElement('canvas');if(!tc.getContext('webgl2')&&!tc.getContext('webgl')){document.getElementById('loading').style.display='none';document.getElementById('nowebgl').style.display='flex';throw new Error('No WebGL')}
+let ysdk=null;const sdkScript=document.createElement('script');sdkScript.src='https://yandex.ru/games/sdk/v1';sdkScript.onload=()=>{if(typeof YaGames!=='undefined')YaGames.init().then(s=>{ysdk=s;s.features.LoadingAPI?.ready()}).catch(e=>{})};sdkScript.onerror=()=>{};document.head.appendChild(sdkScript);
+const I18N_D="regolith|Реголит|Regolith~helium|Гелий-3|Helium-3~energy|Энергия|Energy~population|Население|Population~polpoints|Полит.оч.|Pol.Points~logistics|Логист.|Logist.~ai_colony|Колонии ИИ|AI Colonies~ai_info|23 ИИ-противника|23 AI opponents~earth_status|Состояние Земли|Earth Status~earth_desc|Атмосфера разрушена. Поверхность горит 52 года.|Atmosphere destroyed. Surface burning for 52 years.~tab_build|Стройка|Build~tab_units|Войска|Units~tab_politics|Политика|Politics~tab_map|Карта|Map~tab_info|Инфо|Info~saved|Сохранено|Saved~new_game|Новая игра|New Game~game_started|Луна 2087: Новый рубеж запущена|Luna 2087: New Frontier started~build_title|Строительство|Construction~unit_title|Военная система|Military~pol_title|Политический строй|Political Regime~map_title|Карта Луны|Lunar Map~your_units|Ваши юниты|Your units~attack_ai|⚔ Атаковать ближайшую ИИ-колонию|⚔ Attack nearest AI colony~not_enough_res|Недостаточно ресурсов|Not enough resources~not_enough_pop|Недостаточно населения|Not enough population~not_enough_log|Недостаточно очков логистики|Not enough logistics points~not_enough_pp|Недостаточно полит. очков|Not enough political points~already_building|Уже строится|Already building~started_build|Начато строительство: |Construction started: ~built_done|Построено: |Built: ~started_training|Начато обучение: |Training started: ~unit_ready|Юнит готов: |Unit ready: ~units_locked|⚠ Анархия: наём войск запрещён|⚠ Anarchy: unit production locked~not_enough_units|Недостаточно юнитов для атаки (нужно 3+)|Not enough units to attack (need 3+)~victory|Победа! Захвачено ресурсов: |Victory! Resources gained: ~defeat|Поражение! Потеряно юнитов: |Defeat! Units lost: ~instability|⚠ Политическая нестабильность: −50% добычи (|⚠ Political instability: −50% production (~min| мин)| min)~instability_end|Политическая нестабильность завершена|Political instability ended~regime_change|Смена строя: |Regime change: ~instability5|. Нестабильность 5 минут!|. Instability for 5 minutes!~regime_cost|Стоимость: |Cost: ~po| ПО| PP~active|АКТИВЕН|ACTIVE~reg_change_warning|Смена строя вызывает <b style=\"color:#ff4444\">анархию</b> на 5 минут: производство −50%, наём войск запрещён.|Changing regime causes <b style=\"color:#ff4444\">anarchy</b> for 5 minutes: production −50%, unit production locked.~regime_pros|Преимущества|Advantages~regime_cons|Недостатки|Disadvantages~pp_available|Полит. очки: |Political points: ~buildings_count|Зданий: |Buildings: ~units_count|Юнитов: |Units: ~play_time|Время игры: |Play time: ~current_regime|Текущий строй: |Current regime: ~save|💾 Сохранить|💾 Save~reset_confirm|Начать новую игру? Весь прогресс будет потерян.|Start a new game? All progress will be lost.~reset_btn|🗑 Новая игра|🗑 New Game~info_title|Луна 2087: Новый рубеж|Luna 2087: New Frontier~info_year|2087 год. Земля погибла — атмосфера горит уже 52 года. Последние люди выживают в колониях на Луне.|2087. Earth is dead — atmosphere burning for 52 years. Last humans survive in lunar colonies.~info_resources|Ресурсы|Resources~info_regimes|Строи|Regimes~info_units_h|Юниты|Units~info_territories|Территории|Territories~info_buildings|Постройки|Buildings~info_offline|Оффлайн-режим: 23 ИИ-колонии. Архитектура готова к переходу в онлайн (24 игрока).|Offline mode: 23 AI colonies. Architecture ready for online transition (24 players).~info_territory_desc|Луна разделена на 24 равных сектора. Ваша территория выделена голубой границей. ИИ-колонии отмечены красными маркерами.|Moon divided into 24 equal sectors. Your territory outlined in cyan. AI colonies marked red.~settings_title|Настройки|Settings~language|Язык|Language~master_vol|Общая громкость|Master Volume~master_desc|Общий уровень звука|Overall sound level~music|Фоновая музыка|Background Music~music_desc|Амбиент-музыка космоса|Space ambient music~sfx|Звуковые эффекты|Sound Effects~sfx_desc|Клики, постройка, бой|Clicks, building, combat~mute_all|Отключить весь звук|Mute All~mute_desc|Полная тишина|Complete silence~selected|Выбран: |Selected: ~ared_built|ИИ-колония построила: |AI colony built: ~ared_forces|ИИ-колония готовит войска|AI colony is training forces~ared_attack|⚠ Атака ИИ-колонии! Потери: |⚠ AI colony attack! Losses: ~ared_attack_lost|Потеряно юнитов: |Units lost: ~ared_repelled|Атака ИИ отбита!|AI attack repelled!~ared_unit| юнитов| units~ared_bldg|новое здание|new building~regolith_short|Рег|Reg~helium_short|Гел|Hel~energy_short|Эн|En~pop_short|Нас|Pop~time_short|с|s~attack|Атака|Attack~defense|Защита|Defense~zone_center|📍 Зона: у базы|📍 Zone: near base~zone_outer|📍 Зона: 50% до границы|📍 Zone: 50% to border~nearest_ai|Ближайшие ИИ-колонии|Nearest AI colonies~total_players|Всего игроков: 24 (вы + 23 ИИ)|Total players: 24 (you + 23 AI)~no_ai_near|Нет активных ИИ-колоний рядом|No active AI colonies nearby~b_dome|Жилой Купол|Dome~b_dome_d|Жильё для 100 человек. Генерирует Полит. очки. У базы.|Housing for 100 people. Generates Political points. Near base.~b_mine|Шахта|Mine~b_mine_d|Добыча реголита и гелия-3. Строится в середине территории.|Extracts regolith and helium-3. Built mid-territory.~b_beacon|Маяк Связи|Beacon~b_beacon_d|Расширяет радиус контроля. У базы.|Expands control radius. Near base.~b_outpost|Аванпост|Outpost~b_outpost_d|Укреплённая точка. Защита шахт. В середине территории.|Fortified point. Defends mines. Mid-territory.~b_lab|Лаборатория|Laboratory~b_lab_d|Искусственное выращивание населения. +10 населения/мин. У базы.|Artificial population growth. +10 pop/min. Near base.~b_turret|Турель|Turret~b_turret_d|Автоматическая защита. Ставится рядом с шахтами.|Automated defense. Built near mines.~u_builder|Строитель|Builder~u_builder_d|Возводит здания, ремонтирует технику. Беззащитен в бою.|Constructs buildings, repairs units. Defenseless in combat.~u_assault|Штурмовик|Assault~u_assault_d|Космопехота. Захват аванпостов и шлюзов.|Space marines. Captures outposts and gates.~u_dreadnought|Дредноут|Dreadnought~u_dreadnought_d|Тяжёлый лунный танк на Гелии-3. Огромный радиус. Жрёт энергию.|Heavy lunar tank on Helium-3. Huge range. Consumes energy.~reg_fascism|Фашизм|Fascism~reg_communism|Коммунизм|Communism~reg_democracy|Демократия|Democracy~reg_theocracy|Теократия|Theocracy~reg_technocracy|Технократия|Technocracy~reg_anarchy|Анархия|Anarchy~fascism_sub|Радикальный Милитаризм|Radical Militarism~communism_sub|Плановая Экономика|Planned Economy~democracy_sub|Свободный Рынок|Free Market~theocracy_sub|Фанатичная Оборона|Fanatical Defense~technocracy_sub|Научное Превосходство|Scientific Superiority~anarchy_sub|Штрафной Режим|Penalty Mode~fascism_p|+20% к урону\\n−20% к стоимости войск\\n+30% к трофеям|+20% damage\\n−20% unit cost\\n+30% loot~fascism_c|−30% к торговле\\n−15% к росту населения\\n+10% к содержанию армии|−30% trade\\n−15% pop growth\\n+10% army upkeep~communism_p|+20% к скорости строительства\\n+15% к добыче ресурсов|+20% build speed\\n+15% resource production~communism_c|−25% к налогам\\n−10% к шпионажу|−25% tax income\\n−10% espionage~democracy_p|+30% к налогам\\n+20% к складам торговли|+30% tax income\\n+20% trade warehouse~democracy_c|−15% к атаке\\n+10% к содержанию армии|−15% attack\\n+10% army upkeep~theocracy_p|+20% к защите войск\\n+25% к контршпионажу|+20% defense\\n+25% counter-espionage~theocracy_c|−15% к науке\\n−10% к тяжёлым ресурсам|−15% research\\n−10% heavy resources~technocracy_p|+35% к скорости науки\\n+15% к защите турелей|+35% research speed\\n+15% turret defense~technocracy_c|+20% к стоимости зданий\\n−15% к торговле|+20% building cost\\n−15% trade~anarchy_p|Переходное состояние при смене строя|Transitional state after regime change~anarchy_c|−50% ко всем ресурсам\\nНаём войск запрещён|−50% all production\\nUnit production locked";
+const I18N={ru:{},en:{}};I18N_D.split('~').forEach(l=>{let p=l.split('|');I18N.ru[p[0]]=p[1];I18N.en[p[0]]=p[2]});
+let currentLang=localStorage.getItem('luna_lang')||'ru';function t(k){return(I18N[currentLang][k])||(I18N.ru[k])||k}
+function applyI18n(){document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.getAttribute('data-i18n'))});document.getElementById('logo-text').textContent=currentLang==='en'?'Luna 2087: New Frontier':'Луна 2087: Новый рубеж'}
+let audioCtx=null,masterGain=null,musicGain=null,sfxGain=null,musicNodes=[];
+let settings=JSON.parse(localStorage.getItem('luna_settings')||'{"master":0.5,"music":true,"sfx":true,"muted":false}');
+function initAudio(){if(audioCtx)return;try{audioCtx=new(window.AudioContext||window.webkitAudioContext)();masterGain=audioCtx.createGain();musicGain=audioCtx.createGain();sfxGain=audioCtx.createGain();masterGain.connect(audioCtx.destination);musicGain.connect(masterGain);sfxGain.connect(masterGain);applyAudioSettings()}catch(e){}}
+function applyAudioSettings(){if(!audioCtx)return;let v=settings.muted?0:settings.master;masterGain.gain.setTargetAtTime(v,audioCtx.currentTime,.05);musicGain.gain.setTargetAtTime(settings.music&&!settings.muted?1:0,audioCtx.currentTime,.05);sfxGain.gain.setTargetAtTime(settings.sfx&&!settings.muted?1:0,audioCtx.currentTime,.05)}
+function saveSettings(){localStorage.setItem('luna_settings',JSON.stringify(settings))}
+function playSfx(f,d,t2){if(!audioCtx||!settings.sfx||settings.muted)return;t2=t2||'sine';let o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=t2;o.frequency.value=f;g.gain.setValueAtTime(.0001,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.3,audioCtx.currentTime+.01);g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+d);o.connect(g);g.connect(sfxGain);o.start();o.stop(audioCtx.currentTime+d)}
+let sfxClick=()=>playSfx(800,.05,'square'),sfxBuild=()=>{playSfx(400,.15,'sawtooth');setTimeout(()=>playSfx(600,.1,'sawtooth'),100)},sfxError=()=>playSfx(200,.1,'square'),sfxCombat=()=>{playSfx(150,.2,'sawtooth');setTimeout(()=>playSfx(80,.3,'sawtooth'),150)},sfxRegime=()=>{playSfx(300,.1,'triangle');setTimeout(()=>playSfx(500,.1,'triangle'),80);setTimeout(()=>playSfx(700,.15,'triangle'),160)};
+function startMusic(){if(!audioCtx||musicNodes.length>0)return;let bf=55;[1,1.5,2,2.5,3,4].forEach((m,i)=>{let o=audioCtx.createOscillator(),g=audioCtx.createGain(),lfo=audioCtx.createOscillator(),lg=audioCtx.createGain();o.type=i<2?'sine':'triangle';o.frequency.value=bf*m;lfo.frequency.value=.05+i*.02;lg.gain.value=.003;g.gain.value=.015/(i+1);lfo.connect(lg);lg.connect(g.gain);o.connect(g);g.connect(musicGain);o.start();lfo.start();musicNodes.push(o,lfo,g)})}
+function stopMusic(){musicNodes.forEach(n=>{try{if(n.stop)n.stop()}catch(e){}try{n.disconnect()}catch(e){}});musicNodes=[]}
+document.addEventListener('pointerdown',()=>{initAudio();if(settings.music&&!settings.muted)startMusic()},{once:true});
+const REGIMES={fascism:{name:{ru:'Фашизм',en:'Fascism'},subtitle:{ru:'Радикальный Милитаризм',en:'Radical Militarism'},ppCost:200,pros:{ru:'+20% к урону\n−20% к стоимости войск\n+30% к трофеям',en:'+20% damage\n−20% unit cost\n+30% loot'},cons:{ru:'−30% к торговле\n−15% к росту населения\n+10% к содержанию армии',en:'−30% trade\n−15% pop growth\n+10% army upkeep'},mods:{attackMod:1.2,unitCost:.8,lootMod:1.3,tradeIncome:.7,popGrowth:.85,unitUpkeep:1.1}},communism:{name:{ru:'Коммунизм',en:'Communism'},subtitle:{ru:'Плановая Экономика',en:'Planned Economy'},ppCost:200,pros:{ru:'+20% к скорости строительства\n+15% к добыче ресурсов',en:'+20% build speed\n+15% resource production'},cons:{ru:'−25% к налогам\n−10% к шпионажу',en:'−25% tax income\n−10% espionage'},mods:{buildSpeed:1.2,resourceRate:1.15,taxIncome:.75,spyEff:.9}},democracy:{name:{ru:'Демократия',en:'Democracy'},subtitle:{ru:'Свободный Рынок',en:'Free Market'},ppCost:200,pros:{ru:'+30% к налогам\n+20% к складам торговли',en:'+30% tax income\n+20% trade warehouse'},cons:{ru:'−15% к атаке\n+10% к содержанию армии',en:'−15% attack\n+10% army upkeep'},mods:{taxIncome:1.3,tradeWarehouse:1.2,attackMod:.85,unitUpkeep:1.1}},theocracy:{name:{ru:'Теократия',en:'Theocracy'},subtitle:{ru:'Фанатичная Оборона',en:'Fanatical Defense'},ppCost:200,pros:{ru:'+20% к защите войск\n+25% к контршпионажу',en:'+20% defense\n+25% counter-espionage'},cons:{ru:'−15% к науке\n−10% к тяжёлым ресурсам',en:'−15% research\n−10% heavy resources'},mods:{defenseMod:1.2,counterSpy:1.25,research:.85,heavyRes:.9}},technocracy:{name:{ru:'Технократия',en:'Technocracy'},subtitle:{ru:'Научное Превосходство',en:'Scientific Superiority'},ppCost:200,pros:{ru:'+35% к скорости науки\n+15% к защите турелей',en:'+35% research speed\n+15% turret defense'},cons:{ru:'+20% к стоимости зданий\n−15% к торговле',en:'+20% building cost\n−15% trade'},mods:{research:1.35,turretDefense:1.15,buildCost:1.2,tradeIncome:.85}},anarchy:{name:{ru:'Анархия',en:'Anarchy'},subtitle:{ru:'Штрафной Режим',en:'Penalty Mode'},ppCost:0,pros:{ru:'Переходное состояние при смене строя',en:'Transitional state after regime change'},cons:{ru:'−50% ко всем ресурсам\nНаём войск запрещён',en:'−50% all production\nUnit production locked'},mods:{globalProduction:.5,unitLock:true}}};
+const BUILDINGS={dome:{nameKey:'b_dome',descKey:'b_dome_d',cost:{regolith:50,helium:10,energy:5},buildTime:3e4,popCap:100,ppRate:.05,energyUse:5,icon:'⌂',category:'center'},mine:{nameKey:'b_mine',descKey:'b_mine_d',cost:{regolith:30,helium:5,energy:3},buildTime:2e4,regolithRate:.5,heliumRate:.15,energyUse:3,popNeed:5,icon:'⛏',category:'outer'},beacon:{nameKey:'b_beacon',descKey:'b_beacon_d',cost:{regolith:40,helium:5,energy:2},buildTime:15e3,controlRadius:1,energyUse:2,icon:'📡',category:'center'},outpost:{nameKey:'b_outpost',descKey:'b_outpost_d',cost:{regolith:60,helium:15,energy:4},buildTime:4e4,energyUse:4,defense:10,icon:'🛡',category:'outer'},lab:{nameKey:'b_lab',descKey:'b_lab_d',cost:{regolith:45,helium:20,energy:6},buildTime:35e3,popRate:.17,energyUse:6,popNeed:10,icon:'🔬',category:'center'},turret:{nameKey:'b_turret',descKey:'b_turret_d',cost:{regolith:35,helium:10,energy:3},buildTime:25e3,energyUse:3,defense:15,icon:'🔫',category:'outer'}};
+const UNITS={builder:{nameKey:'u_builder',descKey:'u_builder_d',cost:{regolith:20,energy:2},buildTime:15e3,popNeed:1,attack:1,defense:2,speed:1,type:'infantry',icon:'🔧'},assault:{nameKey:'u_assault',descKey:'u_assault_d',cost:{regolith:30,helium:5,energy:3},buildTime:2e4,popNeed:1,attack:8,defense:5,speed:1.5,type:'infantry',icon:'🔫'},dreadnought:{nameKey:'u_dreadnought',descKey:'u_dreadnought_d',cost:{regolith:80,helium:30,energy:8},buildTime:45e3,popNeed:3,attack:25,defense:20,speed:.5,type:'heavy',energyUpkeep:2,icon:'🚜'}};
+const PLAYER_COUNT=24;
+function generateTerritories(n){let t=[],ga=Math.PI*(3-Math.sqrt(5));for(let i=0;i<n;i++){let y=1-(i/(n-1))*2,r=Math.sqrt(1-y*y),th=ga*i,x=Math.cos(th)*r,z=Math.sin(th)*r;t.push({id:i,lat:Math.asin(y)*180/Math.PI,lon:Math.atan2(z,x)*180/Math.PI,radius:0})}t.forEach(t1=>{let mD=Infinity;t.forEach(t2=>{if(t1.id===t2.id)return;let p1=t1.lat*Math.PI/180,p2=t2.lat*Math.PI/180,dLat=(t2.lat-t1.lat)*Math.PI/180,dLon=(t2.lon-t1.lon)*Math.PI/180,a=Math.sin(dLat/2)**2+Math.cos(p1)*Math.cos(p2)*Math.sin(dLon/2)**2,d=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));if(d<mD)mD=d});t1.radius=mD/2});return t}
+const territories=generateTerritories(PLAYER_COUNT);
+function angularDistance(t1,t2){let p1=t1.lat*Math.PI/180,p2=t2.lat*Math.PI/180,dLat=(t2.lat-t1.lat)*Math.PI/180,dLon=(t2.lon-t1.lon)*Math.PI/180,a=Math.sin(dLat/2)**2+Math.cos(p1)*Math.cos(p2)*Math.sin(dLon/2)**2;return 2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))}
+function autoPlaceBuilding(bid,tIdx){let def=BUILDINGS[bid],ter=territories[tIdx],ang=Math.random()*Math.PI*2,df=def.category==='center'?(.05+Math.random()*.2):(.4+Math.random()*.2),dist=df*ter.radius,cLat=ter.lat*Math.PI/180,cLon=ter.lon*Math.PI/180,nLat=cLat+dist*Math.cos(ang),nLon=cLon+dist*Math.sin(ang)/Math.max(Math.cos(cLat),.01);return{lat:nLat*180/Math.PI,lon:nLon*180/Math.PI}}
+const SAVE_KEY='luna2087_frontier_v3_save';
+function initAIPlayers(){let p=[],rk=Object.keys(REGIMES).filter(k=>k!=='anarchy');for(let i=1;i<PLAYER_COUNT;i++)p.push({id:i,territoryIdx:i,regolith:30+Math.random()*30,helium:10+Math.random()*15,pop:20+Math.random()*20,popMax:60,buildings:1,units:0,aggression:.15+Math.random()*.25,regime:rk[Math.floor(Math.random()*rk.length)],active:true});return p}
+function defaultState(){return{regolith:100,helium:30,energy:200,energyMax:200,pop:50,popMax:100,politicalPoints:0,ppMax:1000,logistics:5,logisticsMax:5,regime:'technocracy',debuffEnd:0,debuffType:null,playerTerritoryIdx:0,buildings:[{id:'dome',lat:territories[0].lat,lon:territories[0].lon,built:true,progress:1}],units:[],buildQueue:[],aiPlayers:initAIPlayers(),gameTime:0}}
+let state=null;try{let sv=localStorage.getItem(SAVE_KEY);if(sv){state=JSON.parse(sv);let d=defaultState();for(let k in d)if(state[k]===undefined)state[k]=d[k];if(!state.aiPlayers||state.aiPlayers.length<23)state.aiPlayers=initAIPlayers()}else state=defaultState()}catch(e){state=defaultState()}
+function getMod(k){if(state.debuffEnd>Date.now()&&state.debuffType==='anarchy'){if(['globalProduction','regolithRate','heliumRate','popRate','ppRate'].includes(k))return .5;if(k==='unitLock')return true}let m=REGIMES[state.regime].mods||{};return m[k]!==undefined?m[k]:1}
+function isUnitLocked(){return state.debuffEnd>Date.now()&&state.debuffType==='anarchy'}
+function saveGame(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(state));let si=document.getElementById('save-indicator');si.textContent=t('saved');si.classList.add('show');setTimeout(()=>si.classList.remove('show'),1e3)}catch(e){}}
+function resetGame(){localStorage.removeItem(SAVE_KEY);state=defaultState();rebuildMarkers();addLog(t('new_game'),'good');updateUI()}
+function addLog(m,ty){let le=document.getElementById('log'),d=document.createElement('div');d.className='log-msg'+(ty?' '+ty:'');d.textContent=m;le.appendChild(d);setTimeout(()=>d.remove(),8e3);while(le.children.length>5)le.removeChild(le.firstChild)}
+function gameTick(dt){let reg=0,hel=0,eProd=0,eCons=0,pp=0,pop=0;state.buildings.forEach(b=>{if(!b.built)return;let d=BUILDINGS[b.id];if(d.regolithRate)reg+=d.regolithRate;if(d.heliumRate)hel+=d.heliumRate;if(d.ppRate)pp+=d.ppRate;if(d.popRate)pop+=d.popRate;if(d.energyUse)eCons+=d.energyUse;if(b.id==='dome')eProd+=2});reg*=getMod('resourceRate');hel*=getMod('heavyRes');pop*=getMod('popGrowth');if(state.debuffEnd>Date.now()&&state.debuffType==='anarchy'){reg*=.5;hel*=.5;pp*=.5;pop*=.5}eCons+=state.units.length*.5*getMod('unitUpkeep');state.energy=Math.min(state.energyMax,state.energy+eProd*dt*.1);state.energy=Math.max(0,state.energy-eCons*dt*.01);state.regolith=Math.min(9999,state.regolith+reg*dt);state.helium=Math.min(9999,state.helium+hel*dt);state.politicalPoints=Math.min(state.ppMax,state.politicalPoints+pp*dt);state.pop=Math.min(state.popMax,state.pop+pop*dt);state.logistics=Math.min(state.logisticsMax,state.logistics+dt*.01);state.buildQueue.forEach(q=>{q.remaining-=dt*1e3;if(q.remaining<=0){q.built=true;let pos=autoPlaceBuilding(q.id,state.playerTerritoryIdx);state.buildings.push({id:q.id,lat:pos.lat,lon:pos.lon,built:true,progress:1});addLog(t('built_done')+t(BUILDINGS[q.id].nameKey),'good');sfxBuild();rebuildMarkers()}});state.buildQueue=state.buildQueue.filter(q=>q.remaining>0);aiTick(dt);if(state.debuffEnd<=Date.now()&&state.debuffType){state.debuffType=null;addLog(t('instability_end'),'good')}state.gameTime+=dt;if(state.gameTime%30<dt)saveGame()}
+function aiTick(dt){state.aiPlayers.forEach(ai=>{if(!ai.active)return;ai.regolith+=(.15+ai.buildings*.08)*dt;ai.helium+=(.04+ai.buildings*.015)*dt;ai.pop=Math.min(ai.popMax,ai.pop+.025*dt);if(Math.random()<8e-5*dt&&ai.buildings<15){ai.buildings++;ai.regolith-=30;if(Math.random()<.2)addLog(t('ared_built')+t('ared_bldg'),'warn')}if(Math.random()<6e-5*dt&&ai.units<20){ai.units++;if(Math.random()<.15)addLog(t('ared_forces'),'warn')}if(ai.units>=5&&Math.random()<ai.aggression*1.5e-5*dt){let af=Math.floor(ai.units*.6);ai.units-=af;let dm=getMod('defenseMod'),myDef=(state.units.reduce((s,u)=>s+u.defense,0)+state.buildings.reduce((s,b)=>s+(BUILDINGS[b.id]?.defense||0),0))*dm;if(af*8>myDef){addLog(t('ared_attack')+Math.floor(af*.3)+t('ared_unit'),'bad');sfxCombat();if(state.units.length>0){let lost=Math.min(state.units.length,Math.floor(af*.1));state.units.splice(0,lost);addLog(t('ared_attack_lost')+lost,'bad')}state.regolith=Math.max(0,state.regolith-20)}else addLog(t('ared_repelled'),'good')}if(ai.units>=8&&Math.random()<1e-5*dt){let tg=state.aiPlayers.find(a=>a.id!==ai.id&&a.active&&a.units<ai.units*.5);if(tg){let lost=Math.floor(ai.units*.2);ai.units-=lost;tg.units=Math.max(0,tg.units-lost)}}})}
+const isMobile=/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+const scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x01020a,.0025);
+const camera=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,.1,600);
+if(isMobile){camera.position.set(0,2.2,10.5);camera.fov=36}else{camera.position.set(0,1.2,7);camera.fov=42}
+camera.updateProjectionMatrix();
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,isMobile?1.5:2));renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.domElement.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%';document.body.appendChild(renderer.domElement);
+const texLoader=new THREE.TextureLoader(),loadingBar=document.getElementById('loading-bar');let texLoaded=0,loadingHidden=false;
+function onTexDone(){texLoaded++;if(loadingBar)loadingBar.style.width=Math.round(texLoaded/3*100)+'%';if(texLoaded>=3&&!loadingHidden){loadingHidden=true;if(loadingBar)loadingBar.style.width='100%';setTimeout(()=>{let ld=document.getElementById('loading');ld.style.opacity='0';setTimeout(()=>ld.style.display='none',600)},200)}}
+setTimeout(()=>{if(!loadingHidden){loadingHidden=true;if(loadingBar)loadingBar.style.width='100%';let ld=document.getElementById('loading');ld.style.opacity='0';setTimeout(()=>ld.style.display='none',600)}},12e3);
+const bgTex=texLoader.load('textures/milky_way.jpg',()=>onTexDone(),undefined,()=>onTexDone());bgTex.colorSpace=THREE.SRGBColorSpace;
+const bgMat=new THREE.ShaderMaterial({uniforms:{uTexture:{value:bgTex},uBrightness:{value:.35}},vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,fragmentShader:`uniform sampler2D uTexture;uniform float uBrightness;varying vec2 vUv;void main(){gl_FragColor=vec4(texture2D(uTexture,vUv).rgb*uBrightness,1.0);}`,side:THREE.BackSide,fog:false,depthWrite:false});
+const bgSphere=new THREE.Mesh(new THREE.SphereGeometry(300,24,24),bgMat);bgSphere.renderOrder=-1;scene.add(bgSphere);
+const sunPos=new THREE.Vector3(84,30.8,56),sunGroup=new THREE.Group();sunGroup.position.copy(sunPos);scene.add(sunGroup);sunGroup.add(new THREE.Mesh(new THREE.SphereGeometry(1.8,24,24),new THREE.MeshBasicMaterial({color:0xfff5dd,fog:false})));
+const EARTH_R=7.92*2.21*1.25,earthGroup=new THREE.Group();
+earthGroup.position.set(-19.745*1.44,-2.805*1.44,-40.645*1.44);
+earthGroup.rotation.set(.2,-.3,0);scene.add(earthGroup);
+const earthColorTex=texLoader.load('textures/earth_color.jpg',()=>onTexDone(),undefined,()=>onTexDone());earthColorTex.colorSpace=THREE.SRGBColorSpace;earthColorTex.anisotropy=isMobile?2:4;
+const earthToSun=sunPos.clone().sub(earthGroup.position).normalize(),earthToMoon=new THREE.Vector3(0,0,0).sub(earthGroup.position).normalize(),moonToEarth=earthGroup.position.clone().normalize();
+const earthMat=new THREE.ShaderMaterial({uniforms:{uLightDir:{value:earthToSun},uMoonDir:{value:earthToMoon},uTexture:{value:earthColorTex}},vertexShader:`varying vec3 vN;varying vec2 vUv;void main(){vN=normalize(mat3(modelMatrix)*normal);vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,fragmentShader:`uniform vec3 uLightDir;uniform vec3 uMoonDir;uniform sampler2D uTexture;varying vec3 vN;varying vec2 vUv;void main(){vec3 tc=texture2D(uTexture,vUv).rgb;float l=max(dot(normalize(vN),uLightDir),0.0);vec3 c=tc*(l*0.97+0.08);c*=0.679;c+=vec3(0.7,0.15,0.03)*l*0.0648;float ma=max(dot(normalize(vN),uMoonDir),0.0);c*=(1.0-smoothstep(0.86,0.98,ma)*l*0.68);gl_FragColor=vec4(c,1.0);}`});
+earthGroup.add(new THREE.Mesh(new THREE.SphereGeometry(EARTH_R,isMobile?48:96,isMobile?48:96),earthMat));
+const earthAtmoMat=new THREE.ShaderMaterial({uniforms:{uTime:{value:0}},vertexShader:`varying vec3 vN;void main(){vN=normalize(normalMatrix*normal);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,fragmentShader:`varying vec3 vN;void main(){float e=1.0-abs(dot(vN,vec3(0,0,1)));float g=pow(e,0.3)*0.135;gl_FragColor=vec4(vec3(0.25,0.55,1.0)*g,g*0.525);}`,side:THREE.BackSide,transparent:true,blending:THREE.AdditiveBlending,fog:false,depthWrite:false});
+earthGroup.add(new THREE.Mesh(new THREE.SphereGeometry(EARTH_R+.72,24,24),earthAtmoMat));
+let sP=new Float32Array(1500);for(let i=0;i<500;i++){let r=EARTH_R+.18+Math.random()*.84,ta=Math.random()*Math.PI*2,pa=Math.acos(2*Math.random()-1);sP[i*3]=r*Math.sin(pa)*Math.cos(ta);sP[i*3+1]=r*Math.sin(pa)*Math.sin(ta);sP[i*3+2]=r*Math.cos(pa)}let smokeGeo=new THREE.BufferGeometry();smokeGeo.setAttribute('position',new THREE.BufferAttribute(sP,3));earthGroup.add(new THREE.Points(smokeGeo,new THREE.PointsMaterial({color:0x553311,size:.2,transparent:true,opacity:.35,blending:THREE.AdditiveBlending,fog:false})));
+let dP=new Float32Array(300);for(let i=0;i<100;i++){let r=EARTH_R+1.2+Math.random()*2.4,ta=Math.random()*Math.PI*2,pa=Math.acos(2*Math.random()-1);dP[i*3]=r*Math.sin(pa)*Math.cos(ta);dP[i*3+1]=r*Math.sin(pa)*Math.sin(ta);dP[i*3+2]=r*Math.cos(pa)}let debrisGeo=new THREE.BufferGeometry();debrisGeo.setAttribute('position',new THREE.BufferAttribute(dP,3));earthGroup.add(new THREE.Points(debrisGeo,new THREE.PointsMaterial({color:0x886655,size:.06,transparent:true,opacity:.55,fog:false})));
+scene.add(new THREE.AmbientLight(0x223344,.5));const sunLight=new THREE.DirectionalLight(0xddeeff,1.3);sunLight.position.copy(sunPos);scene.add(sunLight);const eShine=new THREE.DirectionalLight(0xff4422,.15);eShine.position.copy(moonToEarth);scene.add(eShine);scene.add(new THREE.AmbientLight(0x332222,.25));
+function makeStars(n,minR,maxR,c,sz,op){let g=new THREE.BufferGeometry(),p=new Float32Array(n*3);for(let i=0;i<n;i++){let r=minR+Math.random()*(maxR-minR),ta=Math.random()*Math.PI*2,pa=Math.acos(2*Math.random()-1);p[i*3]=r*Math.sin(pa)*Math.cos(ta);p[i*3+1]=r*Math.sin(pa)*Math.sin(ta);p[i*3+2]=r*Math.cos(pa)}g.setAttribute('position',new THREE.BufferAttribute(p,3));return new THREE.Points(g,new THREE.PointsMaterial({color:c,size:sz,transparent:true,opacity:op,fog:false}))}
+scene.add(makeStars(isMobile?900:1800,100,200,0x8899cc,.14,.5));scene.add(makeStars(isMobile?150:300,80,120,0xff6633,.1,.25));
+const MOON_R=2.2,moonGroup=new THREE.Group();scene.add(moonGroup);const moonMat=new THREE.MeshStandardMaterial({color:0x888888,roughness:1,metalness:0});
+const LOD_LEVELS=isMobile?[{dist:20,segs:32},{dist:10,segs:64},{dist:4,segs:96},{dist:0,segs:128}]:[{dist:8,segs:48},{dist:3,segs:96},{dist:0,segs:128}];
+const lodGeos=LOD_LEVELS.map(l=>new THREE.SphereGeometry(MOON_R,l.segs,l.segs)),moonMesh=new THREE.Mesh(lodGeos[lodGeos.length-1],moonMat);moonGroup.add(moonMesh);let curLOD=lodGeos.length-1;
+function updateLOD(){let d=camera.position.length()-MOON_R;for(let i=0;i<LOD_LEVELS.length;i++)if(d>=LOD_LEVELS[i].dist){if(curLOD!==i){moonMesh.geometry=lodGeos[i];curLOD=i}return}}
+const moonTex=texLoader.load('textures/moon_color.jpg',()=>{moonMat.map=moonTex;moonMat.color.set(0xffffff);moonMat.needsUpdate=true;onTexDone()},undefined,()=>onTexDone());moonTex.colorSpace=THREE.SRGBColorSpace;moonTex.anisotropy=isMobile?2:8;moonTex.generateMipmaps=true;moonTex.minFilter=THREE.LinearMipmapLinearFilter;
+function latLonToVec3(lat,lon,r){let phi=(90-lat)*Math.PI/180,th=(lon+180)*Math.PI/180;return new THREE.Vector3(-r*Math.sin(phi)*Math.cos(th),r*Math.cos(phi),r*Math.sin(phi)*Math.sin(th))}
+const terLines=[];
+function createTerritoryBoundary(ter,c,op){let cv=latLonToVec3(ter.lat,ter.lon,MOON_R).normalize(),up=new THREE.Vector3(0,1,0);if(Math.abs(cv.dot(up))>.99)up.set(1,0,0);let rt=new THREE.Vector3().crossVectors(cv,up).normalize(),fwd=new THREE.Vector3().crossVectors(rt,cv).normalize(),pts=[],seg=64;for(let i=0;i<=seg;i++){let a=(i/seg)*Math.PI*2,off=rt.clone().multiplyScalar(Math.cos(a)*ter.radius).add(fwd.clone().multiplyScalar(Math.sin(a)*ter.radius));pts.push(cv.clone().add(off).normalize().multiplyScalar(MOON_R*1.01))}let g=new THREE.BufferGeometry().setFromPoints(pts),l=new THREE.Line(g,new THREE.LineBasicMaterial({color:c,transparent:true,opacity:op}));moonGroup.add(l);terLines.push(l);return l}
+createTerritoryBoundary(territories[0],0x00e5ff,.5);for(let i=1;i<PLAYER_COUNT;i++)createTerritoryBoundary(territories[i],0xff6633,.08);
+const markers=[],BUILDING_COLORS={dome:0x00ff88,mine:0xffaa44,beacon:0xff44ff,outpost:0x66aaff,lab:0x7fff7f,turret:0x44ffff};
+function rebuildMarkers(){markers.forEach(m=>{moonGroup.remove(m);if(m.userData.glow)moonGroup.remove(m.userData.glow)});markers.length=0;state.buildings.forEach(b=>{if(!b.built)return;let pos=latLonToVec3(b.lat,b.lon,MOON_R*1.02),col=BUILDING_COLORS[b.id]||0x00e5ff,isBase=b.id==='dome',m=new THREE.Mesh(new THREE.SphereGeometry(isBase?.08:.05,12,12),new THREE.MeshBasicMaterial({color:col}));m.position.copy(pos);m.userData={title:t(BUILDINGS[b.id].nameKey),cat:b.id};let gl=new THREE.Mesh(new THREE.SphereGeometry(isBase?.15:.11,12,12),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.25,blending:THREE.AdditiveBlending,depthWrite:false}));gl.position.copy(pos);m.userData.glow=gl;moonGroup.add(m);moonGroup.add(gl);markers.push(m)});state.aiPlayers.forEach(ai=>{if(!ai.active)return;let ter=territories[ai.territoryIdx],pos=latLonToVec3(ter.lat,ter.lon,MOON_R*1.02),m=new THREE.Mesh(new THREE.SphereGeometry(.04,8,8),new THREE.MeshBasicMaterial({color:0xff4444}));m.position.copy(pos);m.userData={title:'AI-'+ai.id,cat:'enemy'};let gl=new THREE.Mesh(new THREE.SphereGeometry(.08,8,8),new THREE.MeshBasicMaterial({color:0xff4444,transparent:true,opacity:.2,blending:THREE.AdditiveBlending,depthWrite:false}));gl.position.copy(pos);m.userData.glow=gl;moonGroup.add(m);moonGroup.add(gl);markers.push(m)})}
+const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();let pDown=null,pTime=0;
+renderer.domElement.addEventListener('pointerdown',e=>{pDown={x:e.clientX,y:e.clientY};pTime=Date.now()});
+renderer.domElement.addEventListener('pointerup',e=>{if(!pDown)return;let dx=e.clientX-pDown.x,dy=e.clientY-pDown.y;if(Math.sqrt(dx*dx+dy*dy)<8&&Date.now()-pTime<400){pointer.x=e.clientX/innerWidth*2-1;pointer.y=-(e.clientY/innerHeight)*2+1;raycaster.setFromCamera(pointer,camera);let hits=raycaster.intersectObjects(markers);if(hits.length>0){addLog(t('selected')+hits[0].object.userData.title);sfxClick()}}pDown=null});
+if(!isMobile)renderer.domElement.addEventListener('pointermove',e=>{if(e.buttons>0)return;pointer.x=e.clientX/innerWidth*2-1;pointer.y=-(e.clientY/innerHeight)*2+1;raycaster.setFromCamera(pointer,camera);renderer.domElement.style.cursor=raycaster.intersectObjects(markers).length>0?'pointer':'grab'});
+const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=.07;controls.minDistance=3.5;controls.maxDistance=isMobile?28:14;controls.enablePan=false;controls.rotateSpeed=.55;
+const rotFactor=isMobile?1:.1632;controls.autoRotate=true;controls.autoRotateSpeed=.35*rotFactor;let lastInteract=Date.now();
+renderer.domElement.addEventListener('pointerdown',()=>{controls.autoRotate=false;lastInteract=Date.now()});
+renderer.domElement.addEventListener('touchstart',()=>{controls.autoRotate=false;lastInteract=Date.now()},{passive:true});
+document.getElementById('btn-zoom-in').addEventListener('click',()=>{sfxClick();let d=camera.position.length();camera.position.multiplyScalar(Math.max(controls.minDistance,d-(isMobile?2.4:1.6))/d);controls.update()});
+document.getElementById('btn-zoom-out').addEventListener('click',()=>{sfxClick();let d=camera.position.length();camera.position.multiplyScalar(Math.min(controls.maxDistance,d+(isMobile?2.4:1.6))/d);controls.update()});
+document.getElementById('btn-reset').addEventListener('click',()=>{sfxClick();let btn=document.getElementById('btn-reset');btn.style.transition='transform .6s ease';btn.style.transform='rotate(360deg)';setTimeout(()=>{btn.style.transition='none';btn.style.transform='rotate(0deg)'},600);controls.autoRotate=true;lastInteract=Date.now()});
+function canAfford(c){let cm=getMod('buildCost');for(let k in c)if(state[k]===undefined||state[k]<Math.ceil(c[k]*cm))return false;return true}
+function spendCost(c){let cm=getMod('buildCost');for(let k in c)state[k]-=Math.ceil(c[k]*cm)}
+function getUnitCost(c){let cm=getMod('unitCost'),r={};for(let k in c)r[k]=Math.ceil(c[k]*cm);return r}
+function canAffordUnit(c){let u=getUnitCost(c);for(let k in u)if(state[k]===undefined||state[k]<u[k])return false;return true}
+function spendUnitCost(c){let u=getUnitCost(c);for(let k in c)state[k]-=u[k]}
+function fmtNum(n){return n>=1000?(n/1000).toFixed(1)+'к':Math.floor(n).toString()}
+function getNearestAI(){let myT=territories[0];return state.aiPlayers.filter(a=>a.active).map(a=>({ai:a,dist:angularDistance(myT,territories[a.territoryIdx])})).sort((a,b)=>a.dist-b.dist)}
+function updateUI(){document.getElementById('r-regolith').textContent=fmtNum(state.regolith);document.getElementById('r-helium').textContent=fmtNum(state.helium);let eUse=0;state.buildings.forEach(b=>{if(!b.built)return;let d=BUILDINGS[b.id];if(d.energyUse)eUse+=d.energyUse});eUse+=state.units.length*.5*getMod('unitUpkeep');document.getElementById('r-energy').textContent=Math.floor(state.energy)+'/'+state.energyMax;document.getElementById('r-energy').parentElement.classList.toggle('low',state.energy<eUse);document.getElementById('r-pop').textContent=Math.floor(state.pop)+'/'+state.popMax;document.getElementById('r-pp').textContent=Math.floor(state.politicalPoints);document.getElementById('r-logistics').textContent=Math.floor(state.logistics)+'/'+state.logisticsMax;let db=document.getElementById('debuff-bar');if(state.debuffEnd>Date.now()){db.textContent=t('instability')+Math.ceil((state.debuffEnd-Date.now())/6e4)+t('min');db.classList.add('show')}else db.classList.remove('show');let nr=getNearestAI().slice(0,3),info=nr.map(n=>'AI-'+n.ai.id+': '+n.ai.buildings+(currentLang==='en'?'b':'з')+'/'+n.ai.units+(currentLang==='en'?'u':'в')).join(' | ');document.getElementById('ai-panel-info').textContent=info||(currentLang==='en'?'No threats':'Нет угроз')}
+let activeTab=null;
+document.querySelectorAll('.tab-btn').forEach(btn=>{btn.addEventListener('click',()=>{sfxClick();let tab=btn.dataset.tab;if(activeTab===tab){document.getElementById('panel').classList.remove('show');btn.classList.remove('active');activeTab=null;return}document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');activeTab=tab;document.getElementById('panel').classList.add('show');renderPanel(tab)})});
+let settingsBtn=document.getElementById('btn-settings');settingsBtn.addEventListener('click',()=>{sfxClick();if(activeTab==='settings'){document.getElementById('panel').classList.remove('show');settingsBtn.classList.remove('active');activeTab=null;return}document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));settingsBtn.classList.add('active');activeTab='settings';document.getElementById('panel').classList.add('show');renderPanel('settings')});
+function renderPanel(tab){let c=document.getElementById('panel-content');
+if(tab==='build'){let h='<div class="panel-title">'+t('build_title')+'</div><div class="build-grid">';Object.keys(BUILDINGS).forEach(id=>{let b=BUILDINGS[id],aff=canAfford(b.cost),inQ=state.buildQueue.some(q=>q.id===id),zl=b.category==='center'?t('zone_center'):t('zone_outer'),ch='',ck={regolith:'r',helium:'h',energy:'e'},cm=getMod('buildCost');for(let k in b.cost)ch+='<span class="cost-'+ck[k]+'">'+Math.ceil(b.cost[k]*cm)+' '+t(k+'_short')+'</span>';h+='<div class="build-card '+(aff?'affordable':'unaffordable')+(inQ?' building':'')+'" data-build="'+id+'"><div class="build-name">'+b.icon+' '+t(b.nameKey)+'</div><div class="build-desc">'+t(b.descKey)+'</div><div class="build-cost">'+ch+' <span class="cost-l">⏱'+Math.ceil(b.buildTime/1e3)+t('time_short')+'</span></div><div class="build-zone">'+zl+'</div>'+(inQ?'<div class="build-timer"><div class="build-timer-fill" style="width:50%"></div></div>':'')+'</div>'});h+='</div>';c.innerHTML=h;c.querySelectorAll('.build-card').forEach(card=>{card.addEventListener('click',()=>{let id=card.dataset.build,b=BUILDINGS[id];if(!canAfford(b.cost)){addLog(t('not_enough_res'),'bad');sfxError();return}if(state.buildQueue.some(q=>q.id===id)){addLog(t('already_building'),'warn');return}if(state.logistics<1){addLog(t('not_enough_log'),'bad');sfxError();return}spendCost(b.cost);state.logistics--;let sm=getMod('buildSpeed');state.buildQueue.push({id,remaining:b.buildTime/sm,built:false});addLog(t('started_build')+t(b.nameKey),'good');sfxBuild();renderPanel('build')})})}
+else if(tab==='units'){let locked=isUnitLocked(),h='<div class="panel-title">'+t('unit_title')+'</div>';if(locked)h+='<div style="margin-bottom:8px;font-size:13px;color:#ff4444;">'+t('units_locked')+'</div>';h+='<div style="margin-bottom:8px;font-size:13px;color:#789;">'+t('your_units')+': '+state.units.length+'</div><div class="unit-grid">';Object.keys(UNITS).forEach(id=>{let u=UNITS[id],aff=canAffordUnit(u.cost),cls=locked?'locked':(aff?'affordable':'unaffordable'),ch='',ck={regolith:'r',helium:'h',energy:'e'},uc=getUnitCost(u.cost);for(let k in uc)ch+='<span class="cost-'+ck[k]+'">'+uc[k]+' '+t(k+'_short')+'</span>';h+='<div class="unit-card '+cls+'" data-unit="'+id+'"><div class="unit-name">'+u.icon+' '+t(u.nameKey)+'</div><div class="unit-desc">'+t(u.descKey)+'</div><div class="unit-stats"><div class="unit-stat"><span class="val">'+u.attack+'</span>'+t('attack')+'</div><div class="unit-stat"><span class="val">'+u.defense+'</span>'+t('defense')+'</div></div><div class="build-cost">'+ch+' <span class="cost-p">👥'+u.popNeed+'</span></div></div>'});h+='</div>';h+='<div style="margin-top:12px;font-size:13px;color:#789;line-height:1.4;"><b style="color:#ff6644">'+(currentLang==='en'?'Attack:':'Атака:')+'</b><br><button id="btn-attack" style="margin-top:8px;padding:8px 16px;background:rgba(255,60,60,.15);border:1px solid rgba(255,80,80,.3);color:#ff8866;border-radius:5px;cursor:pointer;font-family:inherit;font-size:14px;">'+t('attack_ai')+'</button></div>';c.innerHTML=h;if(!locked){c.querySelectorAll('.unit-card').forEach(card=>{card.addEventListener('click',()=>{let id=card.dataset.unit,u=UNITS[id];if(!canAffordUnit(u.cost)){addLog(t('not_enough_res'),'bad');sfxError();return}let popUsed=state.units.reduce((s,un)=>s+(UNITS[un.id]?.popNeed||0),0);if(state.pop<u.popNeed+popUsed){addLog(t('not_enough_pop'),'bad');sfxError();return}spendUnitCost(u.cost);let sm=getMod('buildSpeed');setTimeout(()=>{state.units.push({id,hp:u.defense*2,attack:u.attack,defense:u.defense});addLog(t('unit_ready')+t(u.nameKey),'good');sfxBuild();updateUI()},u.buildTime/sm);addLog(t('started_training')+t(u.nameKey),'good');sfxClick();renderPanel('units')})})}document.getElementById('btn-attack')?.addEventListener('click',()=>{sfxClick();attackNearestAI()})}
+else if(tab==='politics'){let h='<div class="panel-title">'+t('pol_title')+'</div>';h+='<div style="margin-bottom:10px;font-size:13px;color:#789;">'+t('pp_available')+'<b style="color:#ff44ff">'+Math.floor(state.politicalPoints)+'</b> / '+state.ppMax+'</div><div class="pol-grid">';Object.keys(REGIMES).forEach(id=>{if(id==='anarchy')return;let r=REGIMES[id],isCur=state.regime===id,cc=!isCur&&state.politicalPoints>=r.ppCost,cls=isCur?'current':cc?'':'unaffordable';h+='<div class="pol-card '+cls+'" data-regime="'+id+'" data-active-label="'+t('active')+'"><div class="pol-name">'+r.name[currentLang]+'</div><div style="font-size:11px;color:#888;margin-bottom:5px;">'+r.subtitle[currentLang]+'</div><div class="pol-pros">'+r.pros[currentLang].replace(/\n/g,'<br>')+'</div><div class="pol-cons">'+r.cons[currentLang].replace(/\n/g,'<br>')+'</div>'+(isCur?'':'<div class="pp-cost">'+t('regime_cost')+r.ppCost+t('po')+'</div>')+'</div>'});h+='</div>';if(state.debuffEnd>Date.now()&&state.debuffType==='anarchy'){h+='<div class="pol-card anarchy" style="margin-top:10px;"><div class="pol-name" style="color:#ff4444;">'+REGIMES.anarchy.name[currentLang]+'</div><div style="font-size:11px;color:#888;margin-bottom:5px;">'+REGIMES.anarchy.subtitle[currentLang]+'</div><div class="pol-pros">'+REGIMES.anarchy.pros[currentLang].replace(/\n/g,'<br>')+'</div><div class="pol-cons">'+REGIMES.anarchy.cons[currentLang].replace(/\n/g,'<br>')+'</div></div>'}h+='<div style="margin-top:12px;font-size:13px;color:#789;line-height:1.4;">'+t('reg_change_warning')+'</div>';c.innerHTML=h;c.querySelectorAll('.pol-card[data-regime]').forEach(card=>{card.addEventListener('click',()=>{let id=card.dataset.regime;if(id===state.regime)return;let r=REGIMES[id];if(state.politicalPoints<r.ppCost){addLog(t('not_enough_pp'),'bad');sfxError();return}state.politicalPoints-=r.ppCost;state.regime=id;state.debuffEnd=Date.now()+3e5;state.debuffType='anarchy';addLog(t('regime_change')+r.name[currentLang]+t('instability5'),'warn');sfxRegime();renderPanel('politics')})})}
+else if(tab==='map'){let h='<div class="panel-title">'+t('map_title')+'</div><div style="font-size:13px;color:#789;line-height:1.6;">';h+='<div style="margin-bottom:8px;">'+t('buildings_count')+'<b style="color:#00e5ff">'+state.buildings.filter(b=>b.built).length+'</b></div>';h+='<div style="margin-bottom:8px;">'+t('units_count')+'<b style="color:#ff8844">'+state.units.length+'</b></div>';h+='<div style="margin-bottom:8px;">'+t('play_time')+'<b style="color:#00e5ff">'+Math.floor(state.gameTime/60)+t('min')+'</b></div>';h+='<div style="margin-bottom:8px;">'+t('current_regime')+'<b style="color:#ff44ff">'+REGIMES[state.regime].name[currentLang]+'</b></div>';h+='<div style="margin-bottom:12px;">'+t('total_players')+'</div></div>';let nr=getNearestAI().slice(0,8);h+='<div style="font-size:13px;color:#ff6644;font-weight:600;margin-bottom:6px;">'+t('nearest_ai')+'</div><div class="ai-list">';if(nr.length===0)h+='<div class="ai-row">'+t('no_ai_near')+'</div>';else nr.forEach(n=>{let dd=(n.dist*180/Math.PI).toFixed(1);h+='<div class="ai-row'+(n.dist<territories[0].radius*1.5?' near':'')+'"><span class="ai-row-name">AI-'+n.ai.id+' ('+REGIMES[n.ai.regime].name[currentLang]+')</span><span class="ai-row-stats">'+n.ai.buildings+(currentLang==='en'?'b':'з')+' / '+n.ai.units+(currentLang==='en'?'u':'в')+' / '+dd+'°</span></div>'});h+='</div>';h+='<div style="margin-top:12px;"><button id="btn-save" style="padding:10px 16px;background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.25);color:#00e5ff;border-radius:5px;cursor:pointer;font-family:inherit;font-size:14px;margin-right:8px;">'+t('save')+'</button><button id="btn-new-game" style="padding:10px 16px;background:rgba(255,60,60,.1);border:1px solid rgba(255,80,80,.25);color:#ff6666;border-radius:5px;cursor:pointer;font-family:inherit;font-size:14px;">'+t('reset_btn')+'</button></div>';c.innerHTML=h;document.getElementById('btn-save')?.addEventListener('click',()=>{sfxClick();saveGame();addLog(t('saved'),'good')});document.getElementById('btn-new-game')?.addEventListener('click',()=>{if(confirm(t('reset_confirm'))){resetGame();renderPanel('map')}})}
+else if(tab==='info'){let h='<div class="panel-title">'+t('info_title')+'</div><div style="font-size:14px;color:#c8e6ff;line-height:1.6;">';h+='<p style="margin-bottom:10px;">'+t('info_year')+'</p>';h+='<p style="margin-bottom:10px;">'+t('info_territories')+': '+t('info_territory_desc')+'</p>';h+='<p style="margin-bottom:10px;">'+t('info_buildings')+':<br>';Object.keys(BUILDINGS).forEach(id=>{let b=BUILDINGS[id];h+='• '+b.icon+' '+t(b.nameKey)+' ('+(b.category==='center'?t('zone_center'):t('zone_outer'))+') — '+t(b.descKey)+' ('+(b.cost.regolith||0)+' '+t('regolith_short')+', '+(b.cost.helium||0)+' '+t('helium_short')+', '+(b.cost.energy||0)+' '+t('energy_short')+')<br>'});h+='</p><p style="margin-bottom:10px;">'+t('info_regimes')+':<br>';Object.keys(REGIMES).forEach(id=>{if(id==='anarchy')return;let r=REGIMES[id];h+='• '+r.name[currentLang]+' ('+r.subtitle[currentLang]+') — '+t('regime_pros')+': '+r.pros[currentLang].replace(/\n/g,'; ')+'; '+t('regime_cons')+': '+r.cons[currentLang].replace(/\n/g,'; ')+' ('+r.ppCost+' '+t('po')+')<br>'});let an=REGIMES.anarchy;h+='• '+an.name[currentLang]+' ('+an.subtitle[currentLang]+') — '+t('regime_pros')+': '+an.pros[currentLang].replace(/\n/g,'; ')+'; '+t('regime_cons')+': '+an.cons[currentLang].replace(/\n/g,'; ')+'<br>';h+='</p><p style="margin-bottom:10px;">'+t('info_units_h')+':<br>';Object.keys(UNITS).forEach(id=>{let u=UNITS[id];h+='• '+u.icon+' '+t(u.nameKey)+' — '+t(u.descKey)+'<br>'});h+='</p><p style="font-size:12px;margin-top:12px;">'+t('info_offline')+'</p></div>';c.innerHTML=h}
+else if(tab==='settings'){let h='<div class="panel-title">'+t('settings_title')+'</div>';h+='<div class="set-row"><div><div class="set-label">'+t('language')+'</div></div><div class="set-control"><button class="set-lang-btn '+(currentLang==='ru'?'active':'')+'" data-lang="ru">RU</button><button class="set-lang-btn '+(currentLang==='en'?'active':'')+'" data-lang="en">EN</button></div></div>';h+='<div class="set-row"><div><div class="set-label">'+t('master_vol')+'</div><div class="set-desc">'+t('master_desc')+'</div></div><div class="set-control"><input type="range" class="set-slider" id="slider-master" min="0" max="100" value="'+(settings.master*100)+'"></div></div>';h+='<div class="set-row"><div><div class="set-label">'+t('music')+'</div><div class="set-desc">'+t('music_desc')+'</div></div><div class="set-control"><div class="set-toggle '+(settings.music?'on':'')+'" id="toggle-music"></div></div></div>';h+='<div class="set-row"><div><div class="set-label">'+t('sfx')+'</div><div class="set-desc">'+t('sfx_desc')+'</div></div><div class="set-control"><div class="set-toggle '+(settings.sfx?'on':'')+'" id="toggle-sfx"></div></div></div>';h+='<div class="set-row"><div><div class="set-label">'+t('mute_all')+'</div><div class="set-desc">'+t('mute_desc')+'</div></div><div class="set-control"><div class="set-toggle '+(settings.muted?'on':'')+'" id="toggle-mute"></div></div></div>';c.innerHTML=h;c.querySelectorAll('.set-lang-btn').forEach(btn=>{btn.addEventListener('click',()=>{currentLang=btn.dataset.lang;localStorage.setItem('luna_lang',currentLang);applyI18n();sfxClick();renderPanel('settings');updateUI();rebuildMarkers()})});document.getElementById('slider-master').addEventListener('input',e=>{settings.master=parseInt(e.target.value)/100;applyAudioSettings();saveSettings()});document.getElementById('toggle-music').addEventListener('click',()=>{settings.music=!settings.music;applyAudioSettings();saveSettings();if(settings.music&&!settings.muted&&audioCtx)startMusic();else if(!settings.music)stopMusic();renderPanel('settings')});document.getElementById('toggle-sfx').addEventListener('click',()=>{settings.sfx=!settings.sfx;applyAudioSettings();saveSettings();renderPanel('settings');sfxClick()});document.getElementById('toggle-mute').addEventListener('click',()=>{settings.muted=!settings.muted;applyAudioSettings();saveSettings();if(settings.muted)stopMusic();else if(settings.music&&audioCtx)startMusic();renderPanel('settings')})}}
+function attackNearestAI(){if(state.units.length<3){addLog(t('not_enough_units'),'bad');sfxError();return}let nr=getNearestAI()[0];if(!nr){addLog(t('no_ai_near'),'bad');return}let ai=nr.ai,am=getMod('attackMod'),myPow=state.units.reduce((s,u)=>s+u.attack*am,0),aiDef=ai.units*8+ai.buildings*5;sfxCombat();if(myPow>aiDef*.8){let lost=Math.floor(state.units.length*.3);state.units.splice(0,lost);let lm=getMod('lootMod'),gain=Math.floor((ai.regolith*.3+ai.helium*.2)*lm);state.regolith+=gain;ai.buildings=Math.max(0,ai.buildings-1);ai.units=Math.max(0,ai.units-3);addLog(t('victory')+gain+'. '+(currentLang==='en'?'Units lost: ':'Потеряно: ')+lost,'good');rebuildMarkers()}else{let lost=Math.floor(state.units.length*.6);state.units.splice(0,lost);addLog(t('defeat')+lost,'bad')}updateUI()}
+let lastTime=performance.now(),clock=new THREE.Clock();const earthRotSpeed=476e-6,moonRotSpeed=earthRotSpeed*.95;
+function animate(){requestAnimationFrame(animate);let now=performance.now(),dt=Math.min(.1,(now-lastTime)/1e3);lastTime=now;let t2=clock.getElapsedTime();gameTick(dt);earthAtmoMat.uniforms.uTime.value=t2;markers.forEach((m,i)=>{let p=1+Math.sin(t2*3+i*.7)*.2;if(m.userData.glow){m.userData.glow.scale.setScalar(p);m.userData.glow.material.opacity=.15+Math.sin(t2*3+i*.7)*.1}});let cd=camera.position.clone().normalize();bgSphere.rotation.y=-cd.x*.04;bgSphere.rotation.x=cd.y*.03;bgSphere.rotation.z=cd.x*.015;if(Date.now()-lastInteract>3e4)controls.autoRotate=true;if(controls.autoRotate){moonGroup.rotation.y+=moonRotSpeed*rotFactor;earthGroup.rotation.y+=earthRotSpeed*rotFactor}updateLOD();controls.update();renderer.render(scene,camera);if(Math.floor(t2*2)!==Math.floor((t2-dt)*2))updateUI()}
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,isMobile?1.5:2))});addEventListener('beforeunload',saveGame);
+applyI18n();rebuildMarkers();updateUI();animate();addLog(t('game_started'),'good');
+</script>
 </body>
 </html>
