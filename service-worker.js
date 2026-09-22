@@ -1,7 +1,7 @@
 /* Луна 2087 — Service Worker (PWA / офлайн-WebView)
    Меняйте CACHE_VERSION при каждом обновлении игры — старые кеши будут удалены. */
-const CACHE_VERSION = 'luna2087-v3';
-const CACHE_NAME = 'luna2087-cache-' + CACHE_VERSION;
+const CACHE_VERSION = 'moon2087-v3';
+const CACHE_NAME = 'moon2087-cache-' + CACHE_VERSION;
 
 // Файлы, кешируемые при установке (все пути относительные)
 const PRECACHE = [
