@@ -1,22 +1,19 @@
 /* Луна 2087 — Service Worker (PWA / офлайн-WebView)
    Меняйте CACHE_VERSION при каждом обновлении игры — старые кеши будут удалены. */
-const CACHE_VERSION = 'moon2087-v3';
+const CACHE_VERSION = 'moon2087-v4';
 const CACHE_NAME = 'moon2087-cache-' + CACHE_VERSION;
 
-// Файлы, кешируемые при установке (все пути относительные)
+// Файлы, кешируемые при установке (все пути относительные).
+// Движок three.js теперь в одном модуле engine.module.js в корне — без import map.
 const PRECACHE = [
   './',
   './index.html',
+  './engine.module.js',
   './manifest.json',
   './OutThere.mp3',
-  './textures/earth_color.jpg',
-  './textures/milky_way.jpg',
-  './textures/moon_color.jpg',
-  './vendor/three.module.js',
-  './vendor/controls/OrbitControls.js',
-  './vendor/GLTFLoader.js',
-  './vendor/DRACOLoader.js',
-  './vendor/utils/BufferGeometryUtils.js'
+  './earth_color.jpg',
+  './milky_way.jpg',
+  './moon_color.jpg'
 ];
 
 // Install: кешируем основные ресурсы
