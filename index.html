@@ -1,0 +1,1653 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#111827">
+<title>Mars 2025 Reborn</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0b101b;
+    --panel: #141d2d;
+    --panel2: #1c2840;
+    --border: #2b3b55;
+    --text: #e9eef7;
+    --muted: #a5b4cc;
+    --accent: #ff795c;
+    --green: #76d6ac;
+    --red: #ff9999;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background:
+      radial-gradient(ellipse at top right, #43232a 0, transparent 45%),
+      var(--bg);
+    color: var(--text);
+    font: 15px/1.5 system-ui, sans-serif;
+    min-height: 100vh;
+  }
+
+  button, input, select { font: inherit; }
+
+  button, select, input {
+    color: var(--text);
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 10px 13px;
+  }
+
+  button {
+    cursor: pointer;
+    transition: background .15s, transform .15s;
+  }
+
+  button:hover:not(:disabled) {
+    background: #2b3d5f;
+    transform: translateY(-1px);
+  }
+
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  button:focus-visible, input:focus-visible, select:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  .primary {
+    background: #af442e;
+    border-color: #dc6147;
+  }
+
+  .primary:hover:not(:disabled) { background: #c55239; }
+  .danger { color: var(--red); }
+  .muted { color: var(--muted); }
+  .good { color: var(--green); }
+  .bad { color: var(--red); }
+  .small { font-size: 13px; }
+
+  .container { max-width: 1240px; margin: auto; padding: 24px; }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  h1 { margin: 0; font-size: 31px; letter-spacing: 1px; }
+  h2 { margin: 0 0 14px; font-size: 21px; }
+  h3 { margin: 0 0 8px; font-size: 18px; }
+  p { margin: 8px 0; }
+
+  .brand { display: flex; align-items: center; gap: 15px; }
+
+  .planet {
+    width: 55px;
+    height: 55px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 32% 27%, #ffb47a, #b74d35 48%, #471f23 80%);
+    box-shadow: 0 0 35px #ed654b33;
+  }
+
+  .badge {
+    border: 1px solid var(--border);
+    background: #ffffff06;
+    border-radius: 20px;
+    padding: 5px 11px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .panel, .card, .stat {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+  }
+
+  .panel { padding: 20px; margin-bottom: 18px; }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .stat { padding: 16px; }
+  .stat .label { color: var(--muted); font-size: 12px; }
+  .stat .value { font-size: 23px; font-weight: 700; margin-top: 5px; }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 265px 1fr;
+    gap: 18px;
+    align-items: start;
+  }
+
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 0;
+  }
+
+  .wrap { flex-wrap: wrap; }
+  .stack { display: grid; gap: 10px; }
+  .full { width: 100%; }
+
+  .tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 12px;
+  }
+
+  .tabs button { white-space: nowrap; }
+
+  .tabs button.active {
+    color: #ffd0c5;
+    background: #492c2e;
+    border-color: #a75142;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .card { padding: 18px; }
+  .card p { color: var(--muted); font-size: 14px; }
+  .card .actions { margin-top: 15px; display: flex; gap: 8px; }
+
+  .progress {
+    height: 8px;
+    background: #070d17;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .progress > span {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+  }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  .notice {
+    padding: 13px 16px;
+    background: #352820;
+    border: 1px solid #66513a;
+    border-radius: 10px;
+    color: #f2cfaa;
+    margin-bottom: 18px;
+    font-size: 14px;
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 11px 8px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 500; }
+  .table-wrap { overflow-x: auto; }
+
+  #journal { list-style: none; padding: 0; margin: 0; }
+  #journal li { padding: 11px 0; border-bottom: 1px solid var(--border); }
+  #journal time { display: block; color: var(--muted); font-size: 12px; }
+
+  #toast {
+    position: fixed;
+    bottom: 22px;
+    right: 22px;
+    max-width: min(440px, calc(100vw - 44px));
+    padding: 15px 20px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: #21354a;
+    box-shadow: 0 12px 45px #0008;
+    z-index: 20;
+  }
+
+  #toast[hidden] { display: none; }
+  footer { color: var(--muted); font-size: 12px; text-align: center; padding: 24px 0; }
+
+  @media (max-width: 1000px) {
+    .stats { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  @media (max-width: 720px) {
+    .container { padding: 14px; }
+    .layout { grid-template-columns: 1fr; }
+    .grid { grid-template-columns: 1fr; }
+    header { align-items: flex-start; }
+    header > .badge { display: none; }
+    h1 { font-size: 25px; }
+    .stat { padding: 12px; }
+    .stat .value { font-size: 19px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="brand">
+      <div class="planet" aria-hidden="true"></div>
+      <div>
+        <h1>MARS <span style="color:var(--accent)">2025</span> REBORN</h1>
+        <div class="muted small">Пошаговая стратегия на Марсе</div>
+      </div>
+    </div>
+    <span class="badge">Одиночная игра · локальное сохранение</span>
+  </header>
+
+  <div class="stats" id="resources"></div>
+
+  <div class="layout">
+    <aside>
+      <section class="panel">
+        <h2>Моя колония</h2>
+        <div class="row"><span>Ходы</span><b id="turns"></b></div>
+        <div class="progress"><span id="turnProgress"></span></div>
+        <div class="row"><span>Банк ходов</span><b id="bank"></b></div>
+        <button class="full" id="withdraw">Забрать ходы из банка</button>
+        <p class="small muted">+1 ход каждые 30 минут. До начисления: <span id="timer"></span></p>
+        <hr style="border:0;border-top:1px solid var(--border);margin:18px 0">
+        <div class="row"><span>Население</span><b id="population"></b></div>
+        <div class="row"><span>Жилые места</span><b id="capacity"></b></div>
+        <div class="row"><span>Рабочие</span><b id="workers"></b></div>
+        <div class="row"><span>Земля занята</span><b id="land"></b></div>
+        <div class="row"><span>Потрачено ходов</span><b id="spent"></b></div>
+      </section>
+
+      <section class="panel">
+        <h3>Экономические ходы</h3>
+        <p class="small muted">Каждый потраченный ход запускает производство и содержание.</p>
+        <div class="stack">
+          <button data-action="wait" data-count="1">Проработать 1 ход</button>
+          <button data-action="wait" data-count="10">Проработать 10 ходов</button>
+          <button data-action="wait" data-count="50">Проработать 50 ходов</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>Освоение территории</h3>
+        <p class="small muted">+10 земли за 500 кредитов, 20 энергии и 1 ход.</p>
+        <button class="full primary" data-action="explore" data-count="1">Освоить землю</button>
+      </section>
+
+      <section class="panel">
+        <h3>Сохранение</h3>
+        <p id="saveStatus">Автоматическое локальное сохранение</p>
+        <div class="row wrap">
+          <button id="exportSave">Скачать резервную копию</button>
+          <button class="danger" id="reset">Начать заново</button>
+        </div>
+        <label for="importSave" class="small muted">Восстановить резервную копию JSON:</label>
+        <input id="importSave" class="full" type="file" accept=".json,application/json">
+      </section>
+    </aside>
+
+    <main>
+      <nav class="tabs" aria-label="Разделы колонии">
+        <button class="active" data-tab="overview" aria-current="page">Обзор</button>
+        <button data-tab="buildings">Строительство</button>
+        <button data-tab="research">Исследования</button>
+        <button data-tab="army">Армия</button>
+        <button data-tab="market">Рынок</button>
+        <button data-tab="history">Журнал</button>
+        <button data-tab="espionage">Разведка</button>
+        <button data-tab="government">Правительство</button>
+      </nav>
+
+      <section id="overview" class="section active">
+        <div class="notice">
+          В офлайне начисляются только ходы. Ресурсы производятся при выполнении действий.
+        </div>
+        <div class="panel">
+          <h2>Прогноз на следующий ход</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Ресурс</th><th>Производство</th><th>Расход</th><th>Баланс</th></tr>
+              </thead>
+              <tbody id="forecast"></tbody>
+            </table>
+          </div>
+          <p class="small muted">
+            Прогноз не включает цену выбранного действия и показывает экономику при текущем населении.
+          </p>
+        </div>
+      </section>
+
+      <section id="buildings" class="section">
+        <div class="notice">
+          Одно здание занимает 1 землю и требует 1 ход. Новое здание начинает работать со следующего хода.
+        </div>
+        <div class="grid" id="buildingCards"></div>
+      </section>
+
+      <section id="research" class="section">
+        <div class="notice">
+          Технологии дают эффект по мере накопления очков.
+        </div>
+        <div class="grid" id="researchCards"></div>
+      </section>
+
+      <section id="army" class="section">
+        <div class="panel">
+          <h2>Гарнизон</h2>
+          <p>Армия увеличивает расходы колонии каждый экономический ход.</p>
+          <p class="muted small">Одна казарма обеспечивает размещение 25 единиц армии. Каждый юнит нанимается за 1 ход.</p>
+          <div class="row"><span>Численность / места</span><b id="armyCount"></b></div>
+          <div class="row"><span>Суммарная атака</span><b id="attack"></b></div>
+          <div class="row"><span>Суммарная защита</span><b id="defense"></b></div>
+        </div>
+        <div class="grid" id="unitCards"></div>
+      </section>
+
+      <section id="market" class="section">
+        <div class="panel">
+          <h2>Внутренний рынок</h2>
+          <p class="small muted">Правительство: <b id="govName">Монархия</b> · Комиссия: <b id="marketTax">6%</b></p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Товар</th><th>Покупка</th><th>Продажа</th><th>Действия</th></tr>
+              </thead>
+              <tbody id="marketTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="history" class="section">
+        <div class="panel">
+          <h2>Журнал событий</h2>
+          <p class="muted small">Последние 100 записей.</p>
+          <ul id="journal"></ul>
+        </div>
+      </section>
+
+      <section id="espionage" class="section">
+        <div class="panel">
+          <h2>Агентские операции</h2>
+          <p class="small muted">Операций сегодня: <span id="agentOpsCount">0</span> / 35</p>
+          <div class="stack">
+            <button data-action="agentOp" data-target="ai_1" data-op="reportIntel">Отчёт разведки</button>
+            <button data-action="agentOp" data-target="ai_1" data-op="sabotageIntel">Саботаж разведки</button>
+            <button data-action="agentOp" data-target="ai_1" data-op="stealTech">Экономический шпионаж</button>
+            <button data-action="agentOp" data-target="ai_1" data-op="inciteRiot">Подстрекательство к мятежу</button>
+            <button data-action="agentOp" data-target="ai_1" data-op="bombardBuildings">Бомбардировка построек</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="government" class="section">
+        <div class="panel">
+          <h2>Смена правительства</h2>
+          <p class="small muted">Текущее: <b id="currentGov">Монархия</b></p>
+          <div class="stack" id="govButtons"></div>
+          <p class="small bad">Смена не-монархического правительства уничтожит 14% инфраструктуры.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <footer>Mars 2025 Reborn · автономная игра · без сервера</footer>
+</div>
+
+<div id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+"use strict";
+
+/* -----------------------------------------------------------
+   Конфигурация тестового баланса.
+   Денежные и ресурсные величины хранятся в целых сотых.
+----------------------------------------------------------- */
+const SAVE_KEY = "mars2025-reborn-v1";
+const HOUR = 3600000;
+const MAX_LEVEL = 10;
+const MAX_VALUE = 200000000000; // 2 млрд в сотых
+const TURN_INTERVAL = 30 * 60 * 1000; // 30 минут на ход
+const MAX_TURNS = 80;
+const MAX_BANK = Math.floor(MAX_TURNS * 0.75); // 60
+const BONUS_12H = 3;
+const BONUS_18H = 6;
+
+const RESOURCE_NAMES = {
+  credits: "Кредиты",
+  ore: "Руда",
+  energy: "Энергия",
+  food: "Пища",
+  water: "Вода"
+};
+
+const BUILDINGS = {
+  tradeQuarter: {
+    name: "Торговый квартал", icon: "💰",
+    description: "Повышает доход с населения (налоги).",
+    cost: { credits: 200, ore: 50, energy: 20 },
+    buildCostMultiplier: true
+  },
+  habitat: {
+    name: "Жилой модуль", icon: "🏠",
+    description: "Увеличивает максимальное население на 100.",
+    cost: { credits: 150, ore: 45, energy: 10 },
+    buildCostMultiplier: true
+  },
+  factory: {
+    name: "Промышленный завод", icon: "🏭",
+    description: "Производит военные юниты. Бонус: у Коммунизма +35%.",
+    cost: { credits: 300, ore: 100, energy: 50 },
+    buildCostMultiplier: true
+  },
+  militaryDepot: {
+    name: "Военный склад", icon: "📦",
+    description: "Снижает содержание армии и цены на внутреннем рынке.",
+    cost: { credits: 250, ore: 80, energy: 30 },
+    buildCostMultiplier: true
+  },
+  lab: {
+    name: "Научная лаборатория", icon: "🔬",
+    description: "Даёт очки технологий за ход.",
+    cost: { credits: 350, ore: 100, energy: 30 },
+    buildCostMultiplier: true
+  },
+  farm: {
+    name: "Гидропонная ферма", icon: "🌱",
+    description: "Производит 5.3 единицы еды за ход. Бонус: у Фашизма +15%.",
+    cost: { credits: 140, ore: 40, energy: 10 },
+    buildCostMultiplier: true
+  },
+  waterWell: {
+    name: "Водяная скважина", icon: "💧",
+    description: "Производит 2 единицы воды за ход. У Фашизма +75%.",
+    cost: { credits: 120, ore: 35, energy: 10 },
+    buildCostMultiplier: true
+  },
+  constructionSite: {
+    name: "Строительная площадка", icon: "🏗",
+    description: "Даёт +1 постройку за ход. Строится за 1 ход. У Теократии +40%, у Диктатуры −30%.",
+    cost: { credits: 180, ore: 60, energy: 20 },
+    buildCostMultiplier: false
+  },
+  mine: {
+    name: "Рудная шахта", icon: "⛏",
+    description: "Производит 15 руды за ход.",
+    cost: { credits: 120, ore: 35, energy: 10 },
+    buildCostMultiplier: true
+  },
+  reactor: {
+    name: "Энергетическая станция", icon: "⚡",
+    description: "Производит 20 энергии за ход.",
+    cost: { credits: 180, ore: 65, energy: 10 },
+    buildCostMultiplier: true
+  },
+  barracks: {
+    name: "Казармы", icon: "🛡",
+    description: "Обеспечивает размещение 25 единиц армии.",
+    cost: { credits: 250, ore: 80, energy: 20 },
+    buildCostMultiplier: true
+  }
+};
+
+const TECHS = {
+  military: {
+    name: "Военные", maxEffect: 0.833,
+    description: "Дешевле армия на внутреннем рынке, меньше содержание"
+  },
+  medical: {
+    name: "Медицинские", maxEffect: 0.50,
+    description: "Меньше потери в атаках и обороне, лечение эпидемий"
+  },
+  business: {
+    name: "Бизнес", maxEffect: 1.80,
+    description: "Выше максимум налогов"
+  },
+  housing: {
+    name: "Жилищные", maxEffect: 1.80,
+    description: "Выше максимум населения"
+  },
+  agriculture: {
+    name: "Сельскохозяйственные", maxEffect: 2.30,
+    description: "Выше производство еды"
+  },
+  rocketry: {
+    name: "Ракетостроение", maxEffect: 0.05,
+    description: "Шанс производства ракет за ход"
+  },
+  strategy: {
+    name: "Военная стратегия", maxEffect: 1.40,
+    description: "Больше добыча с успешных атак"
+  },
+  weapons: {
+    name: "Оружие", maxEffect: 1.50,
+    description: "Множитель силы атаки"
+  },
+  industry: {
+    name: "Промышленные", maxEffect: 1.60,
+    description: "Больше производство юнитов"
+  },
+  espionage: {
+    name: "Агентура", maxEffect: 1.50,
+    description: "Множитель силы агентов, урон операций"
+  },
+  defense: {
+    name: "Противоракетная оборона", maxEffect: 0.90,
+    description: "Шанс перехвата вражеских ракет"
+  }
+};
+
+const UNITS = {
+  infantry: {
+    name: "Пехота", icon: "🪖",
+    attack: 10, defense: 15, upkeep: 2,
+    canAttack: true, canDefend: true,
+    cost: { credits: 80, ore: 10, energy: 5 }
+  },
+  aviation: {
+    name: "Авиация", icon: "✈️",
+    attack: 45, defense: 5, upkeep: 8,
+    canAttack: true, canDefend: false,
+    cost: { credits: 300, ore: 70, energy: 40 }
+  },
+  turret: {
+    name: "Турель", icon: "🎯",
+    attack: 20, defense: 40, upkeep: 3,
+    canAttack: false, canDefend: true,
+    cost: { credits: 200, ore: 50, energy: 25 }
+  },
+  tank: {
+    name: "Танк", icon: "🛡",
+    attack: 60, defense: 50, upkeep: 12,
+    canAttack: true, canDefend: true,
+    cost: { credits: 600, ore: 150, energy: 50 }
+  },
+  agent: {
+    name: "Агент", icon: "🕵️",
+    attack: 18, defense: 8, upkeep: 3,
+    canAttack: true, canDefend: true,
+    cost: { credits: 160, ore: 15, energy: 15 }
+  }
+};
+
+const MARKET_PRICES = {
+  food: { buy: 1.20, sell: 0.80 },
+  water: { buy: 1.10, sell: 0.70 },
+  infantry: { buy: 85, sell: 75 },
+  tank: { buy: 650, sell: 550 }
+};
+
+const GOVERNMENTS = {
+  monarchy: {
+    name: "Монархия",
+    bonus: "Нет бонусов",
+    isStart: true
+  },
+  republic: {
+    name: "Республика",
+    taxBonus: 0.10,
+    bonus: "+10% к налогам"
+  },
+  democracy: {
+    name: "Демократия",
+    marketTax: 0,
+    bonus: "0% комиссия на рынке"
+  },
+  communism: {
+    name: "Коммунизм",
+    industryBonus: 0.35,
+    marketCapBonus: 0.35,
+    marketTax: 0.10,
+    bonus: "+35% промышленность, +35% к продажам, 10% комиссия"
+  },
+  theocracy: {
+    name: "Теократия",
+    marketDiscount: 0.20,
+    buildSpeed: 1.40,
+    bonus: "−20% цены, +40% скорость стройки"
+  },
+  fascism: {
+    name: "Фашизм",
+    foodBonus: 0.15,
+    waterBonus: 0.75,
+    bonus: "+15% еда, +75% вода"
+  },
+  tyranny: {
+    name: "Тирания",
+    attackBonus: 0.25,
+    bonus: "Бонус к атаке"
+  },
+  dictatorship: {
+    name: "Диктатура",
+    buildSpeed: 0.70,
+    bonus: "−30% скорость стройки"
+  }
+};
+
+const AI_OPPONENT = {
+  id: "ai_1",
+  name: "Колония-7",
+  land: 50,
+  agents: 20,
+  techEspionage: 5,
+  readiness: 0.7
+};
+
+const $ = id => document.getElementById(id);
+const clone = value => JSON.parse(JSON.stringify(value));
+const money = value => Math.round(value * 100);
+const sum = object => Object.values(object).reduce((a, b) => a + b, 0);
+const number = value => new Intl.NumberFormat("ru-RU", {
+  maximumFractionDigits: 2
+}).format(value);
+const amount = value => number(value / 100);
+
+function initialState() {
+  const now = Date.now();
+  return {
+    version: 1,
+    resources: {
+      credits: money(5000),
+      ore: money(1200),
+      energy: money(800),
+      food: money(1000),
+      water: money(500)
+    },
+    buildings: {
+      tradeQuarter: 0,
+      habitat: 2,
+      factory: 0,
+      militaryDepot: 0,
+      lab: 0,
+      farm: 2,
+      waterWell: 1,
+      constructionSite: 0,
+      mine: 3,
+      reactor: 2,
+      barracks: 0
+    },
+    techPoints: {
+      military: 0,
+      medical: 0,
+      business: 0,
+      housing: 0,
+      agriculture: 0,
+      rocketry: 0,
+      strategy: 0,
+      weapons: 0,
+      industry: 0,
+      espionage: 0,
+      defense: 0
+    },
+    units: {
+      infantry: 100,
+      aviation: 0,
+      turret: 0,
+      tank: 0,
+      agent: 0
+    },
+    unitReadiness: {
+      infantry: 1.0,
+      aviation: 1.0,
+      turret: 1.0,
+      tank: 1.0,
+      agent: 1.0
+    },
+    population: 100,
+    land: 40,
+    turns: 0,
+    bank: 0,
+    spent: 0,
+    lastAccrual: now,
+    lastActivity: now,
+    lastLogin: now,
+    government: "monarchy",
+    lastRevolution: null,
+    market: {
+      lastTrade: 0,
+      tradeCount: 0,
+      dailyLimit: 100
+    },
+    agentOperations: {
+      dailyCount: 0,
+      lastReset: now
+    },
+    agentTargets: {
+      [AI_OPPONENT.id]: {
+        successStreak: 0,
+        failStreak: 0,
+        lastAttack: 0
+      }
+    },
+    attackHistory: {},
+    log: [{
+      time: now,
+      text: "Колония основана. Начато управление."
+    }]
+  };
+}
+
+function validInt(value, min = 0, max = MAX_VALUE) {
+  return Number.isSafeInteger(value) && value >= min && value <= max;
+}
+
+function validMap(object, keys, max = MAX_VALUE) {
+  return object && typeof object === "object" &&
+    keys.every(key => validInt(object[key], 0, max));
+}
+
+function validate(s) {
+  if (!s || s.version !== 1) return false;
+  if (!validMap(s.resources, Object.keys(RESOURCE_NAMES))) return false;
+  if (!validMap(s.buildings, Object.keys(BUILDINGS), 1000000)) return false;
+  if (!validMap(s.techPoints, Object.keys(TECHS), MAX_VALUE)) return false;
+  if (!validMap(s.units, Object.keys(UNITS), 25000000)) return false;
+
+  if (!validInt(s.population, 0, 100000000)) return false;
+  if (!validInt(s.land, 1, 10000000)) return false;
+  if (!validInt(s.turns, 0, MAX_TURNS) || !validInt(s.bank, 0, MAX_BANK)) return false;
+  if (!validInt(s.spent)) return false;
+
+  if (!validInt(s.lastAccrual, 0, 8640000000000000)) return false;
+  if (!validInt(s.lastActivity, 0, 8640000000000000)) return false;
+  if (!validInt(s.lastLogin, 0, 8640000000000000)) return false;
+  if (!validInt(s.lastRevolution, 0, 8640000000000000) && s.lastRevolution !== null) return false;
+
+  if (sum(s.buildings) > s.land) return false;
+  if (s.population > s.buildings.habitat * 100) return false;
+
+  if (typeof s.government !== "string" || !Object.hasOwn(GOVERNMENTS, s.government)) return false;
+  if (typeof s.market !== "object") return false;
+  if (typeof s.agentOperations !== "object") return false;
+  if (typeof s.agentTargets !== "object") return false;
+  if (typeof s.attackHistory !== "object") return false;
+
+  if (!validMap(s.unitReadiness, Object.keys(UNITS), 100)) return false;
+
+  return Array.isArray(s.log) && s.log.length <= 100 &&
+    s.log.every(entry =>
+      entry && validInt(entry.time, 0, 8640000000000000) &&
+      typeof entry.text === "string" && entry.text.length <= 1000
+    );
+}
+
+/* Загружаем только известные поля, не доверяя содержимому файла. */
+function sanitize(s) {
+  const clean = initialState();
+  for (const group of ["resources", "buildings", "techPoints", "units", "unitReadiness"]) {
+    for (const key of Object.keys(clean[group])) clean[group][key] = s[group][key];
+  }
+  for (const key of [
+    "population", "land", "turns", "bank", "spent",
+    "lastAccrual", "lastActivity", "lastLogin", "government", "lastRevolution"
+  ]) clean[key] = s[key];
+
+  clean.market = s.market;
+  clean.agentOperations = s.agentOperations;
+  clean.agentTargets = s.agentTargets;
+  clean.attackHistory = s.attackHistory;
+
+  clean.log = s.log.map(entry => ({ time: entry.time, text: entry.text }));
+  return clean;
+}
+
+let loadWarning = "";
+let state;
+
+try {
+  const raw = localStorage.getItem(SAVE_KEY);
+  if (raw) {
+    const parsed = JSON.parse(raw);
+    if (!validate(parsed)) throw new Error("Неверный формат");
+    state = sanitize(parsed);
+  } else {
+    state = initialState();
+  }
+} catch {
+  state = initialState();
+  loadWarning = "Сохранение недоступно или повреждено. Загружена новая колония.";
+}
+
+function save() {
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+    $("saveStatus").textContent =
+      "Сохранено в браузере: " + new Date().toLocaleTimeString("ru-RU");
+  } catch {
+    $("saveStatus").textContent =
+      "Браузер не разрешил сохранение. Скачай резервную копию перед закрытием.";
+  }
+}
+
+function addLog(s, text) {
+  s.log.unshift({ time: Date.now(), text });
+  s.log = s.log.slice(0, 100);
+}
+
+let toastTimeout;
+function toast(text) {
+  $("toast").textContent = text;
+  $("toast").hidden = false;
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => { $("toast").hidden = true; }, 5000);
+}
+
+/* -----------------------------------------------------------
+   Начисление ходов. Офлайн-производства нет.
+   Расчёт арифметический: не требуется цикл по пропущенным часам.
+----------------------------------------------------------- */
+function accrue() {
+  const now = Date.now();
+  const elapsed = now - state.lastAccrual;
+  const newTurns = Math.floor(elapsed / TURN_INTERVAL);
+  const cappedNewTurns = Math.min(newTurns, MAX_TURNS - state.turns);
+
+  state.turns += cappedNewTurns;
+  state.lastAccrual += newTurns * TURN_INTERVAL;
+
+  // Выдать бонус за офлайн только один раз после входа
+  if (state.lastLogin < state.lastActivity && state.lastLogin < state.lastAccrual) {
+    const offlineTime = state.lastAccrual - state.lastLogin;
+    let bonus = 0;
+    if (offlineTime >= 18 * HOUR) bonus = BONUS_18H;
+    else if (offlineTime >= 12 * HOUR) bonus = BONUS_12H;
+
+    if (bonus > 0) {
+      const bankGained = Math.min(MAX_BANK - state.bank, bonus);
+      state.bank += bankGained;
+      if (bankGained) {
+        addLog(state, `Бонус за офлайн: +${bankGained} ходов в банк.`);
+      }
+    }
+    state.lastLogin = state.lastAccrual;
+  }
+
+  if (cappedNewTurns) {
+    addLog(state, `Начислено: +${cappedNewTurns} ходов.`);
+  }
+  save();
+  return cappedNewTurns > 0;
+}
+
+/* -----------------------------------------------------------
+   Экономика.
+----------------------------------------------------------- */
+function workers(s) {
+  return Math.min(Math.floor(s.population / 2), s.buildings.mine ? s.buildings.mine * 10 : 0);
+}
+
+function getTotalArea(s) {
+  return s.land;
+}
+
+function getTechEffect(id, points, area) {
+  const tech = TECHS[id];
+  const requiredForMax = area * 10;
+  const progress = Math.min(1, points / requiredForMax);
+  return tech.maxEffect * progress;
+}
+
+function economy(s) {
+  const b = s.buildings;
+  const population = s.population;
+  const area = getTotalArea(s);
+  const gov = getGovernmentEffect();
+
+  const businessBonus = getTechEffect("business", s.techPoints.business, area);
+  const agricultureBonus = getTechEffect("agriculture", s.techPoints.agriculture, area);
+
+  const taxRate = 1.25 * (1 + (gov.taxBonus || 0)) * (1 + businessBonus);
+  const foodBase = 5.3;
+  const waterBase = 2;
+
+  const production = {
+    credits: money(population * taxRate),
+    ore: b.mine ? money(b.mine * 15) : 0,
+    energy: b.reactor ? money(b.reactor * 20) : 0,
+    food: money(b.farm * foodBase * (1 + (gov.foodBonus || 0)) * (1 + agricultureBonus)),
+    water: money(b.waterWell * waterBase * (1 + (gov.waterBonus || 0)))
+  };
+
+  const armyUpkeep = Object.entries(UNITS).reduce(
+    (total, [id, unit]) => total + s.units[id] * unit.upkeep, 0
+  );
+
+  const buildingUpkeep = sum(b);
+
+  const consumption = {
+    credits: money(buildingUpkeep + armyUpkeep),
+    ore: 0,
+    energy: money(b.farm * 2 + b.habitat + (b.lab || 0) * 3 + (b.barracks || 0) + (b.factory || 0) * 5),
+    food: money(population * 0.1),
+    water: money(population * 0.05)
+  };
+
+  return { production, consumption };
+}
+
+function pay(s, cost) {
+  for (const [id, value] of Object.entries(cost)) {
+    if (s.resources[id] < money(value)) {
+      throw new Error(`Не хватает ресурса «${RESOURCE_NAMES[id]}».`);
+    }
+  }
+  for (const [id, value] of Object.entries(cost)) {
+    s.resources[id] -= money(value);
+  }
+}
+
+function getBuildingCost(baseCost, totalBuildings) {
+  const multiplier = 1 + (totalBuildings * 0.01);
+  const result = {};
+  for (const [resource, value] of Object.entries(baseCost)) {
+    result[resource] = Math.round(value * multiplier * 100) / 100;
+  }
+  return result;
+}
+
+function economicTurn(s) {
+  if (s.turns < 1) throw new Error("Недостаточно ходов.");
+
+  const { production, consumption } = economy(s);
+
+  for (const id of Object.keys(RESOURCE_NAMES)) {
+    const next = s.resources[id] + production[id] - consumption[id];
+
+    if (next < 0) {
+      throw new Error(
+        `Экономический дефицит: ${RESOURCE_NAMES[id]}. ` +
+        "Действие отменено. Проверь прогноз на вкладке «Обзор»."
+      );
+    }
+
+    if (!validInt(next)) {
+      throw new Error("Достигнут технический предел ресурсов прототипа.");
+    }
+
+    s.resources[id] = next;
+  }
+
+  const capacity = s.buildings.habitat * 100;
+  if (s.population < capacity) {
+    s.population = Math.min(
+      capacity,
+      s.population + Math.max(1, Math.floor(s.population * .02))
+    );
+  }
+
+  // Восстановление боеготовности, если не было атаки
+  if (!s.lastAction || s.lastAction !== "attack") {
+    restoreReadiness(s);
+  }
+
+  // Начисление очков технологий
+  const labs = s.buildings.lab;
+  if (labs > 0) {
+    for (const techId of Object.keys(s.techPoints)) {
+      s.techPoints[techId] += labs * 10; // 10 очков за ход на лабораторию
+    }
+  }
+
+  s.turns--;
+  s.spent++;
+}
+function researchCost(s, id) {
+  const baseCost = {
+    credits: 500,
+    ore: 100,
+    energy: 80
+  };
+  const multiplier = 1 + (s.techPoints[id] / 1000); // Растёт с накопленными очками
+  return {
+    credits: Math.round(baseCost.credits * multiplier),
+    ore: Math.round(baseCost.ore * multiplier),
+    energy: Math.round(baseCost.energy * multiplier)
+  };
+}
+
+function getLootMultiplier(targetId) {
+  const history = state.attackHistory[targetId] || { count: 0 };
+  const base = 0.07;
+  const decay = 0.85;
+  return base * Math.pow(decay, history.count);
+}
+
+function applyReadinessPenalty(s, unitId) {
+  s.unitReadiness[unitId] = Math.max(0.5, s.unitReadiness[unitId] - 0.15);
+}
+
+function restoreReadiness(s) {
+  for (const id of Object.keys(s.unitReadiness)) {
+    s.unitReadiness[id] = Math.min(1.0, s.unitReadiness[id] + 0.1);
+  }
+}
+
+function resetDailyAgentOps() {
+  const now = Date.now();
+  const hours24 = 24 * 60 * 60 * 1000;
+  if (now - state.agentOperations.lastReset > hours24) {
+    state.agentOperations.dailyCount = 0;
+    state.agentOperations.lastReset = now;
+    save();
+  }
+}
+
+function getAgentPower(attackerAgents, targetLand, techBonus) {
+  return (attackerAgents / targetLand) * (1 + techBonus);
+}
+
+function getGovernment() {
+  return state.government || "monarchy";
+}
+
+function getGovernmentEffect() {
+  return GOVERNMENTS[state.government];
+}
+
+function getMarketTax() {
+  const gov = getGovernment();
+  switch (gov) {
+    case "democracy": return 0;
+    case "communism": return 0.10;
+    default: return 0.06;
+  }
+}
+
+/*
+  Все пакетные действия сначала рассчитываются на копии.
+  При ошибке исходное игровое состояние не изменяется.
+*/
+function perform(action, id, count = 1) {
+  accrue();
+
+  // Сброс дневного лимита агентских операций
+  resetDailyAgentOps();
+
+  // При первом действии после входа — сброс lastLogin
+  if (state.lastLogin < state.lastActivity) {
+    state.lastLogin = Date.now();
+    save();
+  }
+
+  try {
+    if (!validInt(count, 1, 50)) throw new Error("Неверное количество.");
+    if (state.turns < count) throw new Error("Недостаточно ходов.");
+
+    const next = clone(state);
+    let title = "";
+
+    for (let i = 0; i < count; i++) {
+      switch (action) {
+        case "wait":
+          economicTurn(next);
+          title = "Работа колонии";
+          break;
+
+        case "build":
+          if (!Object.hasOwn(BUILDINGS, id)) throw new Error("Неизвестное здание.");
+          if (sum(next.buildings) >= next.land) throw new Error("Нет свободной земли.");
+
+          const baseCost = BUILDINGS[id].cost;
+          const totalBuildings = sum(next.buildings);
+          const finalCost = BUILDINGS[id].buildCostMultiplier
+            ? getBuildingCost(baseCost, totalBuildings)
+            : baseCost;
+
+          pay(next, finalCost);
+          economicTurn(next);
+          next.buildings[id]++;
+          title = "Построено: " + BUILDINGS[id].name;
+          break;
+
+        case "recruit":
+          if (!Object.hasOwn(UNITS, id)) throw new Error("Неизвестный юнит.");
+          if (sum(next.units) >= next.buildings.barracks * 25) {
+            throw new Error("Недостаточно мест в казармах.");
+          }
+          pay(next, UNITS[id].cost);
+          economicTurn(next);
+          next.units[id]++;
+          title = "Нанят: " + UNITS[id].name;
+          break;
+
+        case "explore":
+          pay(next, { credits: 500, energy: 20 });
+          economicTurn(next);
+          next.land += 10;
+          title = "Освоено 10 земли";
+          break;
+
+        case "revolution":
+          if (!Object.hasOwn(GOVERNMENTS, id)) {
+            throw new Error("Неизвестная форма правления.");
+          }
+          if (next.government === id) {
+            throw new Error("Уже выбрано это правительство.");
+          }
+          if (next.government !== "monarchy") {
+            let totalLost = 0;
+            for (const building of Object.keys(next.buildings)) {
+              const loss = Math.max(1, Math.floor(next.buildings[building] * 0.14));
+              next.buildings[building] = Math.max(0, next.buildings[building] - loss);
+              totalLost += loss;
+            }
+            addLog(next, `Революция: снесено ${totalLost} зданий (−14% инфраструктуры).`);
+          }
+          next.government = id;
+          next.lastRevolution = Date.now();
+          title = `Смена правительства: ${GOVERNMENTS[id].name}`;
+          break;
+
+        default:
+          throw new Error("Неизвестное действие.");
+      }
+    }
+
+    next.lastActivity = Date.now();
+    addLog(next, `${title} ×${count}. Потрачено ходов: ${count}.`);
+
+    if (!validate(next)) throw new Error("Достигнут предел параметров прототипа.");
+
+    state = next;
+    save();
+    render();
+    toast("Действие выполнено.");
+  } catch (error) {
+    render();
+    toast(error.message);
+  }
+}
+
+function performAgentOp(targetId, opType) {
+  accrue();
+  resetDailyAgentOps();
+
+  if (!canPerformAgentOp()) {
+    toast("Достигнут дневной лимит агентских операций (35).");
+    return;
+  }
+
+  const target = AI_OPPONENT;
+  const attackerPower = getAgentPower(
+    state.units.agent,
+    state.land,
+    getTechEffect("espionage", state.techPoints.espionage, state.land)
+  );
+  const defensePower = getAgentPower(
+    target.agents,
+    target.land,
+    getTechEffect("espionage", target.techEspionage, target.land)
+  ) * target.readiness;
+
+  const successChance = Math.max(0.1, Math.min(0.9, attackerPower / (attackerPower + defensePower)));
+  const history = state.agentTargets[targetId];
+  const decayFactor = Math.pow(0.9, history.successStreak);
+
+  const roll = Math.random();
+  const isSuccess = roll < successChance * decayFactor;
+
+  const next = clone(state);
+  next.agentOperations.dailyCount++;
+
+  if (isSuccess) {
+    const nextHistory = { ...history };
+    nextHistory.successStreak++;
+    nextHistory.failStreak = 0;
+    next.agentTargets[targetId] = nextHistory;
+
+    switch (opType) {
+      case "sabotageIntel":
+        addLog(next, `Операция успешна: саботаж разведки у ${target.name}.`);
+        break;
+      case "stealTech":
+        const techStolen = Math.floor(10 + Math.random() * 20);
+        next.techPoints.business = Math.min(TECHS.business.maxEffect * next.land * 10, next.techPoints.business + techStolen);
+        addLog(next, `Похищено ${techStolen} очков технологий.`);
+        break;
+      case "inciteRiot":
+        const popLost = Math.floor(50 + Math.random() * 100);
+        addLog(next, `Мятеж: эмигрировало ${popLost} человек.`);
+        break;
+      case "bombardBuildings":
+        const buildingsLost = Math.floor(target.land * 0.03);
+        addLog(next, `Бомбардировка: уничтожено ${buildingsLost} построек у ${target.name}.`);
+        break;
+      default:
+        addLog(next, `Отчёт разведки по ${target.name}: данные получены.`);
+    }
+    addLog(next, `Операция «${opType}» прошла успешно.`);
+  } else {
+    const nextHistory = { ...history };
+    nextHistory.failStreak++;
+    nextHistory.successStreak = 0;
+    next.agentTargets[targetId] = nextHistory;
+    addLog(next, `Операция провалена. Атакующий раскрыт.`);
+  }
+
+  next.lastActivity = Date.now();
+  if (!validate(next)) throw new Error("Достигнут предел параметров прототипа.");
+  state = next;
+  save();
+  render();
+  toast(isSuccess ? "Операция успешна" : "Операция провалена");
+}
+
+function canPerformAgentOp() {
+  return state.agentOperations.dailyCount < 35;
+}
+
+function performMarketTrade(resource, amount, isBuy) {
+  accrue();
+
+  try {
+    const input = document.getElementById(`market_${resource}`);
+    const rawAmount = input?.value;
+    if (!rawAmount) throw new Error("Не указано количество.");
+    amount = parseInt(rawAmount, 10);
+    if (!validInt(amount, 1)) throw new Error("Неверное количество.");
+
+    const next = clone(state);
+
+    // Проверка минимумов
+    if (isBuy) {
+      if (amount < 100) throw new Error("Минимум покупки — 100 единиц.");
+    } else {
+      if (amount < 5000) throw new Error("Минимум продажи — 5000 единиц.");
+    }
+
+    const priceKey = isBuy ? "buy" : "sell";
+    let price = MARKET_PRICES[resource]?.[priceKey];
+
+    if (!price) throw new Error("Неизвестный товар.");
+
+    const gov = getGovernment();
+    const marketCapPercent = (gov === "communism" ? 0.60 : 0.25);
+    const marketCap = Math.floor(next.units[resource] * marketCapPercent);
+    if (!isBuy && amount > marketCap) {
+      throw new Error(`Можно выставить не более ${marketCap} единиц (${(marketCapPercent*100)}%).`);
+    }
+
+    const tax = getMarketTax();
+    const totalCost = Math.round(price * amount * (isBuy ? (1 + tax) : (1 - tax)));
+
+    if (isBuy) {
+      // Проверка вместимости казарм
+      const newUnits = next.units[resource] + amount;
+      const capacity = next.buildings.barracks * 25;
+      if (newUnits > capacity) {
+        throw new Error(`Недостаточно мест в казармах. Максимум: ${capacity}.`);
+      }
+
+      if (next.resources.credits < money(totalCost)) {
+        throw new Error("Недостаточно кредитов.");
+      }
+      next.resources.credits -= money(totalCost);
+      next.units[resource] += amount;
+    } else {
+      if (next.units[resource] < amount) {
+        throw new Error(`Недостаточно ${UNITS[resource].name}.`);
+      }
+      next.resources.credits += money(totalCost);
+      next.units[resource] -= amount;
+    }
+
+    next.market.tradeCount++;
+    next.lastActivity = Date.now();
+    addLog(next, `${isBuy ? "Куплено" : "Продано"} ${amount} ${UNITS[resource]?.name || RESOURCE_NAMES[resource]}: ${totalCost} кредитов (налог ${tax * 100}%).`);
+    
+    if (!validate(next)) throw new Error("Достигнут предел параметров прототипа.");
+    state = next;
+    save();
+    render();
+    toast(`Сделка завершена: ${amount} ${UNITS[resource]?.name || RESOURCE_NAMES[resource]}.`);
+  } catch (error) {
+    toast(error.message);
+  }
+}
+/* -----------------------------------------------------------
+   Интерфейс. Динамический HTML строится только из конфигурации
+   и проверенных чисел; текст журнала вставляется через textContent.
+----------------------------------------------------------- */
+function costText(cost) {
+  return Object.entries(cost)
+    .map(([id, value]) => `${number(value)} ${RESOURCE_NAMES[id].toLowerCase()}`)
+    .join(" · ");
+}
+
+function affordable(cost) {
+  return Object.entries(cost).every(([id, value]) => state.resources[id] >= money(value));
+}
+
+function actionButton(action, id, label, disabled = false, count = 1) {
+  return `<button
+    data-action="${action}"
+    data-id="${id}"
+    data-count="${count}"
+    ${disabled ? "disabled" : ""}
+  >${label}</button>`;
+}
+
+function render() {
+  const stats = [
+    ...Object.entries(RESOURCE_NAMES).map(([id, label]) =>
+      ({ label, value: amount(state.resources[id]) })
+    ),
+    { label: "Население", value: number(state.population) },
+    { label: "Свободная земля", value: number(state.land - sum(state.buildings)) }
+  ];
+
+  $("resources").innerHTML = stats.map(item => `
+    <div class="stat">
+      <div class="label">${item.label}</div>
+      <div class="value">${item.value}</div>
+    </div>
+  `).join("");
+
+  $("turns").textContent = `${state.turns} / ${MAX_TURNS}`;
+  $("bank").textContent = `${state.bank} / ${MAX_BANK}`;
+  $("turnProgress").style.width = `${(state.turns / MAX_TURNS) * 100}%`;
+  $("withdraw").disabled = !state.bank || state.turns >= MAX_TURNS;
+  $("population").textContent = number(state.population);
+  $("capacity").textContent = number(state.buildings.habitat * 100);
+  $("workers").textContent = number(workers(state));
+  $("land").textContent = `${number(sum(state.buildings))} / ${number(state.land)}`;
+  $("spent").textContent = number(state.spent);
+
+  const flow = economy(state);
+
+  $("forecast").innerHTML = Object.entries(RESOURCE_NAMES).map(([id, label]) => {
+    const net = flow.production[id] - flow.consumption[id];
+    return `<tr>
+      <td>${label}</td>
+      <td class="good">+${amount(flow.production[id])}</td>
+      <td>${amount(flow.consumption[id])}</td>
+      <td class="${net >= 0 ? "good" : "bad"}">${net >= 0 ? "+" : ""}${amount(net)}</td>
+    </tr>`;
+  }).join("");
+
+  const totalBuildings = sum(state.buildings);
+  $("buildingCards").innerHTML = Object.entries(BUILDINGS).map(([id, b]) => {
+    const baseCost = b.cost;
+    const finalCost = b.buildCostMultiplier
+      ? getBuildingCost(baseCost, totalBuildings)
+      : baseCost;
+
+    const unavailable = state.turns < 1 ||
+      sum(state.buildings) >= state.land || !affordable(finalCost);
+
+    return `<article class="card">
+      <div class="row">
+        <h3>${b.icon} ${b.name}</h3>
+        <span class="badge">${state.buildings[id]} шт.</span>
+      </div>
+      <p>${b.description}</p>
+      <p class="small">${costText(finalCost)}</p>
+      <div class="actions">
+        ${actionButton("build", id, "Построить", unavailable)}
+        ${actionButton("build", id, "×5", unavailable || state.turns < 5, 5)}
+      </div>
+    </article>`;
+  }).join("");
+
+  $("researchCards").innerHTML = Object.entries(TECHS).map(([id, tech]) => {
+    const area = getTotalArea(state);
+    const points = state.techPoints[id];
+    const effect = getTechEffect(id, points, area);
+    const maxEffect = tech.maxEffect;
+    const progress = points > 0 ? Math.min(1, effect / maxEffect) : 0;
+
+    return `<article class="card">
+      <h3>${tech.name}</h3>
+      <div class="progress"><span style="width: ${progress * 100}%"></span></div>
+      <p class="small muted">Очков: ${number(points)} / ${number(area * 10)}</p>
+      <p>Эффект: ${(effect * 100).toFixed(1)}% / ${(maxEffect * 100).toFixed(1)}%</p>
+      <p>${tech.description}</p>
+    </article>`;
+  }).join("");
+
+  const armyCount = sum(state.units);
+  const places = state.buildings.barracks ? state.buildings.barracks * 25 : 0;
+  $("armyCount").textContent = `${number(armyCount)} / ${number(places)}`;
+
+  $("attack").textContent = number(Object.entries(UNITS).reduce(
+    (total, [id, u]) => total + state.units[id] * u.attack, 0
+  ));
+  $("defense").textContent = number(Object.entries(UNITS).reduce(
+    (total, [id, u]) => total + state.units[id] * u.defense, 0
+  ));
+
+  $("unitCards").innerHTML = Object.entries(UNITS).map(([id, unit]) => {
+    const readiness = state.unitReadiness[id];
+    const readinessPerc = Math.round(readiness * 100);
+    const color = readiness > 0.7 ? "good" : readiness > 0.4 ? "muted" : "bad";
+
+    const unavailable = armyCount >= places ||
+      state.turns < 1 || !affordable(unit.cost);
+
+    return `<article class="card">
+      <div class="row">
+        <h3>${unit.icon} ${unit.name}</h3>
+        <span class="badge">${state.units[id]} шт.</span>
+      </div>
+      <p>Атака: ${unit.attack} · Защита: ${unit.defense}</p>
+      <p>Боеготовность: <span class="${color}">${readinessPerc}%</span></p>
+      <p class="small">${costText(unit.cost)}</p>
+      <div class="actions">
+        ${actionButton("recruit", id, "Нанять", unavailable)}
+        ${actionButton("recruit", id, "×5", unavailable || state.turns < 5, 5)}
+      </div>
+    </article>`;
+  }).join("");
+
+  // Рынок
+  if ($("marketTable")) {
+    $("marketTable").innerHTML = Object.entries(MARKET_PRICES).map(([res, prices]) => `
+      <tr>
+        <td>${UNITS[res]?.name || RESOURCE_NAMES[res]}</td>
+        <td>${prices.buy}</td>
+        <td>${prices.sell}</td>
+        <td class="row">
+          <input type="number" id="market_${res}" value="100" min="${res in UNITS ? '100' : '5000'}" max="10000" step="100" style="width:80px">
+          <button data-action="marketBuy" data-resource="${res}">Купить</button>
+          <button data-action="marketSell" data-resource="${res}">Продать</button>
+        </td>
+      </tr>
+    `).join("");
+  }
+
+  if ($("govName")) {
+    $("govName").textContent = GOVERNMENTS[state.government].name;
+    $("marketTax").textContent = `${(getMarketTax() * 100)}%`;
+  }
+
+  if ($("currentGov")) {
+    $("currentGov").textContent = GOVERNMENTS[state.government].name;
+  }
+
+  if ($("govButtons")) {
+    $("govButtons").innerHTML = Object.entries(GOVERNMENTS).map(([id, gov]) => `
+      <button data-action="revolution" data-id="${id}" ${state.government === id ? "disabled" : ""}>
+        ${gov.name} — ${gov.bonus}
+      </button>
+    `).join("");
+  }
+
+  if ($("agentOpsCount")) {
+    $("agentOpsCount").textContent = state.agentOperations.dailyCount;
+  }
+
+  const journal = $("journal");
+  if (journal) {
+    journal.replaceChildren();
+    for (const entry of state.log) {
+      const li = document.createElement("li");
+      const time = document.createElement("time");
+      time.textContent = new Date(entry.time).toLocaleString("ru-RU");
+      const text = document.createElement("span");
+      text.textContent = entry.text;
+      li.append(time, text);
+      journal.append(li);
+    }
+  }
+
+  updateTimer();
+}
+
+function updateTimer() {
+  const now = Date.now();
+
+  if (state.lastAccrual > now) {
+    $("timer").textContent = "проверь часы устройства";
+    return;
+  }
+
+  const seconds = Math.max(
+    0,
+    Math.ceil((state.lastAccrual + TURN_INTERVAL - now) / 1000)
+  );
+
+  $("timer").textContent =
+    String(Math.floor(seconds / 60)).padStart(2, "0") + ":" +
+    String(seconds % 60).padStart(2, "0");
+}
+
+/* -----------------------------------------------------------
+   События.
+----------------------------------------------------------- */
+document.addEventListener("click", event => {
+  const tabButton = event.target.closest("button[data-tab]");
+
+  if (tabButton) {
+    document.querySelectorAll("[data-tab]").forEach(button => {
+      const active = button === tabButton;
+      button.classList.toggle("active", active);
+      if (active) button.setAttribute("aria-current", "page");
+      else button.removeAttribute("aria-current");
+    });
+
+    document.querySelectorAll(".section").forEach(section => {
+      section.classList.toggle("active", section.id === tabButton.dataset.tab);
+    });
+    return;
+  }
+
+  const button = event.target.closest("button[data-action]");
+  if (!button || button.disabled) return;
+
+  const action = button.dataset.action;
+  const id = button.dataset.id;
+  const count = Number(button.dataset.count || 1);
+
+  switch (action) {
+    case "marketBuy":
+    case "marketSell":
+      const resource = button.dataset.resource;
+      performMarketTrade(resource, 0, action === "marketBuy");
+      return;
+    case "agentOp":
+      performAgentOp(button.dataset.target, button.dataset.op);
+      return;
+    default:
+      perform(action, id, count);
+  }
+});
+
+$("withdraw").addEventListener("click", () => {
+  accrue();
+  const count = Math.min(state.bank, MAX_TURNS - state.turns);
+  if (!count) {
+    render();
+    return;
+  }
+
+  state.bank -= count;
+  state.turns += count;
+  state.lastActivity = Date.now();
+  addLog(state, `Из банка переведено ${count} ходов.`);
+  save();
+  render();
+  toast(`Получено ${count} ходов.`);
+});
+
+$("reset").addEventListener("click", () => {
+  if (!confirm("Удалить прогресс и создать новую колонию?")) return;
+  state = initialState();
+  save();
+  render();
+  toast("Создана новая колония.");
+});
+
+$("exportSave").addEventListener("click", () => {
+  accrue();
+  render();
+
+  const blob = new Blob([JSON.stringify(state, null, 2)], {
+    type: "application/json"
+  });
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "mars2025-reborn-save.json";
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
+
+$("importSave").addEventListener("change", async event => {
+  const input = event.target;
+  const file = input.files[0];
+  if (!file) return;
+
+  try {
+    if (file.size > 200000) throw new Error("Файл слишком большой.");
+
+    const parsed = JSON.parse(await file.text());
+    if (!validate(parsed)) throw new Error("Файл не является корректным сохранением.");
+
+    if (!confirm("Заменить текущую колонию данными из файла?")) return;
+
+    state = sanitize(parsed);
+    accrue();
+    addLog(state, "Колония восстановлена из резервной копии.");
+    save();
+    render();
+    toast("Сохранение восстановлено.");
+  } catch (error) {
+    toast("Не удалось загрузить файл: " + error.message);
+  } finally {
+    input.value = "";
+  }
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) {
+    accrue();
+    render();
+  }
+});
+
+setInterval(() => {
+  if (accrue()) render();
+  else updateTimer();
+}, 1000);
+
+accrue();
+render();
+save();
+
+if (loadWarning) toast(loadWarning);
+</script>
+</body>
+</html>
